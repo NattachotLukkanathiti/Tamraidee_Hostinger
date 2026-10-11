@@ -16,7 +16,8 @@ app.use(cors({
     'https://tamraidee.netlify.app',
     'https://tamraidee.nat-lukkanathiti.workers.dev',
     'https://trd.tamraidee.workers.dev',
-    'https://trd2.tamraidee.workers.dev'
+    'https://trd2.tamraidee.workers.dev',
+    'https://tamraidee.tech'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'ngrok-skip-browser-warning'],
@@ -1002,8 +1003,40 @@ app.get('/api/summary', async (req, res) => {
     res.status(500).json({ message: 'Server Error' });
   }
 });
-const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
+const omise = require('omise')({
+  'publicKey': 'pkey_test_...',
+  'secretKey': 'skey_test_...'
+});
+
+app.post('/create-promptpay-charge', async (req, res) => {
+  const { amount } = req.body; // ยอดเงิน (หน่วยเป็นสตางค์ เช่น 100 บาท = 10000)
+  
+  try {
+    const source = await omise.sources.create({
+      amount: amount,
+      currency: 'thb',
+      type: 'promptpay'
+    });
+
+    const charge = await omise.charges.create({
+      amount: amount,
+      currency: 'thb',
+      source: source.id
+    });
+
+    // ส่ง URL ของ QR Code และ Charge ID กลับไปให้ Angular
+    res.json({ 
+      qrCodeUrl: charge.source.scannable_code.image.download_uri,
+      chargeId: charge.id
+    });
+  } catch (error) {
+    res.status(500).json;
+  }
+});
+
+const PORT: number = Number(process.env.PORT) || 80;
+
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
 });

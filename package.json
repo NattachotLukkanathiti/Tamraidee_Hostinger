@@ -1,5 +1,7 @@
 {
   "dependencies": {
-    "@supabase/supabase-js": "^2.112.4"
+    "@supabase/supabase-js": "^2.112.4",
+    "angularx-qrcode": "^22.0.1",
+    "promptpay-qr": "^0.5.0"
   }
 }
