@@ -8,12 +8,11 @@ const app = express();
 
 const otpStore = new Map<string, { otp: string; expiresAt: number }>();
 
-app.use(cors({
+// 1. ย้าย app.options('*', cors()); ขึ้นมาไว้ก่อน หรือรวมเข้ากับการตั้งค่า cors หลัก
+const corsOptions = {
   origin: [
-    'https://lamped.netlify.app',
+  
     'http://localhost:4200',
-    'https://coruscating-donut-62bb86.netlify.app',
-    'https://tamraidee.netlify.app',
     'https://tamraidee.nat-lukkanathiti.workers.dev',
     'https://trd.tamraidee.workers.dev',
     'https://trd2.tamraidee.workers.dev',
@@ -22,8 +21,14 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'ngrok-skip-browser-warning'],
   credentials: true
-}));
-app.options('*', cors()); 
+};
+
+// 2. เรียกใช้ cors middleware
+app.use(cors(corsOptions));
+
+// 3. จัดการ preflight request สำหรับทุก routes
+app.options('*', cors(corsOptions)); 
+
 app.use(express.json());
 app.get('/', (req, res) => {
   res.send('Todo API Running');
