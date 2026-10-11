@@ -8,11 +8,12 @@ const app = express();
 
 const otpStore = new Map<string, { otp: string; expiresAt: number }>();
 
-// 1. ย้าย app.options('*', cors()); ขึ้นมาไว้ก่อน หรือรวมเข้ากับการตั้งค่า cors หลัก
-const corsOptions = {
+app.use(cors({
   origin: [
-  
+    'https://lamped.netlify.app',
     'http://localhost:4200',
+    'https://coruscating-donut-62bb86.netlify.app',
+    'https://tamraidee.netlify.app',
     'https://tamraidee.nat-lukkanathiti.workers.dev',
     'https://trd.tamraidee.workers.dev',
     'https://trd2.tamraidee.workers.dev',
@@ -21,13 +22,7 @@ const corsOptions = {
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'ngrok-skip-browser-warning'],
   credentials: true
-};
-
-// 2. เรียกใช้ cors middleware
-app.use(cors(corsOptions));
-
-// 3. จัดการ preflight request สำหรับทุก routes
-app.options('*', cors(corsOptions)); 
+}));
 
 app.use(express.json());
 app.get('/', (req, res) => {
@@ -1008,7 +1003,7 @@ app.get('/api/summary', async (req, res) => {
     res.status(500).json({ message: 'Server Error' });
   }
 });
-
+const PORT = process.env.PORT || 3000;
 const omise = require('omise')({
   'publicKey': 'pkey_test_...',
   'secretKey': 'skey_test_...'
@@ -1039,9 +1034,6 @@ app.post('/create-promptpay-charge', async (req, res) => {
     res.status(500).json;
   }
 });
-
-const PORT: number = Number(process.env.PORT) || 80;
-
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
