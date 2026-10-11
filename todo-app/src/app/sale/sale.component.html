@@ -184,7 +184,7 @@
         </div>
         <div class="status" [ngClass]="{'text-green': order.status === 'Completed', 'text-red': order.status === 'Canceled', 'text-blue': order.status === 'Pending'}">
             {{ order.status }}
-              <img class="icon" *ngIf="userRole === 'backend' || userRole === 'admin'" (click)="opencancel(order);$event.stopPropagation()" src="image/cancelss.svg">
+              <img class="icon" (click)="opencancel(order);$event.stopPropagation()" src="image/cancelss.svg">
         </div>
     </div>
     <div class="line"></div>

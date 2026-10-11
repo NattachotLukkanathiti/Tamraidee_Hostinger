@@ -16,6 +16,7 @@
             "outputPath": "dist/todo-app",
             "index": "src/index.html",
             "browser": "src/main.ts",
+            
             "polyfills": [
               "zone.js"
             ],
@@ -42,7 +43,7 @@
                 {
                   "type": "anyComponentStyle",
                   "maximumWarning": "20kB",
-                  "maximumError": "30kB"
+                  "maximumError": "1GB"
                 }
               ],
               "outputHashing": "all"

@@ -4,8 +4,9 @@ import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { TodoService } from '../services/todo.service';
-import { interval, Subscription } from 'rxjs';
+import { forkJoin,interval, Subscription } from 'rxjs';
 import { Output, EventEmitter } from '@angular/core';
+
 type HeaderPanel = 'account' | null;
 @Component({
   selector: 'app-navbar',
@@ -53,6 +54,7 @@ export class NavbarComponent implements OnInit {
    isClosing = false;
      isRightPanelOpen = true;
      notification: any[] = [];
+     notification_status: any[] = []; 
   summary: any = {
   todays_sale: 0,
   yearly_total_sales: 0,
@@ -62,48 +64,54 @@ export class NavbarComponent implements OnInit {
 };
   openpro = false;
   private timeSubscription!: Subscription;
+    private notiSubscription!: Subscription;
   constructor(private router: Router) {}
 
-ngOnInit(): void {
+  ngOnInit(): void {
+
     const state = history.state;
     this.username = state.username || '';
     this.email = state.email || '';
     this.userRole = state.role || 'user';
     this.profile = state.profile || '';
-
-    // 1. ย้ายมาโหลดตรงนี้ เพื่อให้แน่ใจว่ามี username แล้ว
-    if (this.username) {
+    this.loadTodos()
+     if (state.Move_return === true) {
+    this.stan = false;
+    this.play_Return = true;
+    this.inhere = true;
+    this.loadSummary(); 
+  }
+      if (this.username) {
       this.loadNotifications();
+      
+      // 2. ตั้งให้เช็คแจ้งเตือนใหม่ทุกๆ 30 วินาที (30000 มิลลิวินาที)
+      this.notiSubscription = interval(30000).subscribe(() => {
+        this.loadNotifications();
+      });
     }
-
-    this.loadTodos();
-
-    if (state.Move_return === true) {
-      this.stan = false;
-      this.play_Return = true;
-      this.inhere = true;
-      this.loadSummary(); 
-    }
-    else if (state.stan === true) {
-      this.stan = true;
-      this.inhere = true;
-      this.play_Return = false;
-    }
-
-    if (state.Dont_animation === true){
-      this.inhere = false;
-      this.outs = true;
-    }
+  // เข้ามาจาก Login
+  else if (state.stan === true) {
+    this.stan = true;
+        this.inhere = true;
+    this.play_Return = false;
+  }
+  if (state.Dont_animation === true){
+     this.inhere = false;
+    this.outs = true;
+    
+  }
 
     if(!this.username || !this.email){
-      this.openpopupnoti("Session not found. Redirecting to login");
+      this.openpopupnoti("Session not found. Redirecting to login")
     return;
   }
     this.loadChartData();
     this.timeSubscription = interval(1000).subscribe(() => {
       this.currentTime = new Date();
     });
+  
   }
+
   loadSummary() {
     this.todoService.getSummary().subscribe({
       next: (res) => {
@@ -207,6 +215,7 @@ ngOnInit(): void {
   }
   ngOnDestroy() {
     this.timeSubscription?.unsubscribe();
+        this.notiSubscription?.unsubscribe();
   }
   // ปรับชื่อและค่า scale ให้เหมาะกับความสูงของกราฟ
   calculateHeight(valueInBaht: number): number {
@@ -338,14 +347,14 @@ ngOnInit(): void {
        this.router.navigate(['/helpp'], {
       state: { username: this.username, email: this.email, role: this.userRole, profile: this.profile }
     });
-    // ปิด Sidebar หากอยู่ที่หน้า Help อยู่แล้ว หรือจะสั่ง reload ก็ได้
+
     this.closePanel();
   }
     openSetting() {
        this.router.navigate(['/setting'], {
       state: { username: this.username, email: this.email, role: this.userRole, profile: this.profile }
     });
-    // ปิด Sidebar หากอยู่ที่หน้า Help อยู่แล้ว หรือจะสั่ง reload ก็ได้
+   
     this.closePanel();
   }
 
@@ -363,33 +372,46 @@ ngOnInit(): void {
           state: { username: this.username, email: this.email, Move_returns3: true, role: this.userRole, profile: this.profile }
     });
   }
- loadNotifications(): void {
-    this.todoService.getNotifications().subscribe({
-      next: (res: any) => {
-        const rawData = Array.isArray(res) ? res : (res.data || []);
-        
-        const readKey = `read_notifications_${this.username}`;
-        const readIds = JSON.parse(localStorage.getItem(readKey) || '[]');
+loadNotifications(): void {
+  if (!this.username) return;
 
-        this.notification = rawData.map((item: any) => ({
-          ...item,
-          is_read: readIds.includes(item.id)
-        }));
+  forkJoin({
+    notifications: this.todoService.getNotifications(),
+    status: this.todoService.getNotificationStatus(this.username)
+  }).subscribe({
+    next: (res: any) => {
+      this.notification = Array.isArray(res.notifications)
+        ? res.notifications
+        : (res.notifications?.data || []);
 
-        this.changeDetector.markForCheck(); 
-      },
-      error: (err) => console.error('Error loading notifications:', err)
-    });
-  }
-    getDisplayRole(): string {
+      this.notification_status = Array.isArray(res.status)
+        ? res.status
+        : (res.status?.data || []);
+
+      this.changeDetector.markForCheck();
+    },
+    error: (err) => {
+      console.error('Error loading notifications:', err);
+    }
+  });
+}
+
+  getDisplayRole(): string {
     if (this.userRole.toLowerCase() === 'pos') {
       return 'Frontend';
     }
     // ทำให้ตัวอักษรตัวแรกเป็นตัวพิมพ์ใหญ่สำหรับ Role อื่นๆ
     return this.userRole.charAt(0).toUpperCase() + this.userRole.slice(1);
   }
-get hasUnreadNotifications(): boolean {
-    // เช็คว่ามีรายการไหนที่ is_read เป็น false หรือไม่
-    return this.notification.some(item => !item.is_read);
-  }
+  get hasUnreadNotifications(): boolean {
+  const readIds = new Set(
+    this.notification_status.map(
+      (status: any) => Number(status.notification_id)
+    )
+  );
+
+  return this.notification.some(
+    (item: any) => !readIds.has(Number(item.id))
+  );
+}
 }

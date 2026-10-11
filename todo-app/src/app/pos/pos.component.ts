@@ -3,7 +3,8 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { TodoService } from '../services/todo.service'; // นำเข้า TodoService
-
+import promptpay from 'promptpay-qr';
+import * as QRCode from 'qrcode';
 interface Category {
   label: string;
   count: number;
@@ -47,14 +48,14 @@ export class PosComponent implements OnInit, OnDestroy {
   profile = '';
   username = '';
   role = '';
-
+   product = true;
   navItems = [
     { label: 'Pos' },
     { label: 'Sales Orders' },
     { label: 'Employee' }
   ];
-
-  paymentOptions = ['Choose', 'Cash', 'QR', 'Credit Card', 'Transfer'];
+    outimport = false;
+  paymentOptions = ['Choose', 'Cash', 'QR'];
   insuranceOptions = ['Choose', 'Standard', 'Premium'];
   isClosing = false;
   helpSearch = '';
@@ -393,36 +394,70 @@ loadNotifications(): void {
     element.scrollBy({ left: 200, behavior: 'smooth' });
   }
 completePayment(): void {
-  if (!this.cartItems.length) return;
+    this.product = false;
+  console.log('Cart Items:', this.cartItems.length);
+  console.log('Selected Payment:', this.selectedPayment);
 
-  const orderCode = `#${Date.now().toString().slice(-6)}`;
+  if (!this.cartItems.length) {
+    alert('กรุณาเลือกสินค้าก่อนชำระเงิน');
+    return;
+  }
+
+  if (this.selectedPayment === 'QR') {
+    console.log('Entering QR Mode...');
+    this.orderCode = Date.now().toString().slice(-6);
+    this.generatePromptPayQR(this.total); 
+    this.showQrModal = true;
+    this.changeDetector.markForCheck(); 
+  } else if (this.selectedPayment === 'Choose') {
+    alert('กรุณาเลือกวิธีการชำระเงิน');
+  } else {
+    this.processOrder();
+  }
+}
+
+// เพิ่มฟังก์ชัน processOrder เพื่อแยกการทำงานให้เป็นระเบียบ
+processOrder(): void {
+  const orderCode = `#${this.orderCode}`;
   const now = new Date().toISOString();
 
-  this.cartItems.forEach(item => {
-    // คำนวณยอดรวมของสินค้ารายการนี้ (ราคา * จำนวน)
-    const itemAmount = item.price * item.quantity;
+  // 1. เตรียมข้อมูลสำหรับหน้าใบเสร็จ
+  const receiptData = {
+    companyName: 'Tam rai dee Company Limited (Head Office)',
+    companyAddress: ['123/45 Gayson Tower, 15th Floor,', 'Ratchadamri Road,', 'Lumpini, Pathum Wan, Bangkok 10330'],
+    taxId: '0105560000000',
+    receiptNumber: `REC-${this.orderCode}`,
+    orderCode: orderCode,
+    cashier: this.username,
+    items: this.cartItems.map(item => ({
+      skuOrName: item.name,
+      quantity: item.quantity,
+      unitPrice: this.formatCurrency(item.price),
+      amount: this.formatCurrency(item.price * item.quantity)
+    })),
+    subtotal: this.formatCurrency(this.subtotal),
+    productInsurancePremium: this.selectedInsurance,
+    discount: this.formatCurrency(this.discountAmount),
+    grandTotal: this.formatCurrency(this.total)
+  };
 
-    // ข้อมูลที่ตรงกับคอลัมน์ในตาราง sale_order
+  // 2. บันทึกข้อมูลและตัดสต็อก
+  this.cartItems.forEach(item => {
+    const itemAmount = item.price * item.quantity;
     const salesData = {
       order_code: orderCode,
       product_name: item.name,
       quantity: item.quantity,
-      amount: itemAmount, // <--- เพิ่มการส่งยอดรวมราคา
+      amount: itemAmount,
       picture: this.profile, 
       create_by: this.username,
       status: 'Completed',
       created_at: now
     };
 
-    // 1. บันทึกข้อมูลลงตาราง sale_order
-    this.todoService.saveSalesOrder(salesData).subscribe({
-      next: () => console.log(`Saved to sale_order: ${item.name} (Qty: ${item.quantity}, Amount: ${itemAmount})`),
-      error: (err) => console.error(`Failed to save: ${item.name}`, err)
-    });
+    this.todoService.saveSalesOrder(salesData).subscribe();
 
-    // 2. ตัดสต็อกสินค้า
     const newStock = item.stock - item.quantity;
-    
     const updateData = {
       product_name: item.name,
       picture: item.image, 
@@ -432,12 +467,43 @@ completePayment(): void {
       brand: item.brand || 'N/A',
       quantity_alert: item.quantity_alert || 10
     };
-
     this.todoService.updateInventoryStock(item.id, updateData).subscribe();
   });
 
   alert('บันทึกข้อมูลการขายและตัดสต็อกเรียบร้อยแล้วค่ะ');
+  
+  // 3. ส่งข้อมูลและเปลี่ยนหน้าไปยัง Receipt (แก้ไขตรงนี้)
+  this.router.navigate(['/receipt'], {
+    state: { receiptData: receiptData }
+  });
+
   this.cartItems = [];
   this.loadInventory();
+}
+// 1. เพิ่มตัวแปรควบคุมการแสดงผล
+showQrModal = false;
+
+closeQrModal(): void {
+  this.outimport = true;
+  setTimeout(() => {
+    this.outimport = false;
+    this.product = true;
+    this.qrCodeUrl = ''; // <--- เพิ่มการล้างค่า QR Code
+  }, 300);
+}
+
+qrCodeUrl: string = '';
+
+// 2. แก้ไขฟังก์ชันให้เหลือเพียงอันเดียว
+generatePromptPayQR(amount: number) {
+  const mobileNumber = '0894999377'; // เปลี่ยนเป็นเบอร์ของคุณ (ไม่ต้องมีขีด)
+  const payload = promptpay(mobileNumber, { amount });
+  
+  QRCode.toDataURL(payload, (err, url) => {
+    if (!err) {
+      this.qrCodeUrl = url; 
+      this.changeDetector.markForCheck();
+    }
+  });
 }
 }

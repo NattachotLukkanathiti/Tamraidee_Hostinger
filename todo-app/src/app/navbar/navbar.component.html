@@ -32,14 +32,24 @@
         <div class="lin"></div>
 <!--         <img class="iconsetting1" src="image/Maximize Icon.svg" (click)="toggleMenu()" [class.Max]="Max" alt=""> -->
         <!-- <img class="iconsetting2" src="image/Song.svg" alt=""> -->
-        <div class="red_noti">
-  <!-- จุดสีแดงจะแสดงก็ต่อเมื่อมีรายการที่ยังไม่ได้อ่าน -->
-  <div class="red_notification" *ngIf="hasUnreadNotifications"></div>
-  
-  <button class="header-icon" type="button" aria-label="Notifications" (click)="openNotifications()">
+      
+
+<div class="red_noti">
+  <div
+    class="red_notification"
+    *ngIf="hasUnreadNotifications">
+  </div>
+
+  <button
+    class="header-icon"
+    type="button"
+    aria-label="Notifications"
+    (click)="openNotifications()">
     <img src="image/Chart.svg" alt="" />
   </button>
 </div>
+
+
 <button class="avatar-button" type="button" aria-label="Open account menu" [attr.aria-expanded]="openPanel === 'account'" (click)="toggleAccountMenu()"><img [src]="profile || 'image/profileee.svg'" /></button>
     </div>
 

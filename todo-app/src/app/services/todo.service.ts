@@ -15,7 +15,7 @@ export interface Todo {
 export class TodoService {
   private http = inject(HttpClient);
   private api = 'https://todo-arz1.onrender.com/api/todos';
-  private apiUrl = 'https://todo-arz1.onrender.com/api'; 
+private apiUrl = 'https://179.197.241.106:3000/api';
 
   private headers = new HttpHeaders({
     'ngrok-skip-browser-warning': 'true'

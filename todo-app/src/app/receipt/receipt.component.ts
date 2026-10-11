@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 
+import { ChangeDetectionStrategy, Component, OnInit, signal, inject } from '@angular/core';
+import { Router } from '@angular/router';
 
 
 /** One product line displayed in a receipt. Amounts are formatted by the API layer. */
@@ -43,23 +44,30 @@ const RECEIPT_PLACEHOLDER: ReceiptData = {
   grandTotal: ''
 };
 
-
 @Component({
   selector: 'app-receipt-page',
   standalone: true,
-
   templateUrl: './receipt.component.html',
   styleUrl: './receipt.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ReceiptComponent {
-  /** Captured once when this receipt page is created; it deliberately does not tick afterwards. */
+export class ReceiptComponent implements OnInit {
+  private router = inject(Router);
   readonly openedAt = new Date();
-
-  /** Backend integration: `receipt.set(apiResponse)` after fetching an order. */
   readonly receipt = signal<ReceiptData>(RECEIPT_PLACEHOLDER);
 
-  /** Example: `29 / 09 / 2569 13:38` — Thai Buddhist Era and a 24-hour clock. */
+  ngOnInit(): void {
+    // ดึงข้อมูลที่ส่งมาจากหน้า POS
+    const state = history.state;
+    if (state && state.receiptData) {
+      this.receipt.set(state.receiptData);
+    } else {
+      // ถ้าไม่มีข้อมูล (เช่น เปิดหน้านี้ตรงๆ) อาจจะให้ย้อนกลับไปหน้า POS
+      console.warn('No receipt data found, redirecting to POS...');
+      // this.router.navigate(['/pos']);
+    }
+  }
+
   formatOpenedAt(value: Date): string {
     const day = String(value.getDate()).padStart(2, '0');
     const month = String(value.getMonth() + 1).padStart(2, '0');

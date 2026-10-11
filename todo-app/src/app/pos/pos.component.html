@@ -98,8 +98,10 @@
             <div class="section-heading">
               <h1>Categories</h1>
               <div class="category-arrows" >
-                      <div class="buttonback" (click)="scrollLeft(categoryRow)"></div>
-      <div class="buttonnext" (click)="scrollRight(categoryRow)"></div>
+                      <div class="buttonback" (click)="scrollLeft(categoryRow)"> <img class="icon" src="image/leftt.svg" alt=""></div>
+      <div class="buttonnext" (click)="scrollRight(categoryRow)">
+        <img class="icon" src="image/right.svg" alt="">
+      </div>
               </div>
             </div>
             <div class="category-row" #categoryRow>
@@ -178,13 +180,13 @@
                       <div class="cart-row__price is-right">{{ formatCurrency(item.price) }}</div>
                       <div class="cart-row__qty">
                         <div class="quantity">
-                          <button type="button" aria-label="Increase quantity" (click)="changeQuantity(item, 1)"><img src="assets/figma-pos/plus-circle.svg" alt="" /></button>
+                          <button type="button" aria-label="Increase quantity" (click)="changeQuantity(item, 1)"><img src="image/add_pos.svg" alt="" /></button>
                           <div>{{ item.quantity }}</div>
-                          <button type="button" aria-label="Decrease quantity" (click)="changeQuantity(item, -1)"><img src="assets/figma-pos/minus-circle.svg" alt="" /></button>
+                          <button type="button" aria-label="Decrease quantity" (click)="changeQuantity(item, -1)"><img src="image/remove_pos.svg" alt="" /></button>
                         </div>
                       </div>
                       <div class="cart-row__subtotal is-right">{{ formatCurrency(item.price * item.quantity) }}</div>
-                      <button class="cart-row__remove" type="button" aria-label="Remove product" (click)="removeFromCart(item)"><img src="assets/figma-pos/trash-row.svg" alt="" /></button>
+                      <button class="cart-row__remove" type="button" aria-label="Remove product" (click)="removeFromCart(item)"><img src="image/bin.svg" alt="" /></button>
                     </div>
                   }
                 </div>
@@ -225,3 +227,28 @@
 
   </div>
 </div>
+<!-- QR Code Payment Modal -->
+<div class="qr-modal-backdrop" [class.product]="product" (click)="closeQrModal()">
+  <div class="qr-modal-content" [class.out_comimport]="outimport" (click)="$event.stopPropagation()">
+    <div class="qr-modal-header">
+      <div class="headerr">Payment</div>
+     <span class="pom">{{ formatCurrency(total) }}</span>
+<!--       <button class="close-btn" (click)="closeQrModal()">&times;</button> -->
+    </div>
+      <div class="con_pom">
+        <img class="pom"src="image/pom.png" alt="">
+      </div>
+    <div class="qr-modal-body">
+      <img class="QR"[src]="qrCodeUrl" alt="PromptPay QR Code" *ngIf="qrCodeUrl" />
+      <div class="loading" *ngIf="!qrCodeUrl">กำลังสร้าง QR Code...</div>
+    </div>
+
+    <div class="qr-modal-footer">
+      <button class="btn-cancel" (click)="closeQrModal()">Cancels</button>
+      <button class="btn-confirm" (click)="processOrder()"; >
+        Confirm Payment
+      </button>
+    </div>
+  </div>
+</div>
+

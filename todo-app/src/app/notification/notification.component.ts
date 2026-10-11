@@ -31,10 +31,7 @@ export class NotificationComponent implements OnInit, OnDestroy {
   out = false; outs = false; stan = false; inhere = false;
 
   // --- Dynamic Data ---
-  readonly pendingApprovals = signal<number>(0);
-  readonly inventoryAlerts = signal<number>(0);
-  readonly stockUpdates = signal<number>(0);
-  
+
   // เปลี่ยนจาก Signal เป็น Array ธรรมดา เพื่อให้ใช้กับ HTML เดิมได้
   notifications: any[] = [];
 
@@ -218,18 +215,29 @@ loadNotifications() {
     // 1. อัปเดตสถานะใน UI ทันที
     item.is_read = true;
 
-    // 2. ดึงข้อมูลเดิมจาก Local Storage ของผู้ใช้คนนี้
-    const readKey = `read_notifications_${this.username}`;
-    const readIds = JSON.parse(localStorage.getItem(readKey) || '[]');
-    
-    // 3. เพิ่ม ID ใหม่เข้าไปและบันทึกกลับลง Local Storage
-    if (!readIds.includes(item.id)) {
-      readIds.push(item.id);
-      localStorage.setItem(readKey, JSON.stringify(readIds));
-    }
+    // 2. ส่งข้อมูลไปบันทึกที่ Backend (ตาราง notification_status)
+    this.todoService.markNotificationAsRead(item.id, this.username).subscribe({
+      next: () => console.log('Marked as read successfully'),
+      error: (err) => {
+        console.error('Failed to mark as read:', err);
+        // หากบันทึกไม่สำเร็จ ให้คืนค่ากลับเป็นยังไม่อ่าน
+        item.is_read = false; 
+      }
+    });
   }
   // เช็คว่ามีอันที่ยังไม่ได้อ่านเหลืออยู่ไหม
   get hasUnreadNotifications(): boolean {
     return this.notifications.some(item => !item.is_read);
   }
+  pendingApprovals(): number {
+  return this.notifications.filter(item => item.title.includes('Pending Approvals')).length;
+}
+
+inventoryAlerts(): number {
+  return this.notifications.filter(item => item.type === 'warning').length;
+}
+
+stockUpdates(): number {
+  return this.notifications.filter(item => item.type === 'success').length;
+}
 }

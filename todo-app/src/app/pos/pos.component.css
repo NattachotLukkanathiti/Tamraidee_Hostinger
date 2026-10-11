@@ -535,10 +535,162 @@
   padding: 30px;
 }
 
+.qr-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999; /* เพิ่มเลขนี้เพื่อให้แน่ใจว่าจะอยู่บนสุด */
+}
+
+.qr-modal-content {
+  background: white;
+  border-radius: 12px;
+  width: 60vw;
+    border-radius: 12px; /* สมมติว่ากรอบของคุณมีความโค้ง */
+  overflow: hidden;  
+  height:80vh;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 10000;
+   
+    animation: moves 0.5s ease-in-out;
+}
+
+.QR{
+  width: 200px;
+  
+}
+.con_pom {
+  display: flex;
+  padding: 50px;
+  justify-content: center;
+  align-items: center;
+  width: fit-content; /* หรือกำหนดขนาด เช่น 300px */
+  margin: 0 auto; /* จัดกล่องให้อยู่ตรงกลางแนวนอน */
+}
+.btn-cancel{
+    width: 100%;
+    padding: 25px; /* ปรับ padding ให้สมดุลขึ้น */
+    font-size: 16px;
+    color: #FFFFFF;
+    border: 2px solid #E6EAED;
+    border-radius: 50px;
+    background: #2B2F38;
+    display: flex;
+    justify-content: center; /* จัดกึ่งกลางแนวนอน */
+    align-items: center;     /* จัดกึ่งกลางแนวตั้ง */
+    font-weight: 600;
+    cursor: pointer;
+}
+.qr-modal-footer{
+  gap: 10px;
+  padding: 50px 170px; /* บน-ล่าง = 0, ซ้าย-ขวา = 20px */
+  display: flex;
+}
+.product {
+    display: none;
+}
+.icon{
+  width: 10px !important;
+  height: 10px !important;
+}
+.out_comimport {
+  animation: moveOut 0.5s ease-in-out forwards; /* ตั้งเวลาเป็น 0.3s */
+}
 
 
+@keyframes moveOut {
+    0% {
+         opacity: 1;
+
+        clip-path: polygon(0 0,
+                100% 0,
+                100% 100%,
+                0 100%);
+                filter: blur(0);
+    }
+    50%{
+
+        clip-path: polygon(0 0,
+                100% 0,
+                80% 100%,
+                
+                20% 100%);
+                filter: 2px;
+    }
+    100% {
+         width: 10px;
+        height: 10px;
+        margin-top: 300px;
+        clip-path: polygon(0 0,
+                100% 0,
+                80% 100%,
+                20% 100%);
+                filter: blur(5px);
+
+    }
+}
+@keyframes moves {
+    0% {
+        width: 0px;
+        height: 0px;
+        margin-top: -100vh;
+        border-radius: 50%;
+        filter: blur(5px); 
+    }
+    100% {
 
 
+        opacity: 1;
+    }
+}
+.pom{
+  width: 150px;
+    
+  height: 45px;
+}
+.btn-confirm{
+    width: 100%;
+    padding: 25px; /* ปรับ padding ให้สมดุลขึ้น */
+    font-size: 16px;
+    color: #FFFFFF;
+    border: 2px solid #E6EAED;
+    border-radius: 50px;
+    background: #FCDE1D;
+    display: flex;
+    justify-content: center; /* จัดกึ่งกลางแนวนอน */
+    align-items: center;     /* จัดกึ่งกลางแนวตั้ง */
+    font-weight: 600;
+    cursor: pointer;
+}
+.headerr{
+  font-size: 50px;
+  font-weight: 600;
+}
+.qr-modal-header{
+  display: flex;
+  left: 0;
+  color: white;
+  padding: 30px;
+  background-color: #092c4c;
+   font-size: 50px;
+  font-weight: 600;
+}
+.back{
+  background-color: #092c4c;
+  width: 100%;
+  height: 50px;
+}
+.pom {
+  display: flex;
+  margin-left: auto;
+}
 .nav-backdrop {
   position: fixed;
   z-index: 28;
@@ -575,7 +727,13 @@
   display: flex;
   flex-direction: column;
 }
+.pos-main--without-right .left-side {
+  height: auto !important; /* ปลดล็อกความสูง */
+}
 
+.pos-main--without-right .product-grid {
+  overflow-y: visible !important; /* ปิด Scrollbar ใน และใช้ Scrollbar นอกแทน */
+}
 .quick-options {
   min-width: 0;
   padding: 10px;
@@ -666,16 +824,26 @@
 }
 .buttonback{
   border: 1px solid #E6EAED;
-  padding: 15px;
+  padding: 10px;
   border-radius: 50%;
   cursor: pointer;
+  position: relative;
 }
 .buttonnext{
   background:#84D46E;
-  padding: 15px;
+  padding: 10px;
+  display: flex;
+  position: relative;
   border-radius: 50%;
   cursor: pointer;
 }
+.buttonback img, .buttonnext img {
+  width: 15px !important;
+  height: 15px !important;
+  display: block;
+  position: static !important; /* ยกเลิกการใช้ absolute */
+}
+
 .buttonback:hover{
 
 }
@@ -1381,6 +1549,7 @@
 }
 
 .grand-total {
+  cursor: pointer;
   width: 100%;
   min-height: 50px;
   padding: 15px 10px;
@@ -1392,9 +1561,11 @@
 }
 
 .grand-total:hover {
-  background: #0b3c80;
+  background: #1364D5;
 }
-
+.grand-total:active{
+  background-color: #115BC2;
+}
 .toast {
   position: fixed;
   z-index: 60;
