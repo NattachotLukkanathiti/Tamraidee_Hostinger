@@ -1049,8 +1049,20 @@ app.get('/api/chat', async (req, res) => {
     
     // จัดการแปลงข้อมูล reactions ให้เป็น Array (กรณีที่ฐานข้อมูลส่งมาเป็น String)
     const formattedRows = result.rows.map(row => ({
-      ...row,
-      reactions: row.reactions || []
+      sender: row.sender,
+      message: row.message,
+      created_at: row.created_at,
+      is_read: row.is_read,
+      picture: row.picture,
+      profile: row.profile,
+      reactions: row.reactions || [],
+      // สร้าง Object replyTo ให้ตรงกับที่ Angular ต้องการ
+      replyTo: row.reply_to_id ? {
+        id: row.reply_to_id,
+        sender: row.reply_sender,
+        message: row.reply_message,
+        created_at: '',
+      } : undefined
     }));
 
     res.json(formattedRows);
