@@ -223,10 +223,12 @@ export class TodoService {
     return this.http.post<any>(
       `${this.apiUrl}/chat/typing`, 
       { username, is_typing: isTyping }, 
-      { headers: this.headers }
+      { 
+        headers: this.headers,
+        responseType: 'text' as 'json' // <--- เพิ่มบรรทัดนี้เพื่อแก้ปัญหา Error "OK" is not valid JSON
+      }
     );
   }
-
   // ดึงสถานะคนอื่นที่กำลังพิมพ์
   getTypingStatus(username: string): Observable<any[]> {
     return this.http.get<any[]>(

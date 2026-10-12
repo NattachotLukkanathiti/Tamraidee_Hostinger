@@ -17,6 +17,7 @@ interface ChatMessage {
   message: string;
   created_at: string;
   is_read?: boolean;
+    profile?: string;
 }
 
 type HeaderPanel = 'account' | null;
@@ -86,6 +87,7 @@ private typingTimeout: any;
     this.timeSubscription?.unsubscribe();
     this.chatSubscription?.unsubscribe(); // ยกเลิกการดึงข้อมูลเมื่อปิดหน้า
   }
+  
   onTyping() {
   this.todoService.sendTypingStatus(this.username, true).subscribe();
   
@@ -97,7 +99,22 @@ private typingTimeout: any;
   // --- Chat Functions ---
   toggleChat() {
     this.isChatOpen.set(!this.isChatOpen());
+    
     if (this.isChatOpen()) {
+      // เมื่อเปิดแชท ให้ส่งสถานะว่าอ่านแล้วไปที่ Backend ทันที
+      this.todoService.markChatAsRead(this.username).subscribe({
+        next: () => {
+          // อัปเดตสถานะ is_read ของข้อความในหน้าจอให้เป็น true
+          const updatedMessages = this.chatMessages().map(msg => ({
+            ...msg,
+            is_read: true
+          }));
+          this.chatMessages.set(updatedMessages);
+          this.changeDetector.markForCheck();
+        },
+        error: (err) => console.error('Error marking as read:', err)
+      });
+
       setTimeout(() => this.scrollToBottom(), 100);
     }
   }
@@ -118,25 +135,26 @@ private typingTimeout: any;
   }
 
   sendMessage() {
-    if (!this.newMessage().trim()) return;
+  if (!this.newMessage().trim()) return;
 
-    this.todoService.sendChatMessage(this.username, this.newMessage()).subscribe({
-      next: (response) => {
-        const newMsg: ChatMessage = {
-          id: response.data?.id || Date.now(),
-          sender: this.username,
-          message: this.newMessage(),
-          created_at: new Date().toISOString()
-        };
-        
-        this.chatMessages.set([...this.chatMessages(), newMsg]);
-        this.newMessage.set('');
-        this.changeDetector.markForCheck();
-        setTimeout(() => this.scrollToBottom(), 100);
-      },
-      error: (err) => console.error('Error sending message:', err)
-    });
-  }
+  this.todoService.sendChatMessage(this.username, this.newMessage()).subscribe({
+    next: (response) => {
+      const newMsg: ChatMessage = {
+        id: response.data?.id || Date.now(),
+        sender: this.username,
+        message: this.newMessage(),
+        created_at: new Date().toISOString(),
+        profile: this.profile // <--- เพิ่มบรรทัดนี้
+      };
+      
+      this.chatMessages.set([...this.chatMessages(), newMsg]);
+      this.newMessage.set('');
+      this.changeDetector.markForCheck();
+      setTimeout(() => this.scrollToBottom(), 100);
+    },
+    error: (err) => console.error('Error sending message:', err)
+  });
+}
 
   // ฟังก์ชันเลื่อนลงล่างสุด
   private scrollToBottom(): void {

@@ -90,7 +90,6 @@
   </div>
 </main>
 </div>
-<!-- กล่องแชท -->
 @if (isChatOpen()) {
     <div class="con_live">
       <div class="chat-header">
@@ -100,35 +99,49 @@
       
       <div class="chat-body" #chatBody>
         @for (chat of chatMessages(); track chat.id) {
-            <!-- เช็คว่าเป็นข้อความของเรา (sent) หรือของคนอื่น (received) -->
-            <div [class]="'message ' + (chat.sender === username ? 'sent' : 'received')">
-                @if (chat.sender !== username) {
-                    <div class="sender-name">{{ chat.sender }}</div>
-                }
-                {{ chat.message }}
+            
+            <!-- เพิ่ม div ครอบเพื่อจัด Layout รูปโปรไฟล์คู่กับข้อความ -->
+            <div class="message-container {{ chat.sender === username ? 'sent' : 'received' }}">
                 
-                <!-- แสดงสถานะ อ่านแล้ว (เฉพาะข้อความของเรา) -->
-                @if (chat.sender === username && chat.is_read) {
-                    <div class="read-status">อ่านแล้ว</div>
+                <!-- แสดงรูปโปรไฟล์เฉพาะข้อความของคนอื่น -->
+                @if (chat.sender !== username) {
+                    <div class="chat-avatar">
+                               <img [src]="chat.profile || 'image/profileee.svg'" alt="{{ chat.sender }}">
+                    </div>
                 }
+
+                <div [class]="'message ' + (chat.sender === username ? 'sent' : 'received')">
+                    @if (chat.sender !== username) {
+                        <div class="sender-name">{{ chat.sender }}</div>
+                    }
+                    <div class="message-time">{{ chat.created_at | date:'HH:mm' }}</div>
+                    {{ chat.message }}
+                    
+                    @if (chat.sender === username && chat.is_read) {
+                        <div class="read-status">Read</div>
+                    }
+                </div>
+
             </div>
+
         } @empty {
-            <div class="empty-state">ยังไม่มีข้อความ เริ่มต้นการสนทนาได้เลย!</div>
+            <div class="empty-state">No Message</div>
         }
 
-        <!-- แสดงสถานะกำลังพิมพ์ -->
         @if (typingUsers().length > 0) {
-            <div class="message received typing">
-                <div class="sender-name">{{ typingUsers().join(', ') }}</div>
-                กำลังพิมพ์...
+            <div class="message-container received">
+                <div class="chat-avatar">...</div>
+                <div class="message received typing">
+                    <div class="sender-name">{{ typingUsers().join(', ') }}</div>
+                    กำลังพิมพ์...
+                </div>
             </div>
         }
       </div>
 
       <div class="chat-footer">
-        <!-- เพิ่ม (input)="onTyping()" เพื่อตรวจจับการพิมพ์ -->
-        <input type="text" [(ngModel)]="newMessage" (input)="onTyping()" (keyup.enter)="sendMessage()" placeholder="พิมพ์ข้อความ...">
-        <button (click)="sendMessage()">ส่ง</button>
+        <input type="text" [(ngModel)]="newMessage" (input)="onTyping()" (keyup.enter)="sendMessage()" placeholder="...">
+        <button (click)="sendMessage()">Send</button>
       </div>
     </div>
 }

@@ -1,8 +1,11 @@
 {
-  "name": "trd",
+  "name": "trd2",
   "compatibility_date": "2026-08-08",
   "assets": {
     "directory": "./dist/todo-app/browser",
     "not_found_handling": "single-page-application"
-  }
+  },
+  "routes": [
+    { "pattern": "tamraidee.tech/*", "zone_name": "tamraidee.tech" }
+  ]
 }

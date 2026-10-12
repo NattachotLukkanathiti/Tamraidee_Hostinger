@@ -1051,7 +1051,24 @@ app.get('/api/chat', async (req, res) => {
     res.status(500).json({ success: false, message: 'Server Error' });
   }
 });
-// 2. บันทึกข้อความแชทใหม่
+// อัปเดตสถานะว่าอ่านข้อความแล้ว
+app.put('/api/chat/read', async (req, res) => {
+  const { username } = req.body;
+  
+  try {
+    // อัปเดตข้อความที่คนอื่นส่งมา ให้กลายเป็นอ่านแล้ว (is_read = true)
+    await pool.query(
+      `UPDATE chat SET is_read = true WHERE sender != $1`, 
+      [username]
+    );
+    
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Error updating read status:', error);
+    res.status(500).json({ success: false });
+  }
+});
+
 app.post('/api/chat', async (req, res) => {
   try {
     const { sender, message } = req.body;

@@ -604,3 +604,66 @@ button:disabled {
     color: #666;
     background-color: #f1f1f1;
 }
+.message-time{
+    font-size: 10px;
+}
+
+.message-container {
+    display: flex;
+    align-items: flex-end;
+    margin-bottom: 10px;
+}
+
+.message-container.sent {
+    justify-content: flex-end;
+}
+
+.chat-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    overflow: hidden; /* ตัดขอบรูปให้เป็นวงกลม */
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+
+.chat-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* ปรับสัดส่วนรูปให้เต็มพื้นที่โดยไม่เบี้ยว */
+}
+
+@media (max-width: 768px) {
+    
+    .con_live {
+        position: fixed;
+        top:45%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 90vw;
+        height: 70vh;
+        border-radius: 15px;
+        z-index: 1000;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        
+        display: flex;
+        flex-direction: column;
+        overflow: hidden; 
+    }
+
+    .chat-header {
+        flex-shrink: 0; 
+    }
+
+    .chat-body {
+        flex: 1 1 auto; /* ให้ขยายและหดได้ตามพื้นที่ */
+        height: auto !important; /* ล้างค่าความสูง 200px ของ Desktop ออก */
+        min-height: 0; /* แก้บั๊กการ Scroll ใน Flexbox */
+        overflow-y: auto; 
+        max-height: none;
+    }
+
+    .chat-footer {
+        flex-shrink: 0; 
+    }
+}
