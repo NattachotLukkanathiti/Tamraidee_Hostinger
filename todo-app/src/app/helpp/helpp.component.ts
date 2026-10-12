@@ -151,6 +151,7 @@ private typingTimeout: any;
       error: (err) => console.error('Error fetching chat:', err)
     });
   }
+  
   sendMessage() {
   if (!this.newMessage().trim()) return;
 
