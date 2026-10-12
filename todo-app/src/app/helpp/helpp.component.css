@@ -697,3 +697,34 @@ button:disabled {
         flex-shrink: 0; 
     }
 }
+
+
+.message-container {
+    position: relative;
+}
+
+.message-actions {
+    display: none;
+    position: absolute;
+    right: 10px;
+    top: 0;
+}
+
+.message-container:hover .message-actions {
+    display: flex;
+}
+
+.replied-message {
+    background-color: rgba(0, 0, 0, 0.05);
+    border-left: 3px solid #ccc;
+    padding: 4px 8px;
+    margin-bottom: 4px;
+    font-size: 0.9em;
+    border-radius: 4px;
+}
+
+.message-reactions {
+    display: flex;
+    gap: 4px;
+    margin-top: 4px;
+}

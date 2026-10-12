@@ -108,7 +108,7 @@
                     </div>
                 }
 
-                <!-- ส่วนแสดงเวลาและสถานะ Read (สำหรับข้อความของเรา) -->
+                <!-- ส่วนแสดงเวลาและสถานะ Read -->
                 @if (chat.sender === username) {
                     <div class="con_mess">
                         <div class="message-time">{{ chat.created_at | date:'HH:mm' }}</div>
@@ -118,11 +118,35 @@
                     </div>
                 }
 
+                <!-- เพิ่ม Action Buttons สำหรับ Reply และ Emoji -->
+                <div class="message-actions" style="position: relative;">
+                    <button (click)="replyToMessage(chat)">↩️</button>
+                    <button (click)="toggleEmojiPicker(chat)">😀</button>
+                    
+                    <!-- [ใหม่] เมนูเลือก Emoji -->
+                    @if (showEmojiPickerForChatId === chat.id) {
+                        <div class="emoji-picker" style="position: absolute; background: white; border: 1px solid #ccc; border-radius: 8px; padding: 5px; display: flex; gap: 5px; z-index: 10;">
+                            <button (click)="addReaction(chat, '👍')">👍</button>
+                            <button (click)="addReaction(chat, '❤️')">❤️</button>
+                            <button (click)="addReaction(chat, '😂')">😂</button>
+                            <button (click)="addReaction(chat, '😮')">😮</button>
+                            <button (click)="addReaction(chat, '😢')">😢</button>
+                        </div>
+                    }
+                </div>
+
                 <div [class]="'message ' + (chat.sender === username ? 'sent' : 'received')">
                     @if (chat.sender !== username) {
                         <div class="sender-name">{{ chat.sender }}</div>
                     }
                     
+                    <!-- แสดงข้อความที่ถูก Reply (ถ้ามี) -->
+                    @if (chat.replyTo) {
+                        <div class="replied-message">
+                            <strong>{{ chat.replyTo.sender }}:</strong> {{ chat.replyTo.message }}
+                        </div>
+                    }
+
                     <!-- ตรวจสอบว่าเป็นรูปภาพหรือข้อความ -->
                     @if (chat.message === '[Image]' && chat.picture) {
                         <img [src]="chat.picture" alt="Chat Image" style="max-width: 100%; border-radius: 8px;">
@@ -130,6 +154,15 @@
                         {{ chat.message }}
                     }
                     
+                    <!-- แสดง Emoji Reactions -->
+                    @if (chat.reactions && chat.reactions.length > 0) {
+                        <div class="message-reactions">
+                            @for (reaction of chat.reactions; track reaction) {
+                                <span>{{ reaction }}</span>
+                            }
+                        </div>
+                    }
+
                     <!-- ส่วนแสดงเวลา (สำหรับข้อความของคนอื่น) -->
                     @if (chat.sender !== username) {
                         <div class="message-time">{{ chat.created_at | date:'HH:mm' }}</div>
@@ -141,17 +174,15 @@
         } @empty {
             <div class="empty-state">No Message</div>
         }
-
-        @if (typingUsers().length > 0) {
-            <div class="message-container received">
-                <div class="chat-avatar">...</div>
-                <div class="message received typing">
-                    <div class="sender-name">{{ typingUsers().join(', ') }}</div>
-                    กำลังพิมพ์...
-                </div>
-            </div>
-        }
       </div>
+
+      <!-- ส่วนแสดงข้อความที่กำลังจะ Reply -->
+      @if (selectedMessageToReply) {
+        <div class="reply-preview">
+            <span>ตอบกลับ: {{ selectedMessageToReply.sender }} - {{ selectedMessageToReply.message }}</span>
+            <button (click)="cancelReply()">×</button>
+        </div>
+      }
 
       <div class="chat-footer">
         <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" style="display: none;">

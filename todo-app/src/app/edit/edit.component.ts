@@ -159,15 +159,26 @@ export class EditComponent implements OnInit, OnDestroy {
 
   button_cancels() { this.back(); }
   onProfileImageSelected(event: any) {
-    this.isLoading = true;
   const file = event.target.files[0];
+  
   if (file) {
+    // ตรวจสอบว่าเป็นไฟล์รูปภาพจริงหรือไม่
+    if (!file.type.startsWith('image/')) {
+      this.openpopup('กรุณาเลือกไฟล์รูปภาพเท่านั้น');
+      return;
+    }
+
+    this.isLoading = true;
+    this.cdr.markForCheck();
+
     const reader = new FileReader();
+    
     reader.onload = (e: any) => {
       this.isLoading = false;
-      // นำ Base64 ที่ได้ไปใส่ในตัวแปร profile เพื่อแสดงผลทันที
       this.profile = e.target.result;
+      this.cdr.markForCheck(); // สั่งให้อัปเดตหน้าจอ
     };
+    
     reader.readAsDataURL(file);
   }
 }

@@ -213,10 +213,17 @@ export class TodoService {
   }
 
   // เพิ่ม picture?: string เข้าไปเป็นตัวที่ 3
-  sendChatMessage(sender: string, message: string, picture?: string): Observable<any> {
+ // อัปเดตฟังก์ชันให้รับ replyToId และ profile
+  sendChatMessage(sender: string, message: string, picture?: string, replyToId?: number, profile?: string): Observable<any> {
     return this.http.post<any>(
       `${this.apiUrl}/chat`, 
-      { sender, message, picture }, // <--- ส่ง picture ไปที่ Backend ด้วย
+      { 
+        sender, 
+        message, 
+        picture,
+        reply_to_id: replyToId, // ส่ง reply_to_id ไปที่ Backend
+        profile                  // ส่ง profile ไปที่ Backend
+      }, 
       { headers: this.headers }
     );
   }

@@ -19,6 +19,8 @@ interface ChatMessage {
   is_read?: boolean;
     profile?: string;
     picture?: string;
+     replyTo?: ChatMessage; // [ใหม่] สำหรับการตอบกลับ
+  reactions?: string[];
     
 }
 
@@ -46,7 +48,10 @@ export class HelppComponent implements OnInit, OnDestroy {
   email = '';
   userRole = '';
   profile = '';
-  
+  // --- Reply State ---
+  selectedMessageToReply: ChatMessage | null = null;
+  // --- Emoji State ---
+  showEmojiPickerForChatId: number | null = null;
   // --- Navbar UI & Time State ---
   isTimeOpen = false;
   isNavOpen = false;
@@ -152,27 +157,36 @@ private typingTimeout: any;
     });
   }
   
-  sendMessage() {
+ sendMessage() {
   if (!this.newMessage().trim()) return;
 
-  this.todoService.sendChatMessage(this.username, this.newMessage()).subscribe({
+  // ส่ง <unsafe_url>replyTo.id</unsafe_url> และ profile ไปด้วย
+  this.todoService.sendChatMessage(
+    this.username, 
+    this.newMessage(), 
+    undefined, 
+    this.selectedMessageToReply?.id, 
+    this.profile
+  ).subscribe({
     next: (response) => {
-      const newMsg: ChatMessage = {
-        id: response.data?.id || Date.now(),
-        sender: this.username,
-        message: this.newMessage(),
-        created_at: new Date().toISOString(),
-        profile: this.profile // <--- เพิ่มบรรทัดนี้
-      };
-      
-      this.chatMessages.set([...this.chatMessages(), newMsg]);
-      this.newMessage.set('');
-      this.changeDetector.markForCheck();
-      setTimeout(() => this.scrollToBottom(), 100);
-    },
-    error: (err) => console.error('Error sending message:', err)
-  });
-}
+        const newMsg: ChatMessage = {
+          id: response.data?.id || Date.now(),
+          sender: this.username,
+          message: this.newMessage(),
+          created_at: new Date().toISOString(),
+          profile: this.profile,
+          replyTo: this.selectedMessageToReply || undefined // [ใหม่] แนบข้อมูล Reply
+        };
+        
+        this.chatMessages.set([...this.chatMessages(), newMsg]);
+        this.newMessage.set(''); // [แก้ไข] รีเซ็ต Signal
+        this.cancelReply();       // [ใหม่] รีเซ็ต Reply
+        this.changeDetector.markForCheck();
+        setTimeout(() => this.scrollToBottom(), 100);
+      },
+      error: (err) => console.error('Error sending message:', err)
+    });
+  }
 
   // ฟังก์ชันเลื่อนลงล่างสุด
   private scrollToBottom(): void {
@@ -194,9 +208,17 @@ private typingTimeout: any;
   }
 }
 
+
 sendImageMessage(base64Image: string) {
-    this.todoService.sendChatMessage(this.username, '[Image]', base64Image).subscribe({
-      next: (response) => {
+  // ส่ง profile ไปด้วย
+  this.todoService.sendChatMessage(
+    this.username, 
+    '[Image]', 
+    base64Image, 
+    undefined, 
+    this.profile
+  ).subscribe({
+    next: (response) => {
         const newMsg: ChatMessage = {
           id: response.data?.id || Date.now(),
           sender: this.username,
@@ -223,4 +245,29 @@ sendImageMessage(base64Image: string) {
   openProfile() { this.router.navigate(['/profile'], { state: { username: this.username, email: this.email, role: this.userRole, profile: this.profile } }); }
   openHelp() { this.router.navigate(['/helpp'], { state: { username: this.username, email: this.email, role: this.userRole, profile: this.profile } }); this.closePanel(); }
   back() { this.location.back(); }
+
+  // --- Reply & Emoji Functions ---
+  replyToMessage(chat: ChatMessage) {
+    this.selectedMessageToReply = chat;
+  }
+  // เปิด/ปิด เมนูเลือก Emoji
+  toggleEmojiPicker(chat: ChatMessage) {
+    if (this.showEmojiPickerForChatId === chat.id) {
+      this.showEmojiPickerForChatId = null; // ปิดถ้ากดซ้ำ
+    } else {
+      this.showEmojiPickerForChatId = chat.id; // เปิดสำหรับข้อความนี้
+    }
+  }
+  cancelReply() {
+    this.selectedMessageToReply = null;
+  }
+
+  addReaction(chat: ChatMessage, emoji: string) {
+    if (!chat.reactions) {
+        chat.reactions = [];
+    }
+    chat.reactions.push(emoji);
+    // TODO: อัปเดตข้อมูลนี้ไปยัง Backend
+    this.changeDetector.markForCheck();
+  }
 }

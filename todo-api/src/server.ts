@@ -1041,14 +1041,19 @@ app.post('/create-promptpay-charge', async (req, res) => {
 
 app.get('/api/chat', async (req, res) => {
   try {
-    // 3. เพิ่ม chat.picture ในคำสั่ง SELECT
     const result = await pool.query(
-      `SELECT chat.id, chat.sender, chat.message, chat.created_at, chat.is_read, chat.picture, todos.profile 
+      `SELECT id, sender, message, created_at, is_read, picture, profile, reply_to_id, reactions 
        FROM chat 
-       LEFT JOIN todos ON chat.sender = todos.username 
-       ORDER BY chat.created_at ASC`
+       ORDER BY created_at ASC`
     );
-    res.json(result.rows);
+    
+    // จัดการแปลงข้อมูล reactions ให้เป็น Array (กรณีที่ฐานข้อมูลส่งมาเป็น String)
+    const formattedRows = result.rows.map(row => ({
+      ...row,
+      reactions: row.reactions || []
+    }));
+
+    res.json(formattedRows);
   } catch (error) {
     console.error('Error fetching chat history:', error);
     res.status(500).json({ success: false, message: 'Server Error' });
@@ -1074,28 +1079,24 @@ app.put('/api/chat/read', async (req, res) => {
 
 app.post('/api/chat', async (req, res) => {
   try {
-    const { sender, message, picture } = req.body; // 1. เพิ่ม picture ตรงนี้
+    const { sender, message, picture, reply_to_id, profile } = req.body;
 
     if (!sender || !message) {
       return res.status(400).json({ success: false, message: 'กรุณากรอกข้อมูล sender และ message' });
     }
 
-    // 2. เพิ่ม picture และ $3 ในคำสั่ง SQL
     const insertResult = await pool.query(
-      `INSERT INTO chat (sender, message, picture) 
-       VALUES ($1, $2, $3) 
+      `INSERT INTO chat (sender, message, picture, reply_to_id, profile) 
+       VALUES ($1, $2, $3, $4, $5) 
        RETURNING *`,
-      [sender, message, picture] 
+      [sender, message, picture || null, reply_to_id || null, profile || null] 
     );
 
     const newChat = insertResult.rows[0];
 
-    const userResult = await pool.query(`SELECT profile FROM todos WHERE username = $1`, [sender]);
-    const profile = userResult.rows.length > 0 ? userResult.rows[0].profile : null;
-
     res.status(201).json({ 
       success: true, 
-      data: { ...newChat, profile: profile }
+      data: newChat
     });
   } catch (error) {
     console.error('Error saving chat message:', error);
