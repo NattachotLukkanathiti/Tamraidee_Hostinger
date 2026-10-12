@@ -25,7 +25,9 @@ app.use(cors({
 }));
 
 /* app.options('*', cors());  */
-app.use(express.json());
+// เพิ่ม limit เพื่อให้รองรับรูปภาพ Base64 ขนาดใหญ่
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.get('/', (req, res) => {
   res.send('Todo API Running');
 });
