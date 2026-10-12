@@ -1038,26 +1038,28 @@ app.post('/create-promptpay-charge', async (req, res) => {
     res.status(500).json;
   }
 });
-
 app.get('/api/chat', async (req, res) => {
   try {
+    // ใช้ LEFT JOIN เพื่อดึง profile จากตาราง todos โดยเชื่อมด้วย username
     const result = await pool.query(
-      `SELECT id, sender, message, created_at, is_read, picture, profile, reply_to_id, reactions 
+      `SELECT 
+         chat.id, chat.sender, chat.message, chat.created_at, 
+         chat.is_read, chat.picture, chat.reply_to_id, chat.reactions,
+         todos.profile AS user_profile
        FROM chat 
-       ORDER BY created_at ASC`
+       LEFT JOIN todos ON chat.sender = todos.username
+       ORDER BY chat.created_at ASC`
     );
     
-    // จัดการแปลงข้อมูล reactions ให้เป็น Array (กรณีที่ฐานข้อมูลส่งมาเป็น String)
     const formattedRows = result.rows.map(row => ({
-      id: row.id, 
+      id: row.id,
       sender: row.sender,
       message: row.message,
       created_at: row.created_at,
       is_read: row.is_read,
       picture: row.picture,
-      profile: row.profile,
+      profile: row.user_profile, // <--- ใช้รูปโปรไฟล์ที่ได้จากการ JOIN
       reactions: row.reactions || [],
-      // สร้าง Object replyTo ให้ตรงกับที่ Angular ต้องการ
       replyTo: row.reply_to_id ? {
         id: row.reply_to_id,
         sender: row.reply_sender,
