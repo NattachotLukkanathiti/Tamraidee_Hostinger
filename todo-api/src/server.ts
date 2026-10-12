@@ -1060,16 +1060,31 @@ app.post('/api/chat', async (req, res) => {
       });
     }
 
-    const result = await pool.query(
+    // บันทึกข้อความลงในตาราง chat
+    const insertResult = await pool.query(
       `INSERT INTO chat (sender, message) 
        VALUES ($1, $2) 
        RETURNING *`,
       [sender, message]
     );
 
+    const newChat = insertResult.rows[0];
+
+    // ดึงข้อมูล profile จากตาราง todos โดยอ้างอิงจาก sender (username)
+    const userResult = await pool.query(
+      `SELECT profile FROM todos WHERE username = $1`,
+      [sender]
+    );
+
+    const profile = userResult.rows.length > 0 ? userResult.rows[0].profile : null;
+
+    // รวมข้อมูล profile เข้าไปใน response
     res.status(201).json({ 
       success: true, 
-      data: result.rows[0] 
+      data: {
+        ...newChat,
+        profile: profile
+      }
     });
   } catch (error) {
     console.error('Error saving chat message:', error);
