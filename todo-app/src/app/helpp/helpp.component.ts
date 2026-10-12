@@ -18,6 +18,8 @@ interface ChatMessage {
   created_at: string;
   is_read?: boolean;
     profile?: string;
+    picture?: string;
+    
 }
 
 type HeaderPanel = 'account' | null;
@@ -123,17 +125,32 @@ private typingTimeout: any;
     this.todoService.getChatHistory().subscribe({
       next: (data) => {
         const isNewMessage = data.length > this.chatMessages().length;
+        
+        // อัปเดตข้อความลงใน UI
         this.chatMessages.set(data);
         this.changeDetector.markForCheck();
         
+        // ถ้ามีข้อความใหม่ และหน้าต่างแชทเปิดอยู่
         if (isNewMessage) {
+          if (this.isChatOpen()) {
+            // ส่งสถานะไปบอก Backend ว่าอ่านข้อความใหม่แล้ว
+            this.todoService.markChatAsRead(this.username).subscribe({
+              next: () => {
+                // อัปเดต UI ให้ทุกข้อความกลายเป็นอ่านแล้ว
+                const updated = this.chatMessages().map(m => ({ ...m, is_read: true }));
+                this.chatMessages.set(updated);
+                this.changeDetector.markForCheck();
+              }
+            });
+          }
+          
+          // เลื่อนลงล่างสุดเมื่อมีข้อความใหม่
           setTimeout(() => this.scrollToBottom(), 100);
         }
       },
       error: (err) => console.error('Error fetching chat:', err)
     });
   }
-
   sendMessage() {
   if (!this.newMessage().trim()) return;
 
@@ -161,6 +178,38 @@ private typingTimeout: any;
     try {
       this.chatBody.nativeElement.scrollTop = this.chatBody.nativeElement.scrollHeight;
     } catch(err) { }
+  }
+  onFileSelected(event: any) {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      const base64Image = e.target.result;
+      
+      // ส่งรูปภาพไปที่ Backend (คุณอาจจะต้องปรับฟังก์ชัน sendChatMessage ให้รองรับการส่งรูป)
+      this.sendImageMessage(base64Image);
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+sendImageMessage(base64Image: string) {
+    this.todoService.sendChatMessage(this.username, '[Image]', base64Image).subscribe({
+      next: (response) => {
+        const newMsg: ChatMessage = {
+          id: response.data?.id || Date.now(),
+          sender: this.username,
+          message: '[Image]',
+          created_at: new Date().toISOString(),
+          profile: this.profile,
+          picture: base64Image // <--- อย่าลืมเพิ่ม picture ใน Interface ChatMessage ด้วย
+        };
+        
+        this.chatMessages.set([...this.chatMessages(), newMsg]);
+        this.changeDetector.markForCheck();
+        setTimeout(() => this.scrollToBottom(), 100);
+      }
+    });
   }
 
   // --- Navbar Functions ---

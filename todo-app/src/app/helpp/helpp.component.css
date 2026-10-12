@@ -507,7 +507,7 @@ button:disabled {
   position: fixed;
   bottom: 20px;
   right: 20px;
-  width: 300px;
+  width: 350px;
   background: #fff;
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.15);
@@ -537,7 +537,7 @@ button:disabled {
 
 .chat-body {
   padding: 15px;
-  height: 200px;
+  height: 300px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -566,6 +566,7 @@ button:disabled {
 .chat-footer {
   padding: 10px;
   display: flex;
+  width: 100%;
   gap: 10px;
   border-top: 1px solid #ddd;
 }
@@ -594,7 +595,7 @@ button:disabled {
 
 .read-status {
     font-size: 10px;
-    color: #ddd;
+    color: #323232;
     text-align: right;
     margin-top: 2px;
 }
@@ -632,7 +633,21 @@ button:disabled {
     height: 100%;
     object-fit: cover; /* ปรับสัดส่วนรูปให้เต็มพื้นที่โดยไม่เบี้ยว */
 }
-
+.con_mess{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column-reverse;
+    height: 35px;
+    padding: 10px;
+    color: black;
+}
+.imagee{
+    width: 20px;
+    height: 20px;
+    background-color: #007bff;
+    border-radius: 100px;
+}
 @media (max-width: 768px) {
     
     .con_live {

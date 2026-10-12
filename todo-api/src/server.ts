@@ -1038,9 +1038,9 @@ app.post('/create-promptpay-charge', async (req, res) => {
 
 app.get('/api/chat', async (req, res) => {
   try {
-    // เพิ่มการ JOIN กับตาราง todos เพื่อดึง profile
+    // 3. เพิ่ม chat.picture ในคำสั่ง SELECT
     const result = await pool.query(
-      `SELECT chat.*, todos.profile 
+      `SELECT chat.id, chat.sender, chat.message, chat.created_at, chat.is_read, chat.picture, todos.profile 
        FROM chat 
        LEFT JOIN todos ON chat.sender = todos.username 
        ORDER BY chat.created_at ASC`
@@ -1071,40 +1071,28 @@ app.put('/api/chat/read', async (req, res) => {
 
 app.post('/api/chat', async (req, res) => {
   try {
-    const { sender, message } = req.body;
+    const { sender, message, picture } = req.body; // 1. เพิ่ม picture ตรงนี้
 
     if (!sender || !message) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'กรุณากรอกข้อมูล sender และ message' 
-      });
+      return res.status(400).json({ success: false, message: 'กรุณากรอกข้อมูล sender และ message' });
     }
 
-    // บันทึกข้อความลงในตาราง chat
+    // 2. เพิ่ม picture และ $3 ในคำสั่ง SQL
     const insertResult = await pool.query(
-      `INSERT INTO chat (sender, message) 
-       VALUES ($1, $2) 
+      `INSERT INTO chat (sender, message, picture) 
+       VALUES ($1, $2, $3) 
        RETURNING *`,
-      [sender, message]
+      [sender, message, picture] 
     );
 
     const newChat = insertResult.rows[0];
 
-    // ดึงข้อมูล profile จากตาราง todos โดยอ้างอิงจาก sender (username)
-    const userResult = await pool.query(
-      `SELECT profile FROM todos WHERE username = $1`,
-      [sender]
-    );
-
+    const userResult = await pool.query(`SELECT profile FROM todos WHERE username = $1`, [sender]);
     const profile = userResult.rows.length > 0 ? userResult.rows[0].profile : null;
 
-    // รวมข้อมูล profile เข้าไปใน response
     res.status(201).json({ 
       success: true, 
-      data: {
-        ...newChat,
-        profile: profile
-      }
+      data: { ...newChat, profile: profile }
     });
   } catch (error) {
     console.error('Error saving chat message:', error);

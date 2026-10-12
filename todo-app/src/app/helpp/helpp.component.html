@@ -100,13 +100,21 @@
       <div class="chat-body" #chatBody>
         @for (chat of chatMessages(); track chat.id) {
             
-            <!-- เพิ่ม div ครอบเพื่อจัด Layout รูปโปรไฟล์คู่กับข้อความ -->
             <div class="message-container {{ chat.sender === username ? 'sent' : 'received' }}">
                 
-                <!-- แสดงรูปโปรไฟล์เฉพาะข้อความของคนอื่น -->
                 @if (chat.sender !== username) {
                     <div class="chat-avatar">
-                               <img [src]="chat.profile || 'image/profileee.svg'" alt="{{ chat.sender }}">
+                        <img [src]="chat.profile || 'image/profileee.svg'" alt="{{ chat.sender }}">
+                    </div>
+                }
+
+                <!-- ส่วนแสดงเวลาและสถานะ Read (สำหรับข้อความของเรา) -->
+                @if (chat.sender === username) {
+                    <div class="con_mess">
+                        <div class="message-time">{{ chat.created_at | date:'HH:mm' }}</div>
+                        @if (chat.is_read) {
+                            <div class="read-status">Read</div>
+                        }
                     </div>
                 }
 
@@ -114,11 +122,17 @@
                     @if (chat.sender !== username) {
                         <div class="sender-name">{{ chat.sender }}</div>
                     }
-                    <div class="message-time">{{ chat.created_at | date:'HH:mm' }}</div>
-                    {{ chat.message }}
                     
-                    @if (chat.sender === username && chat.is_read) {
-                        <div class="read-status">Read</div>
+                    <!-- ตรวจสอบว่าเป็นรูปภาพหรือข้อความ -->
+                    @if (chat.message === '[Image]' && chat.picture) {
+                        <img [src]="chat.picture" alt="Chat Image" style="max-width: 100%; border-radius: 8px;">
+                    } @else {
+                        {{ chat.message }}
+                    }
+                    
+                    <!-- ส่วนแสดงเวลา (สำหรับข้อความของคนอื่น) -->
+                    @if (chat.sender !== username) {
+                        <div class="message-time">{{ chat.created_at | date:'HH:mm' }}</div>
                     }
                 </div>
 
@@ -140,6 +154,12 @@
       </div>
 
       <div class="chat-footer">
+        <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" style="display: none;">
+        
+        <button class="imagee" (click)="fileInput.click()">
+          <img src="image/add.svg" alt="Add Image">
+        </button>
+        
         <input type="text" [(ngModel)]="newMessage" (input)="onTyping()" (keyup.enter)="sendMessage()" placeholder="...">
         <button (click)="sendMessage()">Send</button>
       </div>

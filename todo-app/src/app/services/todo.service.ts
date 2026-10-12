@@ -212,8 +212,13 @@ export class TodoService {
     return this.http.get<any[]>(`${this.apiUrl}/chat`, { headers: this.headers });
   }
 
-  sendChatMessage(sender: string, message: string): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/chat`, { sender, message }, { headers: this.headers });
+  // เพิ่ม picture?: string เข้าไปเป็นตัวที่ 3
+  sendChatMessage(sender: string, message: string, picture?: string): Observable<any> {
+    return this.http.post<any>(
+      `${this.apiUrl}/chat`, 
+      { sender, message, picture }, // <--- ส่ง picture ไปที่ Backend ด้วย
+      { headers: this.headers }
+    );
   }
 
   // --- Chat Typing & Read Status ---
