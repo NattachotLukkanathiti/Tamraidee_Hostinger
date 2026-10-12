@@ -30,12 +30,12 @@
     <label class="email">Email</label>
 </div>
 <div class="input-group">
-    <input class="n2" [type]="showPassword ? 'text' : 'password'" id="password" placeholder="" [(ngModel)]="password">
-   <label class="pass" for="">Password</label>
-    <img class="iconpass" (click)="showPassword = !showPassword" [src]="showPassword ? 'image/eye-open.svg' : 'image/eye-off.svg'">
+    <input class="n2" (keyup.enter)="login()"  [type]="showPassword ? 'text' : 'password'" id="password" placeholder="" [(ngModel)]="password">
+   <label class="pass"  for="">Password</label>
+    <img class="iconpass"  (click)="showPassword = !showPassword" [src]="showPassword ? 'image/eye-open.svg' : 'image/eye-off.svg'">
 </div>
 <div class="sihg">
-       <button class="button" (click)="login()">Sign In</button>
+       <button  type="submit" class="button" (click)="login()">Sign In</button>
   </div>
   </div>
    

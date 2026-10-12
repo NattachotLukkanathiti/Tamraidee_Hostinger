@@ -4,16 +4,22 @@ import { RouterLink, Router } from '@angular/router';
 import { CommonModule, DatePipe } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { Location } from '@angular/common';
-
+import { TodoService } from '../services/todo.service'; // นำเข้า TodoService
 
 interface FaqItem {
   title: string;
   subtitle: string;
 }
 
+interface ChatMessage {
+  id: number;
+  sender: string;
+  message: string;
+  created_at: string;
+}
+
 type HeaderPanel = 'account' | null;
 
-/** หน้าช่วยเหลือ (Help & Support) — `/help` */
 @Component({
   selector: 'app-help-page',
   standalone: true,
@@ -25,7 +31,9 @@ type HeaderPanel = 'account' | null;
 export class HelppComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private changeDetector = inject(ChangeDetectorRef);
-  private location = inject(Location)
+  private location = inject(Location);
+  private todoService = inject(TodoService); // Inject Service
+
   // --- Navbar Variables ---
   username = '';
   email = '';
@@ -45,6 +53,11 @@ export class HelppComponent implements OnInit, OnDestroy {
   readonly helpSearch = signal('');
   readonly helpIssueType = signal('Select');
 
+  // --- Chat Signals ---
+  readonly isChatOpen = signal(false);
+  readonly chatMessages = signal<ChatMessage[]>([]);
+  readonly newMessage = signal('');
+
   ngOnInit(): void {
     const state = history.state;
     
@@ -52,47 +65,58 @@ export class HelppComponent implements OnInit, OnDestroy {
     this.email = state.email || '';
     this.userRole = state.role || '';
     this.profile = state.profile || '';
+
+    this.fetchChatHistory(); // โหลดประวัติแชทเมื่อเปิดหน้า
   }
 
   ngOnDestroy(): void {
     this.timeSubscription?.unsubscribe();
   }
 
-  openPro() { 
-    this.isClosing = false;
-    this.openPanel = 'account'; 
+  // --- Chat Functions ---
+  toggleChat() {
+    this.isChatOpen.set(!this.isChatOpen());
   }
 
-  toggleAccountMenu(): void { 
-    this.openPanel = this.openPanel === 'account' ? null : 'account'; 
-    this.isNavOpen = false; 
+  fetchChatHistory() {
+    this.todoService.getChatHistory().subscribe({
+      next: (data) => {
+        this.chatMessages.set(data);
+        this.changeDetector.markForCheck();
+      },
+      error: (err) => console.error('Error fetching chat:', err)
+    });
   }
 
+  sendMessage() {
+    if (!this.newMessage().trim()) return;
+
+    this.todoService.sendChatMessage(this.username, this.newMessage()).subscribe({
+      next: (response) => {
+        // สร้าง Object ข้อความใหม่เพื่อแสดงผลทันที
+        const newMsg: ChatMessage = {
+          id: response.id || Date.now(),
+          sender: this.username,
+          message: this.newMessage(),
+          created_at: new Date().toISOString()
+        };
+        
+        this.chatMessages.set([...this.chatMessages(), newMsg]);
+        this.newMessage.set(''); // ล้างช่องพิมพ์
+        this.changeDetector.markForCheck();
+      },
+      error: (err) => console.error('Error sending message:', err)
+    });
+  }
+
+  // --- Navbar Functions ---
+  openPro() { this.isClosing = false; this.openPanel = 'account'; }
+  toggleAccountMenu(): void { this.openPanel = this.openPanel === 'account' ? null : 'account'; this.isNavOpen = false; }
   closePanel() {
     this.isClosing = true;
-    setTimeout(() => {
-      this.openPanel = null;
-      this.isClosing = false;
-      this.changeDetector.markForCheck();
-    }, 300);
+    setTimeout(() => { this.openPanel = null; this.isClosing = false; this.changeDetector.markForCheck(); }, 300);
   }
-
-  openProfile() {
-    this.router.navigate(['/profile'], {
-      state: { username: this.username, email: this.email, role: this.userRole, profile: this.profile }
-    });
-  }
-
-  openHelp() {
-       this.router.navigate(['/helpp'], {
-      state: { username: this.username, email: this.email, role: this.userRole, profile: this.profile }
-    });
-    // ปิด Sidebar หากอยู่ที่หน้า Help อยู่แล้ว หรือจะสั่ง reload ก็ได้
-    this.closePanel();
-  }
-
-  back() {
-    // สั่งให้ย้อนกลับไปหน้าก่อนหน้า
-    this.location.back();
-  }
+  openProfile() { this.router.navigate(['/profile'], { state: { username: this.username, email: this.email, role: this.userRole, profile: this.profile } }); }
+  openHelp() { this.router.navigate(['/helpp'], { state: { username: this.username, email: this.email, role: this.userRole, profile: this.profile } }); this.closePanel(); }
+  back() { this.location.back(); }
 }

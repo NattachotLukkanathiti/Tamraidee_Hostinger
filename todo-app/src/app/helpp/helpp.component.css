@@ -369,6 +369,10 @@ button:disabled {
     align-items: center;
     justify-content: space-between;
     gap: 12px;
+    cursor: pointer;
+}
+.contact-card:hover{
+        background: #f4f5fcb6;
 }
 .contact-card>div {
     min-width: 0;
@@ -496,4 +500,94 @@ button:disabled {
 }
 .account-sidebar__logout:hover {
   color: #b81212;
+}
+
+
+.con_live {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 300px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  font-family: sans-serif;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.chat-header {
+  background: #007bff;
+  color: #fff;
+  padding: 10px 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: bold;
+}
+
+.chat-header .close-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.chat-body {
+  padding: 15px;
+  height: 200px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #f9f9f9;
+}
+
+.message {
+  padding: 8px 12px;
+  border-radius: 15px;
+  max-width: 70%;
+  font-size: 14px;
+}
+
+.message.received {
+  background: #e9ecef;
+  align-self: flex-start;
+}
+
+.message.sent {
+  background: #007bff;
+  color: #fff;
+  align-self: flex-end;
+}
+
+.chat-footer {
+  padding: 10px;
+  display: flex;
+  gap: 10px;
+  border-top: 1px solid #ddd;
+}
+
+.chat-footer input {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.chat-footer button {
+  padding: 8px 15px;
+  background: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.sender-name {
+    font-size: 11px;
+    color: #666;
+    margin-bottom: 2px;
+    font-weight: bold;
 }

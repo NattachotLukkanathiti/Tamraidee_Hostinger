@@ -75,7 +75,8 @@
           <div><strong>Email support</strong><span>Get help you</span><strong class="contact-card__highlight">Trd.support&#64;gmail.com</strong><span>Respond with in 24 hr</span></div>
          
         </div>
-        <div class="contact-card">
+        <!-- เพิ่ม (click)="toggleChat()" เพื่อให้กดเปิดแชทได้ -->
+        <div class="contact-card" (click)="toggleChat()" style="cursor: pointer;">
           <div><strong>Live chat</strong><span>Chat with our team</span><strong class="contact-card__highlight">Start a conversations</strong><span>Averange respond 5 min</span></div>
 
         </div>
@@ -89,3 +90,30 @@
   </div>
 </main>
 </div>
+
+<!-- กล่องแชท -->
+@if (isChatOpen()) {
+    <div class="con_live">
+      <div class="chat-header">
+        <span>Live Chat</span>
+        <button class="close-btn" (click)="toggleChat()">&times;</button>
+      </div>
+      <div class="chat-body">
+        @for (chat of chatMessages(); track chat.id) {
+            <!-- เช็คว่าเป็นข้อความของเรา (sent) หรือของคนอื่น (received) -->
+            <div [class]="'message ' + (chat.sender === username ? 'sent' : 'received')">
+                @if (chat.sender !== username) {
+                    <div class="sender-name">{{ chat.sender }}</div>
+                }
+                {{ chat.message }}
+            </div>
+        } @empty {
+            <div class="empty-state">ยังไม่มีข้อความ เริ่มต้นการสนทนาได้เลย!</div>
+        }
+      </div>
+      <div class="chat-footer">
+        <input type="text" [(ngModel)]="newMessage" (keyup.enter)="sendMessage()" placeholder="พิมพ์ข้อความ...">
+        <button (click)="sendMessage()">ส่ง</button>
+      </div>
+    </div>
+}

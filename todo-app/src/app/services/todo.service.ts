@@ -208,4 +208,11 @@ export class TodoService {
       { headers: this.headers }
     );
   }
+   getChatHistory(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/chat`, { headers: this.headers });
+  }
+
+  sendChatMessage(sender: string, message: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/chat`, { sender, message }, { headers: this.headers });
+  }
 }
