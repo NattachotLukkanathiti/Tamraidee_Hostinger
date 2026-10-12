@@ -1076,6 +1076,26 @@ app.post('/api/chat', async (req, res) => {
     res.status(500).json({ success: false, message: 'Server Error' });
   }
 });
+// อัปเดตสถานะกำลังพิมพ์
+app.post('/api/chat/typing', async (req, res) => {
+  const { username, is_typing } = req.body;
+  await pool.query(
+    `INSERT INTO chat_typing (username, is_typing) VALUES ($1, $2) 
+     ON CONFLICT (username) DO UPDATE SET is_typing = $2, updated_at = NOW()`,
+    [username, is_typing]
+  );
+  res.sendStatus(200);
+});
+
+// ดึงสถานะคนอื่นที่กำลังพิมพ์
+app.get('/api/chat/typing/:username', async (req, res) => {
+  const { username } = req.params;
+  const result = await pool.query(
+    `SELECT username FROM chat_typing WHERE username != $1 AND is_typing = true AND updated_at > NOW() - INTERVAL '5 seconds'`,
+    [username]
+  );
+  res.json(result.rows);
+});
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

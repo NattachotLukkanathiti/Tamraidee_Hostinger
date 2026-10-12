@@ -90,7 +90,6 @@
   </div>
 </main>
 </div>
-
 <!-- กล่องแชท -->
 @if (isChatOpen()) {
     <div class="con_live">
@@ -98,7 +97,8 @@
         <span>Live Chat</span>
         <button class="close-btn" (click)="toggleChat()">&times;</button>
       </div>
-      <div class="chat-body">
+      
+      <div class="chat-body" #chatBody>
         @for (chat of chatMessages(); track chat.id) {
             <!-- เช็คว่าเป็นข้อความของเรา (sent) หรือของคนอื่น (received) -->
             <div [class]="'message ' + (chat.sender === username ? 'sent' : 'received')">
@@ -106,13 +106,28 @@
                     <div class="sender-name">{{ chat.sender }}</div>
                 }
                 {{ chat.message }}
+                
+                <!-- แสดงสถานะ อ่านแล้ว (เฉพาะข้อความของเรา) -->
+                @if (chat.sender === username && chat.is_read) {
+                    <div class="read-status">อ่านแล้ว</div>
+                }
             </div>
         } @empty {
             <div class="empty-state">ยังไม่มีข้อความ เริ่มต้นการสนทนาได้เลย!</div>
         }
+
+        <!-- แสดงสถานะกำลังพิมพ์ -->
+        @if (typingUsers().length > 0) {
+            <div class="message received typing">
+                <div class="sender-name">{{ typingUsers().join(', ') }}</div>
+                กำลังพิมพ์...
+            </div>
+        }
       </div>
+
       <div class="chat-footer">
-        <input type="text" [(ngModel)]="newMessage" (keyup.enter)="sendMessage()" placeholder="พิมพ์ข้อความ...">
+        <!-- เพิ่ม (input)="onTyping()" เพื่อตรวจจับการพิมพ์ -->
+        <input type="text" [(ngModel)]="newMessage" (input)="onTyping()" (keyup.enter)="sendMessage()" placeholder="พิมพ์ข้อความ...">
         <button (click)="sendMessage()">ส่ง</button>
       </div>
     </div>

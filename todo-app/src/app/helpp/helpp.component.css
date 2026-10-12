@@ -591,3 +591,16 @@ button:disabled {
     margin-bottom: 2px;
     font-weight: bold;
 }
+
+.read-status {
+    font-size: 10px;
+    color: #ddd;
+    text-align: right;
+    margin-top: 2px;
+}
+
+.message.typing {
+    font-style: italic;
+    color: #666;
+    background-color: #f1f1f1;
+}

@@ -1,10 +1,10 @@
-import { ChangeDetectionStrategy, Component, OnInit, OnDestroy, signal, inject, ChangeDetectorRef } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, OnDestroy, signal, inject, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { CommonModule, DatePipe } from '@angular/common';
-import { Subscription } from 'rxjs';
+import { interval, Subscription } from 'rxjs';
 import { Location } from '@angular/common';
-import { TodoService } from '../services/todo.service'; // นำเข้า TodoService
+import { TodoService } from '../services/todo.service';
 
 interface FaqItem {
   title: string;
@@ -16,6 +16,7 @@ interface ChatMessage {
   sender: string;
   message: string;
   created_at: string;
+  is_read?: boolean;
 }
 
 type HeaderPanel = 'account' | null;
@@ -32,7 +33,10 @@ export class HelppComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private changeDetector = inject(ChangeDetectorRef);
   private location = inject(Location);
-  private todoService = inject(TodoService); // Inject Service
+  private todoService = inject(TodoService);
+
+  // ใช้สำหรับอ้างอิงถึงกล่องข้อความเพื่อทำ Auto-scroll
+  @ViewChild('chatBody') private chatBody!: ElementRef;
 
   // --- Navbar Variables ---
   username = '';
@@ -47,6 +51,7 @@ export class HelppComponent implements OnInit, OnDestroy {
   openPanel: HeaderPanel = null;
   currentTime = new Date();
   private timeSubscription!: Subscription;
+  private chatSubscription!: Subscription; // ตัวแปรสำหรับ Real-time
 
   // --- Help Page Signals ---
   readonly faqItems = signal<FaqItem[]>([]);
@@ -57,7 +62,8 @@ export class HelppComponent implements OnInit, OnDestroy {
   readonly isChatOpen = signal(false);
   readonly chatMessages = signal<ChatMessage[]>([]);
   readonly newMessage = signal('');
-
+  readonly typingUsers = signal<string[]>([]);
+private typingTimeout: any;
   ngOnInit(): void {
     const state = history.state;
     
@@ -66,23 +72,46 @@ export class HelppComponent implements OnInit, OnDestroy {
     this.userRole = state.role || '';
     this.profile = state.profile || '';
 
-    this.fetchChatHistory(); // โหลดประวัติแชทเมื่อเปิดหน้า
+    this.fetchChatHistory();
+
+    // ตั้งให้ดึงข้อมูลแชทใหม่ทุกๆ 3 วินาที (Real-time จำลอง)
+    this.chatSubscription = interval(3000).subscribe(() => {
+      if (this.isChatOpen()) {
+        this.fetchChatHistory();
+      }
+    });
   }
 
   ngOnDestroy(): void {
     this.timeSubscription?.unsubscribe();
+    this.chatSubscription?.unsubscribe(); // ยกเลิกการดึงข้อมูลเมื่อปิดหน้า
   }
-
+  onTyping() {
+  this.todoService.sendTypingStatus(this.username, true).subscribe();
+  
+  clearTimeout(this.typingTimeout);
+  this.typingTimeout = setTimeout(() => {
+    this.todoService.sendTypingStatus(this.username, false).subscribe();
+  }, 3000); // หยุดพิมพ์ถ้าไม่มีการกดปุ่มใน 3 วินาที
+}
   // --- Chat Functions ---
   toggleChat() {
     this.isChatOpen.set(!this.isChatOpen());
+    if (this.isChatOpen()) {
+      setTimeout(() => this.scrollToBottom(), 100);
+    }
   }
 
   fetchChatHistory() {
     this.todoService.getChatHistory().subscribe({
       next: (data) => {
+        const isNewMessage = data.length > this.chatMessages().length;
         this.chatMessages.set(data);
         this.changeDetector.markForCheck();
+        
+        if (isNewMessage) {
+          setTimeout(() => this.scrollToBottom(), 100);
+        }
       },
       error: (err) => console.error('Error fetching chat:', err)
     });
@@ -93,20 +122,27 @@ export class HelppComponent implements OnInit, OnDestroy {
 
     this.todoService.sendChatMessage(this.username, this.newMessage()).subscribe({
       next: (response) => {
-        // สร้าง Object ข้อความใหม่เพื่อแสดงผลทันที
         const newMsg: ChatMessage = {
-          id: response.id || Date.now(),
+          id: response.data?.id || Date.now(),
           sender: this.username,
           message: this.newMessage(),
           created_at: new Date().toISOString()
         };
         
         this.chatMessages.set([...this.chatMessages(), newMsg]);
-        this.newMessage.set(''); // ล้างช่องพิมพ์
+        this.newMessage.set('');
         this.changeDetector.markForCheck();
+        setTimeout(() => this.scrollToBottom(), 100);
       },
       error: (err) => console.error('Error sending message:', err)
     });
+  }
+
+  // ฟังก์ชันเลื่อนลงล่างสุด
+  private scrollToBottom(): void {
+    try {
+      this.chatBody.nativeElement.scrollTop = this.chatBody.nativeElement.scrollHeight;
+    } catch(err) { }
   }
 
   // --- Navbar Functions ---

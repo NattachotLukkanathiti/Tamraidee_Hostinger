@@ -215,4 +215,32 @@ export class TodoService {
   sendChatMessage(sender: string, message: string): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/chat`, { sender, message }, { headers: this.headers });
   }
+
+  // --- Chat Typing & Read Status ---
+
+  // ส่งสถานะกำลังพิมพ์
+  sendTypingStatus(username: string, isTyping: boolean): Observable<any> {
+    return this.http.post<any>(
+      `${this.apiUrl}/chat/typing`, 
+      { username, is_typing: isTyping }, 
+      { headers: this.headers }
+    );
+  }
+
+  // ดึงสถานะคนอื่นที่กำลังพิมพ์
+  getTypingStatus(username: string): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.apiUrl}/chat/typing/${username}`, 
+      { headers: this.headers }
+    );
+  }
+
+  // อัปเดตสถานะว่าอ่านข้อความแล้ว
+  markChatAsRead(username: string): Observable<any> {
+    return this.http.put<any>(
+      `${this.apiUrl}/chat/read`, 
+      { username }, 
+      { headers: this.headers }
+    );
+  }
 }
