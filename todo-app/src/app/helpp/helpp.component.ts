@@ -263,11 +263,20 @@ sendImageMessage(base64Image: string) {
   }
 
   addReaction(chat: ChatMessage, emoji: string) {
-    if (!chat.reactions) {
-        chat.reactions = [];
-    }
-    chat.reactions.push(emoji);
-    // TODO: อัปเดตข้อมูลนี้ไปยัง Backend
-    this.changeDetector.markForCheck();
+  if (!chat.reactions) {
+      chat.reactions = [];
   }
+  chat.reactions.push(emoji);
+  
+  // ปิดเมนู Emoji ทันที
+  this.showEmojiPickerForChatId = null; 
+
+  // ส่งข้อมูลไปบันทึกที่ Backend
+  this.todoService.updateChatReaction(chat.id, chat.reactions).subscribe({
+    next: () => {
+      this.changeDetector.markForCheck();
+    },
+    error: (err) => console.error('Error saving reaction:', err)
+  });
+}
 }

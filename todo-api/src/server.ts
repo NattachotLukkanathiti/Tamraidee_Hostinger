@@ -1071,7 +1071,22 @@ app.get('/api/chat', async (req, res) => {
     res.status(500).json({ success: false, message: 'Server Error' });
   }
 });
-// อัปเดตสถานะว่าอ่านข้อความแล้ว
+app.put('/api/chat/reaction/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reactions } = req.body;
+
+    await pool.query(
+      `UPDATE chat SET reactions = $1 WHERE id = $2`,
+      [JSON.stringify(reactions), id]
+    );
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error updating reaction:', error);
+    res.status(500).json({ success: false });
+  }
+});
 app.put('/api/chat/read', async (req, res) => {
   const { username } = req.body;
   

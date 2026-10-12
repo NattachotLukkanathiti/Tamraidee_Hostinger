@@ -257,4 +257,11 @@ export class TodoService {
       { headers: this.headers }
     );
   }
+  updateChatReaction(chatId: number, reactions: string[]): Observable<any> {
+  return this.http.put<any>(
+    `${this.apiUrl}/chat/reaction/${chatId}`, 
+    { reactions }, 
+    { headers: this.headers }
+  );
+}
 }
