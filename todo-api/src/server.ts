@@ -1049,6 +1049,7 @@ app.get('/api/chat', async (req, res) => {
     
     // จัดการแปลงข้อมูล reactions ให้เป็น Array (กรณีที่ฐานข้อมูลส่งมาเป็น String)
     const formattedRows = result.rows.map(row => ({
+      id: row.id, 
       sender: row.sender,
       message: row.message,
       created_at: row.created_at,
