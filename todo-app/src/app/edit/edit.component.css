@@ -10,7 +10,15 @@
     font: 400 16px/1.5 'SF Pro Text', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
 }
+.profile-avatar {
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
 
+/* เพิ่มเอฟเฟกต์ตอนเอาเมาส์ไปชี้ ให้รู้ว่าคลิกได้ */
+.profile-avatar:hover {
+    opacity: 0.8;
+}
 .navbaar {
     display: flex;
     align-items: center;

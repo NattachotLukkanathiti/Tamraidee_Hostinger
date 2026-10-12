@@ -93,7 +93,7 @@
 @if (isChatOpen()) {
     <div class="con_live">
       <div class="chat-header">
-        <span>Live Chat</span>
+        <span><img class="icon_chat" src="image/icon_chat.svg" alt="">Live Chat</span>
         <button class="close-btn" (click)="toggleChat()">&times;</button>
       </div>
       
@@ -157,7 +157,7 @@
         <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" style="display: none;">
         
         <button class="imagee" (click)="fileInput.click()">
-          <img src="image/add.svg" alt="Add Image">
+          <img src="image/add_pos.svg" alt="Add Image">
         </button>
         
         <input type="text" [(ngModel)]="newMessage" (input)="onTyping()" (keyup.enter)="sendMessage()" placeholder="...">

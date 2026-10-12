@@ -518,7 +518,7 @@ button:disabled {
 }
 
 .chat-header {
-  background: #007bff;
+  background: #84D46E;
   color: #fff;
   padding: 10px 15px;
   display: flex;
@@ -526,7 +526,11 @@ button:disabled {
   align-items: center;
   font-weight: bold;
 }
-
+.icon_chat{
+    width: 20px;
+    height: 20px;
+    width: 40px;
+}
 .chat-header .close-btn {
   background: none;
   border: none;
@@ -558,7 +562,7 @@ button:disabled {
 }
 
 .message.sent {
-  background: #007bff;
+  background: #84D46E;
   color: #fff;
   align-self: flex-end;
 }
@@ -575,15 +579,15 @@ button:disabled {
   flex: 1;
   padding: 8px;
   border: 1px solid #ddd;
-  border-radius: 5px;
+  border-radius: 20px;
 }
 
 .chat-footer button {
   padding: 8px 15px;
-  background: #007bff;
+  background: #84D46E;
   color: #fff;
   border: none;
-  border-radius: 5px;
+  border-radius: 20px;
   cursor: pointer;
 }
 .sender-name {
@@ -642,11 +646,22 @@ button:disabled {
     padding: 10px;
     color: black;
 }
-.imagee{
-    width: 20px;
-    height: 20px;
-    background-color: #007bff;
-    border-radius: 100px;
+.imagee {
+  width: 40px;          /* กำหนดความกว้าง */
+  height: 40px;         /* กำหนดความสูงให้เท่ากับความกว้าง */
+  border-radius: 50%;   /* ทำให้เป็นวงกลม */
+  padding: 0;           /* เอาช่องว่างด้านในออก */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f0f0f0; /* สีพื้นหลัง (ปรับเปลี่ยนได้) */
+  border: none;         /* เอาเส้นขอบออก */
+  cursor: pointer;
+}
+
+.imagee img {
+  width: 20px;          /* ปรับขนาดรูปไอคอนข้างใน */
+  height: 20px;
 }
 @media (max-width: 768px) {
     

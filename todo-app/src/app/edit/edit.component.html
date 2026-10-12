@@ -41,7 +41,8 @@
   <div class="profile-card">
      <div class="edit-profile-banner"><img src="image/main_edit2.svg" alt="">Edit Profile</div>
     <div class="profile-card__top">
-      <img class="profile-avatar" [src]="profile" />
+      <img class="profile-avatar" [src]="profile" (click)="fileInput.click()" />
+<input type="file" #fileInput (change)="onProfileImageSelected($event)" accept="image/*" style="display: none;">
        <div class="sku_pro2">
     <label class="label_import">Upload Image</label>
     <div class="con_edit">

@@ -26,6 +26,7 @@ app.use(cors({
 
 /* app.options('*', cors());  */
 // เพิ่ม limit เพื่อให้รองรับรูปภาพ Base64 ขนาดใหญ่
+// เพิ่ม limit ให้รองรับข้อมูลขนาด 50MB (จากเดิมที่ค่าเริ่มต้นคือ 100KB)
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.get('/', (req, res) => {
