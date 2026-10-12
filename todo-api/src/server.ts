@@ -24,6 +24,7 @@ app.use(cors({
   credentials: true
 }));
 
+app.options('*', cors()); // เพิ่มบรรทัดนี้
 app.use(express.json());
 app.get('/', (req, res) => {
   res.send('Todo API Running');
