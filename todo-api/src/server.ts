@@ -1038,8 +1038,12 @@ app.post('/create-promptpay-charge', async (req, res) => {
 
 app.get('/api/chat', async (req, res) => {
   try {
+    // เพิ่มการ JOIN กับตาราง todos เพื่อดึง profile
     const result = await pool.query(
-      'SELECT * FROM chat ORDER BY created_at ASC'
+      `SELECT chat.*, todos.profile 
+       FROM chat 
+       LEFT JOIN todos ON chat.sender = todos.username 
+       ORDER BY chat.created_at ASC`
     );
     res.json(result.rows);
   } catch (error) {
@@ -1047,7 +1051,6 @@ app.get('/api/chat', async (req, res) => {
     res.status(500).json({ success: false, message: 'Server Error' });
   }
 });
-
 // 2. บันทึกข้อความแชทใหม่
 app.post('/api/chat', async (req, res) => {
   try {
