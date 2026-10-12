@@ -1035,6 +1035,47 @@ app.post('/create-promptpay-charge', async (req, res) => {
     res.status(500).json;
   }
 });
+
+app.get('/api/chat', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM chat ORDER BY created_at ASC'
+    );
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching chat history:', error);
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+});
+
+// 2. บันทึกข้อความแชทใหม่
+app.post('/api/chat', async (req, res) => {
+  try {
+    const { sender, message } = req.body;
+
+    if (!sender || !message) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'กรุณากรอกข้อมูล sender และ message' 
+      });
+    }
+
+    const result = await pool.query(
+      `INSERT INTO chat (sender, message) 
+       VALUES ($1, $2) 
+       RETURNING *`,
+      [sender, message]
+    );
+
+    res.status(201).json({ 
+      success: true, 
+      data: result.rows[0] 
+    });
+  } catch (error) {
+    console.error('Error saving chat message:', error);
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+});
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
