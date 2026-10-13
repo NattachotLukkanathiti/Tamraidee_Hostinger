@@ -194,7 +194,7 @@ app.post('/api/audit', async (req, res) => {
 // 📌 เพิ่ม Route สำหรับบันทึกข้อมูลลงตาราง History
 app.post('/api/history', async (req, res) => {
   try {
-    const { date, sku, product_name, brand, price, quantity, created_by, picture } = req.body;
+    const { date, sku, product_name, brand, price, quantity, created_by, picture,status } = req.body;
 
     if (!sku || !product_name) {
       return res.status(400).json({ 
@@ -204,10 +204,10 @@ app.post('/api/history', async (req, res) => {
     }
 
     const result = await pool.query(
-      `INSERT INTO history (date, sku, product_name, brand, price, quantity, created_by, picture) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) 
+      `INSERT INTO history (date, sku, product_name, brand, price, quantity, created_by, picture, status) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) 
        RETURNING *`,
-      [date, sku, product_name, brand, price, quantity, created_by, picture]
+      [date, sku, product_name, brand, price, quantity, created_by, picture, status]
     );
 
     res.status(201).json({
@@ -390,7 +390,7 @@ app.post('/api/inventory', async (req, res) => {
   try {
     const { 
       sku, product_name, category, brand, price, 
-      quantity_alert, supplier, invoice_no, import_quantity, picture 
+      quantity_alert, supplier, invoice_no, import_quantity, picture ,status
     } = req.body;
 
     if (!sku || !category || !brand || price === undefined) {
@@ -403,10 +403,10 @@ app.post('/api/inventory', async (req, res) => {
     // เพิ่ม quantity และ $11 โดยใช้ค่าเดียวกับ import_quantity
     const result = await pool.query(
       `INSERT INTO inventory 
-       (sku, product_name, category, brand, price, quantity, quantity_alert, supplier, invoice_no, import_quantity, picture) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) 
+       (sku, product_name, category, brand, price, quantity, quantity_alert, supplier, invoice_no, import_quantity, picture,status) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11 ,$12) 
        RETURNING *`,
-      [sku, product_name, category, brand, price, import_quantity, quantity_alert, supplier, invoice_no, import_quantity, picture]
+      [sku, product_name, category, brand, price, import_quantity, quantity_alert, supplier, invoice_no, import_quantity, picture,status]
     );
 
     res.status(201).json({

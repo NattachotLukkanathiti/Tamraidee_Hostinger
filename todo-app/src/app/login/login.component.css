@@ -97,16 +97,9 @@
     z-index: 3;
 }
 .eiei {
-    position: absolute;
-    width: 100%;
-    left: 0;
     display: flex;
-    flex-direction: column; /* เพิ่มคำสั่งนี้ */
     justify-content: center;
-    align-items: center;
-    height: 100vh;
-    min-width: 600px;
-    z-index: 0;
+    width: 100vw;
 }
 .container_inputt{
     display: flex;
@@ -208,7 +201,7 @@ body {
 }
 
 .container {
-    min-width: 1000px;
+    min-width: 60vw;
     height: 100vh;
     width: 100%;
     position: relative;
@@ -275,7 +268,7 @@ body {
         opacity: 1;
     }
 }
-
+/* 
 @media only screen and (max-width: 768px) {
     .container {
         animation: slideDownmoblie 0.8s ease-out forwards;
@@ -346,7 +339,7 @@ body {
         }
     }
 }
-
+ */
 
 .Email {
     margin-bottom: 20px;
@@ -400,6 +393,15 @@ body {
     position: absolute;
     right: 15px;
     top: 36%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18;
+    cursor: pointer;
+}
+.iconpasss {
+    position: absolute;
+    right: 15px;
+    top: 66%;
     transform: translateY(-50%);
     width: 18px;
     height: 18;
@@ -589,14 +591,27 @@ mat-form-field {
 
 
 @media (max-width:768px) {
-
+    .con_help{
+        display: block;
+        margin-left: 0;
+    }
     .container {
-        width: 80vw !important;
-        max-width: 100% !important;
+        min-width: unset !important; /* ล้างค่า min-width 1000px เดิม */     /* กำหนดความกว้างให้พอดีกับจอมือถือ */
         padding: 20px !important;
+          background-color: white;
+       
+   
+    }
+    .eiei{
+        width: 100vw;
+      
+    }
+    .n, .n2 {
+        min-width: unset !important; /* ปรับช่อง Input ไม่ให้ดันหน้าจอ */
+        width: 90vw !important;
     }
 
-
+  
     .header {
         font-size: 26px;
         margin-bottom: 10px;

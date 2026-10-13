@@ -2,9 +2,9 @@
  <!--    <button class="hamburger" (click)="hambar()">
         <img src="image/ham.svg" alt="">
     </button> -->
-    <div class="headercompany">
+   <!--  <div class="headercompany">
         <img src="image/logo.svg" alt="">
-    </div>
+    </div> -->
 
     <!-- เมนูตรงกลาง Navbar -->
     <div class="con_nav">
@@ -94,12 +94,17 @@
     <div class="con_live">
       <div class="chat-header">
         <span><img class="icon_chat" src="image/icon_chat.svg" alt="">Live Chat</span>
-        <button class="close-btn" (click)="toggleChat()">&times;</button>
+        
+        <div class="header-actions" style="display: flex; gap: 10px; align-items: center;">
+          <button class="video-call-btn" (click)="startVideoCall()" style="background: none; border: none; cursor: pointer; font-size: 18px;">
+            <img class="phone" src="image/phone.png" alt="">
+          </button>
+          <button class="close-btn" (click)="toggleChat()">&times;</button>
+        </div>
       </div>
-      
+
       <div class="chat-body" #chatBody>
         @for (chat of chatMessages(); track chat.id || $index) {
-            
             <div class="message-container {{ chat.sender === username ? 'sent' : 'received' }}">
                 
                 @if (chat.sender !== username) {
@@ -107,61 +112,56 @@
                         <img [src]="chat.profile || 'image/profileee.svg'" alt="{{ chat.sender }}">
                     </div>
                 }
-
-                <!-- ส่วนแสดงเวลาและสถานะ Read (สำหรับข้อความของเรา) -->
+                
                 @if (chat.sender === username) {
                     <div class="con_mess">
                         <div class="message-time">{{ chat.created_at | date:'HH:mm' }}</div>
-                        @if (chat.is_read) {
-                            <div class="read-status">Read</div>
-                        }
+                        @if (chat.is_read) { <div class="read-status">Read</div> }
                     </div>
                 }
 
-                <div [class]="'message ' + (chat.sender === username ? 'sent' : 'received')">
-                    @if (chat.sender !== username) {
-                        <div class="sender-name">{{ chat.sender }}</div>
-                    }
+                <div [class]="'message animate-message ' + (chat.sender === username ? 'sent' : 'received')">
+                    @if (chat.sender !== username) { <div class="sender-name">{{ chat.sender }}</div> }
                     
-                    <!-- ตรวจสอบว่าเป็นรูปภาพหรือข้อความ -->
-                    @if (chat.message === '[Image]' && chat.picture) {
-                        <img [src]="chat.picture" alt="Chat Image" style="max-width: 100%; border-radius: 8px;">
+                    @if (chat.message.startsWith('📞')) {
+                        <div class="call">
+                            📞 Calling
+                            <a [href]="extractLink(chat.message)" target="_blank">
+                                <div class="c">JOIN</div>
+                            </a>
+                        </div>
+                    } @else if (chat.message === '[Image]' && chat.picture) {
+                        <!-- แก้ไขตรงนี้: เพิ่ม cursor: pointer และ event (click) -->
+                        <img [src]="chat.picture" alt="Chat Image" 
+                             style="max-width: 100%; border-radius: 8px; cursor: pointer;"
+                             (click)="openImageModal(chat.picture)">
                     } @else {
                         {{ chat.message }}
                     }
                     
-                    <!-- ส่วนแสดงเวลา (สำหรับข้อความของคนอื่น) -->
-                    @if (chat.sender !== username) {
-                        <div class="message-time">{{ chat.created_at | date:'HH:mm' }}</div>
-                    }
+                    @if (chat.sender !== username) { <div class="message-time">{{ chat.created_at | date:'HH:mm' }}</div> }
                 </div>
-
             </div>
-
         } @empty {
             <div class="empty-state">No Message</div>
-        }
-
-        @if (typingUsers().length > 0) {
-            <div class="message-container received">
-                <div class="chat-avatar">...</div>
-                <div class="message received typing">
-                    <div class="sender-name">{{ typingUsers().join(', ') }}</div>
-                    กำลังพิมพ์...
-                </div>
-            </div>
         }
       </div>
 
       <div class="chat-footer">
         <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" style="display: none;">
-        
         <button class="imagee" (click)="fileInput.click()">
           <img src="image/add_pos.svg" alt="Add Image">
         </button>
-        
         <input type="text" [(ngModel)]="newMessage" (input)="onTyping()" (keyup.enter)="sendMessage()" placeholder="...">
         <button (click)="sendMessage()">Send</button>
       </div>
+    </div>
+}
+
+<!-- เพิ่มตรงนี้: Modal สำหรับขยายรูปภาพ -->
+@if (selectedImage) {
+    <div class="image-modal" (click)="closeImageModal()">
+        <span class="close-modal">&times;</span>
+        <img class="modal-content" [src]="selectedImage">
     </div>
 }

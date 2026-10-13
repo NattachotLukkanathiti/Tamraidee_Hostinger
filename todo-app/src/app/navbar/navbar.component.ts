@@ -62,6 +62,7 @@ export class NavbarComponent implements OnInit {
   products: 0
   
 };
+ber = false;
   openpro = false;
   private timeSubscription!: Subscription;
     private notiSubscription!: Subscription;
@@ -271,10 +272,21 @@ export class NavbarComponent implements OnInit {
     this.Max = !this.Max;
     this.isMenuOpenprofile = !this.isMenuOpenprofile;
   }
-  hambar(){
-    this.isMenuOpen = !this.isMenuOpen;
-    this.blur = !this.blur;
+  hambar() {
+  if (this.ber) {
+    // ถ้ากำลังเปิดอยู่ ให้เล่นอนิเมชั่นปิดก่อน
+    this.isClosing = true;
+    
+    // รอให้อนิเมชั่นเล่นจบ (สมมติว่า 0.3 วินาที) แล้วค่อยซ่อน
+    setTimeout(() => {
+      this.ber = false;
+      this.isClosing = false;
+    }, 300); // 300ms = 0.3s
+  } else {
+    // ถ้าปิดอยู่ ให้เปิดได้เลยทันที
+    this.ber = true;
   }
+}
 
   setView(view: string) {
     this.currentView = view;

@@ -69,9 +69,9 @@
 }
 .he{
     cursor: pointer;
-    color: #1D1D1F;
+    color: white;
     font-weight: 300;
-    font-size: 12px;
+    font-size: 20px;
 }
 .he:hover{
     color: #89898b;
@@ -278,4 +278,120 @@
 .menu-button img {
   width: 16px;
   height: 16px;
+}
+
+@media (max-width: 768px) {
+  .headercompany{
+    
+  }
+  .container_bar{
+     gap: 10px;
+    
+    margin-left: auto;
+    margin-right: 10px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    text-align: center;
+    width: 20%;
+    margin-right: 10px;
+    height: 70px;
+  }
+  .time{
+    display: none;
+  }
+  .navbaar {
+  background-color: white; /* ปรับให้มีความโปร่งใส */
+  backdrop-filter: blur(10px); /* เบลอเฉพาะพื้นหลัง */
+}
+.con_ber {
+  padding: 20px;
+  margin-top: 70px;
+    background-color: #eaeaea;
+    position: absolute;
+    justify-content: flex-start;
+    height: 70%;
+  display: block;
+
+top: 0;             
+z-index: 2;
+}
+.hamburger {
+    border: 0.5px solid #00000031;
+    background-color: white;
+    border-radius: 8px;
+    display: flex !important; /* บังคับให้แสดงผลเป็น flex */
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+}
+}
+
+
+.hamburger {
+    border: 0.5px solid #00000031;
+    background-color: white;
+    border-radius: 8px;
+    display: none ;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+}
+
+.hamburger:hover {
+    background-color: #4444447c;
+    border-radius: 50px;
+}
+.con_ber {
+  padding: 20px;
+  margin-top: 70px;
+    background-color: #eaeaea;
+    position: absolute;
+    justify-content: flex-start;
+    height: 70%;
+  display: none;
+  width: 100vw;
+
+top: 0;             
+z-index:  7;
+animation: fade_ber 0.5s ease-in-out;
+}
+@keyframes fade_ber{
+  0%{
+    opacity: 0;
+  }
+  100%{
+    opacity: 1;
+  }
+}
+.con_ber.closing {
+  animation: fade_out 0.3s ease-in forwards;
+}
+@keyframes fade_out{
+  0%{
+    opacity: 1;
+  }
+  100%{
+    opacity: 0;
+  }
+}
+
+.ber{
+  display: block !important;
+}
+.h {
+  color: #0b0b0bd9;
+  font-size: 30px;
+  font-weight: 600;
+  margin-left: 40px;
+  margin-top: 30px;
+  line-height: 0.9;
+  margin-bottom: 1em;
+}
+.H:hover{
+  color:#0b0b0b8f;
 }

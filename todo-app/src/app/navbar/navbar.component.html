@@ -51,6 +51,9 @@
 
 
 <button class="avatar-button" type="button" aria-label="Open account menu" [attr.aria-expanded]="openPanel === 'account'" (click)="toggleAccountMenu()"><img [src]="profile || 'image/profileee.svg'" /></button>
+ <button class="hamburger" (click)="hambar()">
+        <img src="image/ham.svg" alt="">
+    </button>
     </div>
 
 </div>
@@ -89,3 +92,18 @@
   </div>
     </div>
 }
+
+<div class="con_ber" [class.ber]="ber" [class.closing]="isClosing">
+<div class="con_text">
+
+<div class="h"  (click)="Animationa_out1()">Dashboard</div>
+<div  class="h"(click)="Animationa_out()">Inventory</div>
+<div class="h" (click)="Animation_out2()">Sales Orders</div>
+<div class="h" (click)="Animation_out3()">Stock History</div>
+<div class="h" (click)="Animation_out4()">Employee</div>
+<div class="h" (click)="Animation_out6()">Audit Log</div>
+<div class="h" (click)="Animation_out5()">Suppliers</div>
+<div class="h" (click)="Animation_out5()">Help</div>
+<div class="h" (click)="Animation_out5()">Setting</div>
+</div>
+    </div>

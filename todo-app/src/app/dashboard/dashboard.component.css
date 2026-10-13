@@ -1,3 +1,4 @@
+
 .container2 {
     display: flex;
     width: 100%;
@@ -25,6 +26,7 @@
     font-weight: 300;
     margin-top: 50px;
     text-align: center;
+    
     font-size: 13px;
     z-index: 4 !important;
     animation: tab 4s ease;
@@ -32,6 +34,7 @@
 .tab_con{
     background-color: white;
     width: 100vw;
+    box-sizing: border-box;
 }
 @keyframes tab{
     0%{
@@ -464,7 +467,7 @@ input::placeholder {
     min-width: 0; /* ป้องกันไม่ให้เนื้อหาข้างในดันจนล้น */
     box-sizing: border-box;
     min-width: 0;
-    padding: 20px;
+    
     background: #FFF;
     margin-right: 0;
     z-index: 2;
@@ -833,17 +836,30 @@ input::placeholder {
 }
 
 @media (max-width:768px) {
-    .headercompany {
-        display: flex;
-        margin-left: -6px;
-        flex-direction: column;
-        color: #6FAB23;
-        font-weight: 800;
-        align-items: flex-start;
-        font-family: 'Nicomoji', sans-serif;
-        /* ใช้งานฟอนต์เฉพาะตรงนี้ */
+    .contall{
+        padding: 2px;
     }
-
+    .tab{
+        margin-top: 30px;
+    }
+    .header_Inventory{
+        font-size: 50px !important;
+        transform: translateY(-50px) !important;
+        
+    }
+     .container2 {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .headercompany {
+        display: none;
+       
+    }
+    
+    .navbaar{
+        display: none;
+    }
     .headersum {
         margin-top: 30px;
         margin-bottom: 30px;
@@ -864,7 +880,14 @@ input::placeholder {
         flex-direction: row-reverse;
         height: 40px;
     }
-
+    .in_bt {
+    display: flex;
+    gap: 8px;
+    position: absolute;
+    padding: 20px;
+    justify-content: center;
+    align-items: center;
+}
     .search {
         display: none;
     }
@@ -918,19 +941,7 @@ input::placeholder {
         box-shadow: 0px 2px 6px 0px #00000013;
 
     }
-
-    .container {
-        flex: 1;
-        width: 100%;
-        /* เปลี่ยนจาก max-width เป็น width */
-        box-sizing: border-box;
-        /* ป้องกันไม่ให้ padding ทำให้เกิด Scrollbar หรือพื้นที่เกิน */
-        min-width: 0;
-        padding: 0;
-        margin-top: 10px;
-        background: #F4F5FC;
-        margin-right: 0;
-    }
+    
 
     .bar {
         width: 5vw;
@@ -1350,6 +1361,7 @@ input::placeholder {
         -webkit-transform: translateX(-400%);
         transform: translateX(-400%);
     }
+    
 }
 
 .in_bt {
@@ -1858,19 +1870,7 @@ input::placeholder {
     background: #9d33f3;
 }
 
-@media (max-width: 720px) {
-    :host {
-        padding: 20px 16px 16px;
-    }
 
-    .supplier__row {
-        grid-template-columns: 64px minmax(0, 1fr);
-    }
-
-    .supplier__chart::before {
-        left: 64px;
-    }
-}
 
 
 .top-products__title {

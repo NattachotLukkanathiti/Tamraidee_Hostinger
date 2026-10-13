@@ -1513,37 +1513,49 @@ input::placeholder{
     position: fixed;
     z-index: 9933;
 }
-.con_import_product3{
-     width: 40%;
+.import_product3 {
+    background-color: #d9d9d977;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    z-index: 9933;
+}
+.con_import_product3 {
+    width: 40%;
     height: 650px;
     position: fixed;
     top: 50%;
     left: 50%;
     display: flex;
-justify-content: center;
-align-items: center;
-flex-direction: column; /* ใส่หรือไม่ใส่ก็ได้ ขึ้นอยู่กับว่าต้องการให้เรียงเป็นแนวตั้งหรือแนวนอน */
+    flex-direction: column; /* จัดเรียงจากบนลงล่าง */
+    /* ลบ justify-content: center; ออก */
+    /* ลบ align-items: center; ออก */
     transform: translate(-50%, -50%);
     z-index: 7;
     border-radius: 40px;
-    background-color: rgba(255, 255, 255, 0.866);
+    background-color: white;
     border: 1px solid #E5E7EB;
     padding: 20px;
     box-sizing: border-box;
     overflow-y: auto;
     overflow-x: hidden;
-    
-
+     animation: moves 0.5s ease-in-out;
 }
 .product2 {
     display: none;
 }
-
+.product3 {
+    display: none;
+}
 .product {
     display: none;
 }
 
 .button_edit {
+    display: block !important;
+}
+.button_detail {
     display: block !important;
 }
 .button_request {
@@ -1765,3 +1777,4 @@ flex-direction: column; /* ใส่หรือไม่ใส่ก็ได�
 .text-red {
   color: #DC1818;
 }
+

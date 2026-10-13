@@ -6,21 +6,10 @@ import { interval, Subscription } from 'rxjs';
 import { Location } from '@angular/common';
 import { TodoService } from '../services/todo.service';
 
-interface FaqItem {
-  title: string;
-  subtitle: string;
-}
+declare var JitsiMeetExternalAPI: any;
 
-interface ChatMessage {
-  id: number;
-  sender: string;
-  message: string;
-  created_at: string;
-  is_read?: boolean;
-  profile?: string;
-  picture?: string;
-}
-
+interface FaqItem { title: string; subtitle: string; }
+interface ChatMessage { id: number; sender: string; message: string; created_at: string; is_read?: boolean; profile?: string; picture?: string; }
 type HeaderPanel = 'account' | null;
 
 @Component({
@@ -39,23 +28,16 @@ export class HelppComponent implements OnInit, OnDestroy {
 
   @ViewChild('chatBody') private chatBody!: ElementRef;
 
-  username = '';
-  email = '';
-  userRole = '';
-  profile = '';
-
-  isTimeOpen = false;
-  isNavOpen = false;
-  isClosing = false;
-  openPanel: HeaderPanel = null;
-  currentTime = new Date();
+  username = ''; email = ''; userRole = ''; profile = '';
+  isTimeOpen = false; isNavOpen = false; isClosing = false;
+  openPanel: HeaderPanel = null; currentTime = new Date();
+  
   private timeSubscription!: Subscription;
   private chatSubscription!: Subscription;
 
   readonly faqItems = signal<FaqItem[]>([]);
   readonly helpSearch = signal('');
   readonly helpIssueType = signal('Select');
-
   readonly isChatOpen = signal(false);
   readonly chatMessages = signal<ChatMessage[]>([]);
   readonly newMessage = signal('');
@@ -67,20 +49,17 @@ export class HelppComponent implements OnInit, OnDestroy {
     this.username = state.username || '';
     this.email = state.email || '';
     this.userRole = state.role || '';
-    this.profile = state.profile || '';
 
     this.fetchChatHistory();
-
     this.chatSubscription = interval(3000).subscribe(() => {
-      if (this.isChatOpen()) {
-        this.fetchChatHistory();
-      }
+      if (this.isChatOpen()) this.fetchChatHistory();
     });
   }
 
   ngOnDestroy(): void {
     this.timeSubscription?.unsubscribe();
     this.chatSubscription?.unsubscribe();
+    if (this.typingTimeout) clearTimeout(this.typingTimeout);
   }
   
   onTyping() {
@@ -96,8 +75,7 @@ export class HelppComponent implements OnInit, OnDestroy {
     if (this.isChatOpen()) {
       this.todoService.markChatAsRead(this.username).subscribe({
         next: () => {
-          const updatedMessages = this.chatMessages().map(msg => ({ ...msg, is_read: true }));
-          this.chatMessages.set(updatedMessages);
+          this.chatMessages.set(this.chatMessages().map(msg => ({ ...msg, is_read: true })));
           this.changeDetector.markForCheck();
         }
       });
@@ -106,37 +84,31 @@ export class HelppComponent implements OnInit, OnDestroy {
   }
 
   fetchChatHistory() {
-    this.todoService.getChatHistory().subscribe({
-      next: (data) => {
-        const isNewMessage = data.length > this.chatMessages().length;
-        this.chatMessages.set(data);
-        this.changeDetector.markForCheck();
+  this.todoService.getChatHistory().subscribe({
+    next: (data) => {
+      const isNewMessage = data.length > this.chatMessages().length;
+      this.chatMessages.set(data);
+      this.changeDetector.markForCheck();
+      
+      if (isNewMessage) {
+        // เช็คว่ามีข้อความของคนอื่นที่ยังไม่ได้อ่านหรือไม่
+        const hasUnreadFromOthers = data.some(msg => msg.sender !== this.username && !msg.is_read);
         
-        if (isNewMessage) {
-          if (this.isChatOpen()) {
-            this.todoService.markChatAsRead(this.username).subscribe();
-          }
-          setTimeout(() => this.scrollToBottom(), 100);
+        if (this.isChatOpen() && hasUnreadFromOthers) {
+          this.todoService.markChatAsRead(this.username).subscribe();
         }
+        
+        setTimeout(() => this.scrollToBottom(), 100);
       }
-    });
-  }
+    }
+  });
+}
   
   sendMessage() {
     if (!this.newMessage().trim()) return;
-
-    // ส่ง profile เป็นตัวแปรที่ 4 (โดยเว้นตัวที่ 3 หรือ picture เป็น undefined)
-    this.todoService.sendChatMessage(this.username, this.newMessage(), undefined, this.profile).subscribe({
+    this.todoService.sendChatMessage(this.username, this.newMessage()).subscribe({
       next: (response) => {
-        const newMsg: ChatMessage = {
-          id: response.data?.id || Date.now(),
-          sender: this.username,
-          message: this.newMessage(),
-          created_at: new Date().toISOString(),
-          profile: this.profile
-        };
-        
-        this.chatMessages.set([...this.chatMessages(), newMsg]);
+        this.chatMessages.set([...this.chatMessages(), { id: response.data?.id || Date.now(), sender: this.username, message: this.newMessage(), created_at: new Date().toISOString() }]);
         this.newMessage.set('');
         this.changeDetector.markForCheck();
         setTimeout(() => this.scrollToBottom(), 100);
@@ -145,18 +117,9 @@ export class HelppComponent implements OnInit, OnDestroy {
   }
 
   sendImageMessage(base64Image: string) {
-    // ส่ง profile เป็นตัวแปรที่ 4 ต่อจาก base64Image
-    this.todoService.sendChatMessage(this.username, '[Image]', base64Image, this.profile).subscribe({
+    this.todoService.sendChatMessage(this.username, '[Image]', base64Image).subscribe({
       next: (response) => {
-        const newMsg: ChatMessage = {
-          id: response.data?.id || Date.now(),
-          sender: this.username,
-          message: '[Image]',
-          created_at: new Date().toISOString(),
-          profile: this.profile,
-          picture: base64Image
-        };
-        this.chatMessages.set([...this.chatMessages(), newMsg]);
+        this.chatMessages.set([...this.chatMessages(), { id: response.data?.id || Date.now(), sender: this.username, message: '[Image]', created_at: new Date().toISOString(), picture: response.data?.picture || base64Image }]);
         this.changeDetector.markForCheck();
         setTimeout(() => this.scrollToBottom(), 100);
       }
@@ -164,24 +127,17 @@ export class HelppComponent implements OnInit, OnDestroy {
   }
 
   private scrollToBottom(): void {
-    try {
-      this.chatBody.nativeElement.scrollTop = this.chatBody.nativeElement.scrollHeight;
-    } catch(err) { }
+    try { this.chatBody.nativeElement.scrollTop = this.chatBody.nativeElement.scrollHeight; } catch(err) { }
   }
 
- onFileSelected(event: any) {
+  onFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (e: any) => {
-        const base64Image = e.target.result;
-        // ส่งรูปภาพไปที่ Backend โดยตรง
-        this.sendImageMessage(base64Image);
-      };
+      reader.onload = (e: any) => this.sendImageMessage(e.target.result);
       reader.readAsDataURL(file);
     }
   }
-
 
   openPro() { this.isClosing = false; this.openPanel = 'account'; }
   toggleAccountMenu(): void { this.openPanel = this.openPanel === 'account' ? null : 'account'; this.isNavOpen = false; }
@@ -192,4 +148,57 @@ export class HelppComponent implements OnInit, OnDestroy {
   openProfile() { this.router.navigate(['/profile'], { state: { username: this.username, email: this.email, role: this.userRole, profile: this.profile } }); }
   openHelp() { this.router.navigate(['/helpp'], { state: { username: this.username, email: this.email, role: this.userRole, profile: this.profile } }); this.closePanel(); }
   back() { this.location.back(); }
+
+  startVideoCall() {
+    if (typeof JitsiMeetExternalAPI === 'undefined') {
+      alert('กำลังโหลดระบบวิดีโอคอล กรุณาลองใหม่อีกครั้งในไม่ช้า');
+      return;
+    }
+
+    // สั่งเปิด Pop-up
+    const modal = document.getElementById('video-call-modal');
+    if (modal) modal.style.display = 'flex';
+
+        const domain = 'meet.jit.si'; 
+    const roomName = 'SupportRoom-' + Math.random().toString(36).substring(7);
+    
+    // ล้าง iframe เก่าก่อนสร้างใหม่
+    const container = document.querySelector('#jitsi-container');
+    if (container) container.innerHTML = '';
+
+    const options = {
+      roomName: roomName,
+      width: '100%',
+      height: '100%',
+      parentNode: container,
+      userInfo: { displayName: this.username },
+      configOverwrite: { prejoinPageEnabled: false },
+      interfaceConfigOverwrite: { filmStripOnly: false }
+    };
+
+    new JitsiMeetExternalAPI(domain, options);
+
+        const callLink = `https://${domain}/${roomName}`;
+    this.todoService.sendChatMessage(this.username, `📞 ฉันได้เริ่มวิดีโอคอลแล้ว เข้าร่วมได้ที่: ${callLink}`).subscribe({
+      next: () => this.fetchChatHistory()
+    });
+  }
+  // เพิ่มฟังก์ชันนี้ใน class HelppComponent
+  extractLink(message: string): string {
+    const urlMatch = message.match(/(https?:\/\/[^\s]+)/);
+    return urlMatch ? urlMatch[0] : '#';
+  }
+
+
+  // เพิ่มตัวแปรนี้ใน Class
+selectedImage: string | null = null;
+
+// เพิ่มฟังก์ชันเหล่านี้
+openImageModal(imageUrl: string) {
+    this.selectedImage = imageUrl;
+}
+
+closeImageModal() {
+    this.selectedImage = null;
+}
 }

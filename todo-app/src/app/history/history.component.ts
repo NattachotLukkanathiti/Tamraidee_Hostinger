@@ -19,6 +19,7 @@ export class HistoryComponent {
     button_request = false;
         outimport = false;
         product2 = false;
+        product3 = true;
         product = true;
            selectedProduct: any = {}; 
   private todoService = inject(TodoService);
@@ -29,7 +30,7 @@ export class HistoryComponent {
 
   data: any[] = [];
   months: string[] = [];
-  
+  button_detail = true; // เพิ่มตัวแปรสำหรับควบคุมการแสดงผลหน้า View
   email = '';
   username = '';
   showpopup = false;
@@ -248,7 +249,14 @@ export class HistoryComponent {
       item.toLowerCase().includes(this.search.toLowerCase())
     );
   }
-
+  detail(order: any) {
+     this.outimport = false;
+        this.product = false;  // ซ่อนตารางหลัก
+    this.selectedProduct = { ...order }; // เก็บข้อมูลของแถวที่กด
+    this.button_detail = false; 
+    this.product3 = false; // false = แสดงผล (ตาม Logic CSS ของคุณ)
+    this.product = false;  // ซ่อนตารางหลัก
+}
   logout() {
     const now = new Date();
     const auditData = {
@@ -302,7 +310,6 @@ export class HistoryComponent {
   });
 }
   request2(order: any) {
-    
      this.product = false;
     this.product2 = false;
     this.selectedProduct = { ...order }; // นำข้อมูลที่รับมาใส่ใน selectedProduct
@@ -313,6 +320,7 @@ export class HistoryComponent {
     this.outimport = true;
     setTimeout(() =>{
         this.button_edit = false;
+        this.button_detail = false;
             this.product2 = true;
             this.product = true;
             this.button_request = false;

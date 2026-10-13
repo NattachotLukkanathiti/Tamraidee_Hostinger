@@ -501,7 +501,8 @@ filterByCategory() {
       // เพิ่ม pictureUrl เข้าไปใน object ข้อมูล
       const productData = {
         ...this.newProduct,
-        picture: pictureUrl
+        picture: pictureUrl,
+         status: 'Approved'
       };
  this.todoService.addInventory(productData).subscribe({
         next: (res) => {
@@ -517,7 +518,8 @@ filterByCategory() {
   price: productData.price,
   quantity: productData.import_quantity,
   created_by: this.username, // <--- แก้ตรงนี้
-  picture: productData.picture
+  picture: productData.picture,
+  status: 'Approved'
 };
 
           this.todoService.addHistory(historyData).subscribe({

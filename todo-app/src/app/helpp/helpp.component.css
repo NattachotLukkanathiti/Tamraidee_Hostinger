@@ -559,6 +559,7 @@ button:disabled {
 .message.received {
   background: #e9ecef;
   align-self: flex-start;
+  color: black !important; /* เพิ่มบรรทัดนี้เข้าไป */
 }
 
 .message.sent {
@@ -574,14 +575,43 @@ button:disabled {
   gap: 10px;
   border-top: 1px solid #ddd;
 }
+.call{
+    display: flex;
+    gap: 10px;
 
+    font-weight: 600;
+}
+
+.phone{
+    width: 15px;
+    height: 15px;
+}
+.c{
+    text-decoration-line: none !important;
+  
+}
 .chat-footer input {
   flex: 1;
   padding: 8px;
   border: 1px solid #ddd;
   border-radius: 20px;
 }
+/* แอนิเมชันสำหรับข้อความใหม่ */
+.animate-message {
+    animation: popUp 0.6s forwards;
+    transform-origin: bottom;
+}
 
+@keyframes popUp {
+    0% {
+
+        transform: translateY(20px) scale(0.95);
+    }
+    100% {
+
+        transform: translateY(0) scale(1);
+    }
+}
 .chat-footer button {
   padding: 8px 15px;
   background: #84D46E;
@@ -665,13 +695,16 @@ button:disabled {
 }
 @media (max-width: 768px) {
     
+    .navbaar{
+        display: none;
+    }
     .con_live {
         position: fixed;
-        top:45%;
+        top:50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        width: 90vw;
-        height: 70vh;
+        width: 98vw;
+        height: 80vh;
         border-radius: 15px;
         z-index: 1000;
         box-shadow: 0 4px 20px rgba(0,0,0,0.2);
@@ -727,4 +760,39 @@ button:disabled {
     display: flex;
     gap: 4px;
     margin-top: 4px;
+}
+
+
+
+
+
+.image-modal {
+    position: fixed;
+    z-index: 99999; /* ให้อยู่บนสุด */
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+
+.modal-content {
+    max-width: 90%;
+    max-height: 90%;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.close-modal {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    color: #fff;
+    font-size: 40px;
+    font-weight: bold;
+    cursor: pointer;
 }
