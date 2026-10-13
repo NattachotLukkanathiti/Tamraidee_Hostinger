@@ -44,6 +44,8 @@ export class HelppComponent implements OnInit, OnDestroy {
   readonly typingUsers = signal<string[]>([]);
   private typingTimeout: any;
 
+  private limit = 10;
+  private offset = 0;
   ngOnInit(): void {
     const state = history.state;
     this.username = state.username || '';
@@ -83,38 +85,39 @@ export class HelppComponent implements OnInit, OnDestroy {
     }
   }
 
-  fetchChatHistory() {
-  this.todoService.getChatHistory().subscribe({
+   fetchChatHistory() {
+  this.todoService.getChatHistory(this.limit, 0).subscribe({
     next: (data) => {
-      const isNewMessage = data.length > this.chatMessages().length;
-      this.chatMessages.set(data);
+      // เรียงลำดับและตัดให้เหลือ 10 ข้อความล่าสุด
+      const latestMessages = data.slice(-10); 
+      this.chatMessages.set(latestMessages);
       this.changeDetector.markForCheck();
-      
-      if (isNewMessage) {
-        // เช็คว่ามีข้อความของคนอื่นที่ยังไม่ได้อ่านหรือไม่
-        const hasUnreadFromOthers = data.some(msg => msg.sender !== this.username && !msg.is_read);
-        
-        if (this.isChatOpen() && hasUnreadFromOthers) {
-          this.todoService.markChatAsRead(this.username).subscribe();
-        }
-        
-        setTimeout(() => this.scrollToBottom(), 100);
-      }
+      setTimeout(() => this.scrollToBottom(), 100);
     }
   });
 }
   
   sendMessage() {
-    if (!this.newMessage().trim()) return;
-    this.todoService.sendChatMessage(this.username, this.newMessage()).subscribe({
-      next: (response) => {
-        this.chatMessages.set([...this.chatMessages(), { id: response.data?.id || Date.now(), sender: this.username, message: this.newMessage(), created_at: new Date().toISOString() }]);
-        this.newMessage.set('');
-        this.changeDetector.markForCheck();
-        setTimeout(() => this.scrollToBottom(), 100);
-      }
-    });
-  }
+  if (!this.newMessage().trim()) return;
+  this.todoService.sendChatMessage(this.username, this.newMessage()).subscribe({
+    next: (response) => {
+      const newMsg = { 
+        id: response.data?.id || Date.now(), 
+        sender: this.username, 
+        message: this.newMessage(), 
+        created_at: new Date().toISOString() 
+      };
+      
+      // รวมข้อความเก่ากับข้อความใหม่ แล้วตัดให้เหลือ 10 ข้อความล่าสุด
+      const updatedMessages = [...this.chatMessages(), newMsg].slice(-10);
+      
+      this.chatMessages.set(updatedMessages);
+      this.newMessage.set('');
+      this.changeDetector.markForCheck();
+      setTimeout(() => this.scrollToBottom(), 100);
+    }
+  });
+}
 
   sendImageMessage(base64Image: string) {
     this.todoService.sendChatMessage(this.username, '[Image]', base64Image).subscribe({
@@ -201,4 +204,35 @@ openImageModal(imageUrl: string) {
 closeImageModal() {
     this.selectedImage = null;
 }
+
+onScroll() {
+  const element = this.chatBody.nativeElement;
+  if (element.scrollTop === 0) {
+    this.loadMoreMessages();
+  }
+}
+
+loadMoreMessages() {
+    this.offset += this.limit; // เพิ่ม offset ทีละ 10
+    const element = this.chatBody.nativeElement;
+    const previousScrollHeight = element.scrollHeight;
+
+    this.todoService.getChatHistory(this.limit, this.offset).subscribe({
+      next: (olderMessages) => {
+        if (olderMessages.length > 0) {
+          // นำข้อความเก่ามาต่อด้านบน
+          this.chatMessages.set([...olderMessages, ...this.chatMessages()]);
+          this.changeDetector.markForCheck();
+          
+          // คงตำแหน่ง Scroll ให้ผู้ใช้อ่านข้อความเดิมได้ต่อเนื่อง
+          setTimeout(() => {
+            element.scrollTop = element.scrollHeight - previousScrollHeight;
+          }, 0);
+        } else {
+          // ถ้าไม่มีข้อความเก่าแล้ว ให้ลบ offset กลับ เพื่อไม่ให้ยิง API ซ้ำ
+          this.offset -= this.limit;
+        }
+      }
+    });
+  }
 }

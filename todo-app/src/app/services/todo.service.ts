@@ -208,8 +208,12 @@ export class TodoService {
       { headers: this.headers }
     );
   }
-   getChatHistory(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/chat`, { headers: this.headers });
+   // แก้ไข URL ให้เรียกผ่าน this.apiUrl และกำหนด Type ให้ถูกต้อง
+  getChatHistory(limit: number = 20, offset: number = 0): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.apiUrl}/chat?limit=${limit}&offset=${offset}`, 
+      { headers: this.headers }
+    );
   }
 
   // เพิ่ม picture?: string เข้าไปเป็นตัวที่ 3

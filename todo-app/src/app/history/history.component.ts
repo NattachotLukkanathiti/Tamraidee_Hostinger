@@ -15,12 +15,11 @@ import { createClient } from '@supabase/supabase-js';
 export class HistoryComponent {
     button_cancel = false;
   button_importt = false;
-    button_edit = false;
-    button_request = false;
         outimport = false;
-        product2 = false;
+        product2 = true;
         product3 = true;
-        product = true;
+        product1 = true;
+        
            selectedProduct: any = {}; 
   private todoService = inject(TodoService);
 
@@ -30,7 +29,7 @@ export class HistoryComponent {
 
   data: any[] = [];
   months: string[] = [];
-  button_detail = true; // เพิ่มตัวแปรสำหรับควบคุมการแสดงผลหน้า View
+
   email = '';
   username = '';
   showpopup = false;
@@ -250,12 +249,12 @@ export class HistoryComponent {
     );
   }
   detail(order: any) {
-     this.outimport = false;
-        this.product = false;  // ซ่อนตารางหลัก
+    this.product1 = false;  // ซ่อน Product 1
+    this.product2 = true;  // ซ่อน Product 2
+    this.product3 = false; // แสดง Product 3 (View)
+    
     this.selectedProduct = { ...order }; // เก็บข้อมูลของแถวที่กด
-    this.button_detail = false; 
-    this.product3 = false; // false = แสดงผล (ตาม Logic CSS ของคุณ)
-    this.product = false;  // ซ่อนตารางหลัก
+    this.outimport = false; // รีเซ็ตแอนิเมชันตอนปิด
 }
   logout() {
     const now = new Date();
@@ -296,9 +295,9 @@ export class HistoryComponent {
         // ถ้าไม่เจอ ให้เอาข้อมูลจากตาราง history มาแสดงแทน
         this.selectedProduct = { ...order, id: null }; 
       }
-      
-      this.product = false;
-      this.product2 = true;
+      this.product1 = false;  // ซ่อน Product 1
+    this.product2 = true;  // ซ่อน Product 2
+    this.product3 = true; // แสดง Product 3 (View)
       this.outimport = false;
       this.loader = false;
     },
@@ -310,20 +309,17 @@ export class HistoryComponent {
   });
 }
   request2(order: any) {
-     this.product = false;
-    this.product2 = false;
+    this.product2 = false; // แสดง
     this.selectedProduct = { ...order }; // นำข้อมูลที่รับมาใส่ใน selectedProduct
     this.outimport = false;
-    this.button_edit = false;
   }
   button_cancels(){
     this.outimport = true;
     setTimeout(() =>{
-        this.button_edit = false;
-        this.button_detail = false;
             this.product2 = true;
-            this.product = true;
-            this.button_request = false;
+            this.product1 = true;
+            this.product3 = true;
+          
     },400)
   }
   confirmAdjustment() {
@@ -406,7 +402,7 @@ export class HistoryComponent {
   // เมื่อกดดูรายละเอียด
   viewRequestDetail(item: any) {
     this.selectedProduct = { ...item };
-    this.button_edit = true;
+   
     this.outimport = false;
   }
  confirmAdjustment2() {

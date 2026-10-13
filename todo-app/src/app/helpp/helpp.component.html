@@ -103,7 +103,7 @@
         </div>
       </div>
 
-      <div class="chat-body" #chatBody>
+      <div class="chat-body" #chatBody (scroll)="onScroll()">
         @for (chat of chatMessages(); track chat.id || $index) {
             <div class="message-container {{ chat.sender === username ? 'sent' : 'received' }}">
                 

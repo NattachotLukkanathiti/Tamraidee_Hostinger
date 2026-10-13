@@ -169,10 +169,10 @@
         <img class="profile_employee" [src]="order.picture" alt="">
 {{ order.created_by }}
     </div>
-    <img class="icon" *ngIf="userRole === 'admin' && order.status === 'Pending'" (click)="requestFromHistory(order)" src="image/file.svg" alt="">
+    <img class="icon" *ngIf="userRole === 'admin' && order.status === 'Pending'" (click)="requestFromHistory(order); $event.stopPropagation()" src="image/file.svg" alt="">
 <img class="icon" 
      *ngIf="userRole === 'backend' && order.status !== 'Pending'" 
-     (click)="request2(order)" 
+     (click)="request2(order); $event.stopPropagation()" 
      src="image/file.svg" 
      alt="">
 </div>
@@ -266,7 +266,7 @@
   </div>
 </div> -->
 
-<div class="import_product"  [class.product]="product" [class.button_cancel]="button_cancel" [class.button_edit]="button_edit">
+<div class="import_product"  [class.product1]="product1" [class.button_cancel]="button_cancel" >
     <div class="con_import_product" [class.out_comimport]="outimport" >
         
         <!-- Header -->
@@ -357,8 +357,9 @@
         <div (click)="button_cancels()" class="cancel">Cancel</div>
     </div>
 </div>
+</div>
 
-<div class="import_product2" [class.product2]="product2" [class.button_cancel]="button_cancel" [class.button_request]="button_request" >
+<div class="import_product2" [class.product2]="product2" [class.button_cancel]="button_cancel"  >
     <div class="con_import_product2" [class.out_comimport]="outimport" >
         
         <div class="serach_product" >
@@ -419,7 +420,9 @@
   </div>
 </div>
 
-<div class="import_product3" [class.product3]="product3" [class.button_cancel]="button_cancel" [class.button_detail]="button_detail">
+
+
+<div class="import_product3" [class.product3]="product3" [class.button_cancel]="button_cancel" >
     <div class="con_import_product3" [class.out_comimport]="outimport">
         
         <!-- Header -->
