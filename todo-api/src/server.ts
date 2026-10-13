@@ -1040,32 +1040,35 @@ app.post('/create-promptpay-charge', async (req, res) => {
 });
 app.get('/api/chat', async (req, res) => {
   try {
-    // ใช้ LEFT JOIN เพื่อดึง profile จากตาราง todos โดยเชื่อมด้วย username
+    // แก้ไขโดยการทำ Type Casting และกำหนดค่าเริ่มต้น
+    const limitParam = typeof req.query.limit === 'string' ? req.query.limit : '10';
+    const offsetParam = typeof req.query.offset === 'string' ? req.query.offset : '0';
+
+    const limit = parseInt(limitParam, 10);
+    const offset = parseInt(offsetParam, 10);
+
+    // ใช้ ORDER BY DESC เพื่อเอาข้อความล่าสุดก่อน แล้วค่อย LIMIT
     const result = await pool.query(
       `SELECT 
          chat.id, chat.sender, chat.message, chat.created_at, 
-         chat.is_read, chat.picture, chat.reply_to_id, chat.reactions,
+         chat.is_read, chat.picture,
          todos.profile AS user_profile
        FROM chat 
        LEFT JOIN todos ON chat.sender = todos.username
-       ORDER BY chat.created_at ASC`
+       ORDER BY chat.created_at DESC
+       LIMIT $1 OFFSET $2`,
+      [limit, offset]
     );
     
-    const formattedRows = result.rows.map(row => ({
+    // กลับด้านข้อมูลให้ข้อความเก่าอยู่บน ข้อความใหม่อยู่ล่าง ก่อนส่งให้ Angular
+    const formattedRows = result.rows.reverse().map(row => ({
       id: row.id,
       sender: row.sender,
       message: row.message,
       created_at: row.created_at,
       is_read: row.is_read,
       picture: row.picture,
-      profile: row.user_profile, // <--- ใช้รูปโปรไฟล์ที่ได้จากการ JOIN
-      reactions: row.reactions || [],
-      replyTo: row.reply_to_id ? {
-        id: row.reply_to_id,
-        sender: row.reply_sender,
-        message: row.reply_message,
-        created_at: '',
-      } : undefined
+      profile: row.user_profile
     }));
 
     res.json(formattedRows);
@@ -1074,7 +1077,6 @@ app.get('/api/chat', async (req, res) => {
     res.status(500).json({ success: false, message: 'Server Error' });
   }
 });
-
 app.put('/api/chat/read', async (req, res) => {
   const { username } = req.body;
   

@@ -19,6 +19,7 @@ export class DashboardComponent implements OnInit {
 private productsList: { name: string; count: number; image?: string }[] = [];
   private todoService = inject(TodoService);
     private changeDetector = inject(ChangeDetectorRef); // <-- เพิ่มบรรทัดนี้
+    
   search = '';
   items: string[] = ['รายการที่ 1', 'รายการที่ 2', 'รายการที่ 3'];
   filteredItems: string[] = [...this.items];

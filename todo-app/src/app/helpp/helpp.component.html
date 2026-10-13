@@ -90,78 +90,75 @@
   </div>
 </main>
 </div>
-@if (isChatOpen()) {
-    <div class="con_live">
-      <div class="chat-header">
-        <span><img class="icon_chat" src="image/icon_chat.svg" alt="">Live Chat</span>
+<div class="con_live" *ngIf="isChatOpen()">
+  <div class="chat-header">
+    <span><img class="icon_chat" src="image/icon_chat.svg" alt="">Live Chat</span>
+    
+    <div class="header-actions" style="display: flex; gap: 10px; align-items: center;">
+      <button class="video-call-btn" (click)="startVideoCall()" style="background: none; border: none; cursor: pointer; font-size: 18px;">
+        <img class="phone" src="image/phone.png" alt="">
+      </button>
+      <button class="close-btn" (click)="toggleChat()">&times;</button>
+    </div>
+  </div>
+
+  <!-- เพิ่ม (scroll)="onScroll()" ตรงนี้ -->
+  <div class="chat-body" #chatBody (scroll)="onScroll()">
+    
+    <div class="message-container {{ chat.sender === username ? 'sent' : 'received' }}"
+         *ngFor="let chat of chatMessages(); let i = index"
+         [style.animation-delay]="i * 0.1 + 's'">
         
-        <div class="header-actions" style="display: flex; gap: 10px; align-items: center;">
-          <button class="video-call-btn" (click)="startVideoCall()" style="background: none; border: none; cursor: pointer; font-size: 18px;">
-            <img class="phone" src="image/phone.png" alt="">
-          </button>
-          <button class="close-btn" (click)="toggleChat()">&times;</button>
+        <div class="chat-avatar" *ngIf="chat.sender !== username">
+            <img [src]="chat.profile || 'image/profileee.svg'" alt="{{ chat.sender }}">
         </div>
-      </div>
+        
+        <div class="con_mess" *ngIf="chat.sender === username">
+            <div class="message-time">{{ chat.created_at | date:'HH:mm' }}</div>
+            <div class="read-status" *ngIf="chat.is_read">Read</div>
+        </div>
 
-      <div class="chat-body" #chatBody (scroll)="onScroll()">
-        @for (chat of chatMessages(); track chat.id || $index) {
-            <div class="message-container {{ chat.sender === username ? 'sent' : 'received' }}">
-                
-                @if (chat.sender !== username) {
-                    <div class="chat-avatar">
-                        <img [src]="chat.profile || 'image/profileee.svg'" alt="{{ chat.sender }}">
-                    </div>
-                }
-                
-                @if (chat.sender === username) {
-                    <div class="con_mess">
-                        <div class="message-time">{{ chat.created_at | date:'HH:mm' }}</div>
-                        @if (chat.is_read) { <div class="read-status">Read</div> }
-                    </div>
-                }
-
-                <div [class]="'message animate-message ' + (chat.sender === username ? 'sent' : 'received')">
-                    @if (chat.sender !== username) { <div class="sender-name">{{ chat.sender }}</div> }
-                    
-                    @if (chat.message.startsWith('📞')) {
-                        <div class="call">
-                            📞 Calling
-                            <a [href]="extractLink(chat.message)" target="_blank">
-                                <div class="c">JOIN</div>
-                            </a>
-                        </div>
-                    } @else if (chat.message === '[Image]' && chat.picture) {
-                        <!-- แก้ไขตรงนี้: เพิ่ม cursor: pointer และ event (click) -->
-                        <img [src]="chat.picture" alt="Chat Image" 
-                             style="max-width: 100%; border-radius: 8px; cursor: pointer;"
-                             (click)="openImageModal(chat.picture)">
-                    } @else {
-                        {{ chat.message }}
-                    }
-                    
-                    @if (chat.sender !== username) { <div class="message-time">{{ chat.created_at | date:'HH:mm' }}</div> }
-                </div>
+        <div [class]="'message animate-message ' + (chat.sender === username ? 'sent' : 'received')">
+            <div class="sender-name" *ngIf="chat.sender !== username">{{ chat.sender }}</div>
+            
+            <div class="call" *ngIf="chat.message.startsWith('📞')">
+                📞 Calling
+                <a [href]="extractLink(chat.message)" target="_blank">
+                    <div class="c">JOIN</div>
+                </a>
             </div>
-        } @empty {
-            <div class="empty-state">No Message</div>
-        }
-      </div>
 
-      <div class="chat-footer">
-        <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" style="display: none;">
-        <button class="imagee" (click)="fileInput.click()">
-          <img src="image/add_pos.svg" alt="Add Image">
-        </button>
-        <input type="text" [(ngModel)]="newMessage" (input)="onTyping()" (keyup.enter)="sendMessage()" placeholder="...">
-        <button (click)="sendMessage()">Send</button>
-      </div>
-    </div>
-}
+            <img *ngIf="chat.message === '[Image]' && chat.picture" 
+                 [src]="chat.picture" alt="Chat Image" 
+                 loading="lazy"
+                 style="max-width: 100%; border-radius: 8px; cursor: pointer;"
+                 (click)="openImageModal(chat.picture)">
 
-<!-- เพิ่มตรงนี้: Modal สำหรับขยายรูปภาพ -->
-@if (selectedImage) {
-    <div class="image-modal" (click)="closeImageModal()">
-        <span class="close-modal">&times;</span>
-        <img class="modal-content" [src]="selectedImage">
+            <span *ngIf="!chat.message.startsWith('📞') && chat.message !== '[Image]'">
+                {{ chat.message }}
+            </span>
+            
+            <div class="message-time" *ngIf="chat.sender !== username">
+                {{ chat.created_at | date:'HH:mm' }}
+            </div>
+        </div>
     </div>
-}
+
+    <div class="empty-state" *ngIf="chatMessages().length === 0">No Message</div>
+    
+  </div>
+
+  <div class="chat-footer">
+    <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" style="display: none;">
+    <button class="imagee" (click)="fileInput.click()">
+      <img src="image/add_pos.svg" alt="Add Image">
+    </button>
+    <input type="text" [(ngModel)]="newMessage" (input)="onTyping()" (keyup.enter)="sendMessage()" placeholder="...">
+    <button (click)="sendMessage()">Send</button>
+  </div>
+</div>
+
+<div class="image-modal" *ngIf="selectedImage" (click)="closeImageModal()">
+    <span class="close-modal">&times;</span>
+    <img class="modal-content" [src]="selectedImage">
+</div>
