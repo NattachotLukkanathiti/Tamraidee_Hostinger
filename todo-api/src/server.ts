@@ -1047,17 +1047,14 @@ app.get('/api/chat', async (req, res) => {
     const limit = parseInt(limitParam, 10);
     const offset = parseInt(offsetParam, 10);
 
-    // โค้ดเดิม: เพิ่มการดึง reply_to_id และ LEFT JOIN chat เพื่อเอาข้อความที่ตอบกลับ
+    // ใช้ ORDER BY DESC เพื่อเอาข้อความล่าสุดก่อน แล้วค่อย LIMIT
     const result = await pool.query(
       `SELECT 
-         <unsafe_url>chat.id</unsafe_url>, chat.sender, chat.message, chat.created_at, 
-         chat.is_read, chat.picture, chat.reply_to_id,
-         todos.profile AS user_profile,
-         reply.message AS reply_message,
-         reply.sender AS reply_sender
+         chat.id, chat.sender, chat.message, chat.created_at, 
+         chat.is_read, chat.picture,
+         todos.profile AS user_profile
        FROM chat 
        LEFT JOIN todos ON chat.sender = todos.username
-       LEFT JOIN chat AS reply ON chat.reply_to_id = <unsafe_url>reply.id</unsafe_url>
        ORDER BY chat.created_at DESC
        LIMIT $1 OFFSET $2`,
       [limit, offset]
@@ -1071,10 +1068,7 @@ app.get('/api/chat', async (req, res) => {
       created_at: row.created_at,
       is_read: row.is_read,
       picture: row.picture,
-      profile: row.user_profile,
-      reply_to_id: row.reply_to_id,       // เพิ่ม
-      reply_message: row.reply_message,   // เพิ่ม
-      reply_sender: row.reply_sender      // เพิ่ม
+      profile: row.user_profile
     }));
 
     res.json(formattedRows);
