@@ -61,7 +61,7 @@ export class HelppComponent implements OnInit, OnDestroy {
     this.username = state.username || '';
     this.email = state.email || '';
     this.userRole = state.role || '';
-
+    
     this.fetchChatHistory();
     this.chatSubscription = interval(3000).subscribe(() => {
       if (this.isChatOpen()) this.fetchChatHistory();
@@ -97,18 +97,18 @@ checkTypingStatus() {
     });
   }
   toggleChat() {
-   
-    this.isChatOpen.set(!this.isChatOpen());
-    if (this.isChatOpen()) {
-      this.todoService.markChatAsRead(this.username).subscribe({
-        next: () => {
-          this.chatMessages.set(this.chatMessages().map(msg => ({ ...msg, is_read: true })));
-          this.changeDetector.markForCheck();
-        }
-      });
-      setTimeout(() => this.scrollToBottom(), 100);
-    }
+  this.isChatOpen.set(!this.isChatOpen());
+  if (this.isChatOpen()) {
+    this.todoService.markChatAsRead(this.username).subscribe({
+      next: () => {
+        // สั่งดึงข้อมูลใหม่ทันที เพื่อให้ได้สถานะ "Read" ล่าสุดจาก Backend มาแสดงผล
+        this.fetchChatHistory(); 
+        this.changeDetector.markForCheck();
+      }
+    });
+    setTimeout(() => this.scrollToBottom(), 100);
   }
+}
   toggleclosed() {
   this.closed = true; // เริ่มเล่นแอนิเมชัน
   setTimeout(() => {
@@ -159,18 +159,40 @@ checkTypingStatus() {
 }
   
   sendMessage() {
-    if (!this.newMessage().trim()) return;
-     const replyId = this.replyingTo()?.id || null;
-    this.todoService.sendChatMessage(this.username, this.newMessage(), undefined, replyId).subscribe({
-      next: (response) => {
-        this.chatMessages.set([...this.chatMessages(), { id: response.data?.id || Date.now(), sender: this.username, message: this.newMessage(), created_at: new Date().toISOString() }]);
-        this.newMessage.set('');
-         this.replyingTo.set(null);
-        this.changeDetector.markForCheck();
-        setTimeout(() => this.scrollToBottom(), 100);
-      }
-    });
+     const imageToSend = this.pendingImage();
+      if (imageToSend) {
+    this.sendImageMessage(imageToSend);
+    this.pendingImage.set(null); // เคลียร์รูปภาพ
+    return;
   }
+
+  // ถ้าไม่มีรูปภาพ ให้ส่งข้อความตามปกติ
+  if (!this.newMessage().trim()) return;
+  
+  if (!this.newMessage().trim()) return;
+  
+  const replyData = this.replyingTo();
+  const replyId = replyData?.id || undefined; // <--- เปลี่ยนจาก null เป็น undefined
+
+  this.todoService.sendChatMessage(this.username, this.newMessage(), undefined, replyId).subscribe({
+    next: (response) => {
+      this.chatMessages.set([...this.chatMessages(), { 
+        id: response.data?.id || Date.now(), 
+        sender: this.username, 
+        message: this.newMessage(), 
+        created_at: new Date().toISOString(),
+        reply_to_id: replyId,                         
+        reply_message: replyData?.message || undefined, 
+        reply_sender: replyData?.sender || undefined    
+      }]);
+      
+      this.newMessage.set('');
+      this.replyingTo.set(null); 
+      this.changeDetector.markForCheck();
+      setTimeout(() => this.scrollToBottom(), 100);
+    }
+  });
+}
 
   sendImageMessage(base64Image: string) {
     this.todoService.sendChatMessage(this.username, '[Image]', base64Image).subscribe({
@@ -206,19 +228,16 @@ checkTypingStatus() {
   back() { this.location.back(); }
 
   startVideoCall() {
-    if (typeof JitsiMeetExternalAPI === 'undefined') {
-      alert('กำลังโหลดระบบวิดีโอคอล กรุณาลองใหม่อีกครั้งในไม่ช้า');
-      return;
-    }
+    if (typeof JitsiMeetExternalAPI === 'undefined') return;
 
-    // สั่งเปิด Pop-up
     const modal = document.getElementById('video-call-modal');
     if (modal) modal.style.display = 'flex';
 
-        const domain = 'meet.jit.si'; 
+    // เปลี่ยนจาก 8x8.vc เป็น meet.jit.si
+    const domain = 'jitsi.riot.im';
+    // สร้างชื่อห้องแบบสุ่ม
     const roomName = 'SupportRoom-' + Math.random().toString(36).substring(7);
     
-    // ล้าง iframe เก่าก่อนสร้างใหม่
     const container = document.querySelector('#jitsi-container');
     if (container) container.innerHTML = '';
 
@@ -227,16 +246,69 @@ checkTypingStatus() {
       width: '100%',
       height: '100%',
       parentNode: container,
-      userInfo: { displayName: this.username },
-      configOverwrite: { prejoinPageEnabled: false },
-      interfaceConfigOverwrite: { filmStripOnly: false }
+      userInfo: { 
+        displayName: this.username,
+        avatarURL: this.profile
+      },
+      configOverwrite: { 
+        prejoinPageEnabled: false,
+        prejoinConfig: { enabled: false },
+        requireDisplayName: false,
+        disableDeepLinking: true,
+        startWithVideoMuted: true,
+        enableLobby: false 
+      }
     };
 
     new JitsiMeetExternalAPI(domain, options);
 
-        const callLink = `https://${domain}/${roomName}`;
+    const callLink = `https://${domain}/${roomName}`;
     this.todoService.sendChatMessage(this.username, `📞 ฉันได้เริ่มวิดีโอคอลแล้ว เข้าร่วมได้ที่: ${callLink}`).subscribe({
       next: () => this.fetchChatHistory()
+    });
+  }
+
+  joinVideoCall(url: string) {
+    if (url === '#') return;
+    
+    const domain = 'jitsi.riot.im'; 
+    const roomName = url.split(domain + '/')[1]; 
+
+    const modal = document.getElementById('video-call-modal');
+    if (modal) modal.style.display = 'flex';
+
+    const container = document.querySelector('#jitsi-container');
+    if (container) container.innerHTML = '';
+
+    const options = {
+      roomName: roomName,
+      width: '100%',
+      height: '100%',
+      parentNode: container,
+      userInfo: { 
+        displayName: this.username,
+        avatarURL: this.profile
+      },
+      // เพิ่ม configOverwrite เพื่อบังคับข้ามหน้าจอ
+      configOverwrite: { 
+        prejoinPageEnabled: false,
+        requireDisplayName: false,
+        disableDeepLinking: true,
+        startWithVideoMuted: true
+      },
+      // เพิ่ม interfaceConfigOverwrite เพื่อซ่อนปุ่มและหน้าต่างที่ไม่จำเป็น
+      interfaceConfigOverwrite: {
+        SHOW_JITSI_WATERMARK: false,
+        SHOW_WATERMARK_FOR_GUESTS: false,
+        DEFAULT_LOCAL_DISPLAY_NAME: this.username
+      }
+    };
+
+    const api = new JitsiMeetExternalAPI(domain, options);
+
+    // สั่งให้ตั้งชื่อและเข้าห้องทันทีเมื่อโหลดเสร็จ
+    api.addEventListener('videoConferenceJoined', () => {
+      api.executeCommand('displayName', this.username);
     });
   }
   // เพิ่มฟังก์ชันนี้ใน class HelppComponent
@@ -279,4 +351,39 @@ replyToMessage(chat: ChatMessage) {
 cancelReply() {
   this.replyingTo.set(null);
 }
+closeCall() {
+  const modal = document.getElementById('video-call-modal');
+  if (modal) modal.style.display = 'none';
+  
+  const container = document.querySelector('#jitsi-container');
+  if (container) container.innerHTML = ''; // เคลียร์ iframe ออก
+}
+
+readonly pendingImage = signal<string | null>(null);
+
+// แก้ไขฟังก์ชัน onPaste
+onPaste(event: ClipboardEvent) {
+  const items = event.clipboardData?.items;
+  
+  if (items) {
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf('image') !== -1) {
+        const file = items[i].getAsFile();
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e: any) => {
+            // เก็บรูปภาพไว้ในตัวแปรแทนการส่งทันที
+            this.pendingImage.set(e.target.result);
+            this.changeDetector.markForCheck();
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+    }
+  }
+}
+cancelImage() {
+  this.pendingImage.set(null);
+}
+
 }

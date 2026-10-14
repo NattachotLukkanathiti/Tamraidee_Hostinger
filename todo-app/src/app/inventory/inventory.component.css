@@ -32,7 +32,51 @@
         opacity: 1;
     }
 }
+@media (max-width: 768px) {
+    /* ซ่อนส่วนหัวของตารางในมือถือ */
+    .table {
+        display: none;
+    }
 
+    /* ปรับให้แถวแสดงผลเป็นแบบการ์ด */
+    .table_detail {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        background: #fff;
+        margin-bottom: 10px;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        position: relative;
+    }
+
+    /* ปรับขนาดและระยะห่างของข้อมูลแต่ละช่อง */
+    .sku2 {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        padding: 5px 0;
+        font-size: 14px;
+    }
+
+    /* เพิ่มป้ายกำกับ (Label) ด้านหน้าข้อมูล */
+    .sku2::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #6C757D;
+        margin-right: 10px;
+    }
+    .table{
+        display: none !important;
+    }
+    /* จัดตำแหน่งปุ่มแก้ไขและลบให้อยู่มุมขวาบนของการ์ด */
+    .button_small {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+    }
+}
 .fade-out {
     animation: Move_sale 0.5s ease-in-out !important;
 }
@@ -1655,6 +1699,14 @@ flex-direction: column; /* ใส่หรือไม่ใส่ก็ได�
 }
 
 @media (max-width:768px) {
+    .tab{
+        margin-top: 60px;
+    }
+    .header_Inventory{
+        font-size: 50px !important;
+        transform: translateY(10px) !important;
+        
+    }
     .headercompany {
         display: flex;
         margin-left: -6px;

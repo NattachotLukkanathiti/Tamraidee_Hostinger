@@ -949,4 +949,40 @@ logout() {
     this.selectedProduct = {};
     this.imagePreview = null;
   }
+
+
+
+  // 1. เพิ่มตัวแปรนี้ใน Class
+selectedStockFilter: string = 'all';
+
+// 2. เพิ่มฟังก์ชันนี้เข้าไป
+filterByStockStatus() {
+  // เริ่มต้นโดยดึงข้อมูลทั้งหมดมาก่อน
+  let baseList = [...this.Inventory];
+
+  // กรองตามสถานะ Stock
+  if (this.selectedStockFilter === 'low') {
+    baseList = baseList.filter(item => Number(item.quantity) <= Number(item.quantity_alert));
+  }
+
+  // อัปเดตข้อมูลที่จะแสดงผล
+  this.filteredInventory = baseList;
+  this.currentPage = 1;
+  this.updatePagination();
+}
+
+
+// เพิ่มฟังก์ชันนี้เข้าไปใน Class
+  get visiblePages(): number[] {
+    const blockSize = 3; // กำหนดให้แสดงทีละ 3 หน้า
+    const currentBlock = Math.floor((this.currentPage - 1) / blockSize);
+    const startPage = (currentBlock * blockSize) + 1;
+    const endPage = Math.min(startPage + blockSize - 1, this.totalPages);
+
+    const pages = [];
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    return pages;
+  }
 }

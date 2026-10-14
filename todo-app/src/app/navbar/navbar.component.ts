@@ -131,17 +131,23 @@ ber = false;
     });
   }
   Animationa_out1(){
+     this.isClosing = true;
     this.outs = false;
         this.out = true;
     this.play_Return = false;
     this.Animation_out = true;
+    
     setTimeout(() =>{
       this.router.navigate(['/dashboard'],{
         state:{username: this.username , email: this.email ,role:this.userRole ,profile:this.profile}
+        
       })
+        this.ber = false;
+        this.isClosing = false;
     } ,300)
   }
   Animationa_out(){
+    this.isClosing = true;
     this.outs = false;
         this.out = true;
     this.play_Return = false;
@@ -150,9 +156,12 @@ ber = false;
       this.router.navigate(['/inventory'],{
         state:{username: this.username , email: this.email ,role:this.userRole ,profile:this.profile}
       })
+        this.ber = false;
+        this.isClosing = false;
     } ,300)
   }
   Animation_out2(){
+    this.isClosing = true;
             this.out = true;
     this.play_Return = false;
     this.Animation_outsale = true;
@@ -160,9 +169,12 @@ ber = false;
       this.router.navigate(['/sale'],{
         state:{username: this.username , email: this.email, Move_return3:true ,role:this.userRole ,profile:this.profile}
       })
+        this.ber = false;
+        this.isClosing = false;
     } ,300)
   }
   Animation_out3(){
+    this.isClosing = true;
             this.out = true;
     this.play_Return = false;
     this.Animation_outsale = true;
@@ -170,9 +182,12 @@ ber = false;
       this.router.navigate(['/history'],{
         state:{username: this.username , email: this.email, Move_returnH:true ,role:this.userRole ,profile:this.profile}
       })
+        this.ber = false;
+        this.isClosing = false;
     } ,300)
   }
   Animation_out4(){
+    this.isClosing = true;
             this.out = true;
     this.play_Return = false;
     this.Animation_outsale = true;
@@ -180,9 +195,12 @@ ber = false;
       this.router.navigate(['/employee'],{
         state:{username: this.username , email: this.email, Move_return4:true ,role:this.userRole ,profile:this.profile }
       })
+        this.ber = false;
+        this.isClosing = false;
     } ,300)
   }
   Animation_out5(){
+    this.isClosing = true;
             this.out = false;
     this.play_Return = false;
     this.Animation_outsale = true;
@@ -190,9 +208,12 @@ ber = false;
       this.router.navigate(['/suppliers'],{
         state:{username: this.username , email: this.email, Move_return5:true ,Dont_animation:true ,role:this.userRole ,profile:this.profile}
       })
+        this.ber = false;
+        this.isClosing = false;
     } ,300)
   }
   Animation_out6(){
+    this.isClosing = true;
             this.out = true;
     this.play_Return = false;
     this.Animation_outsale = true;
@@ -200,6 +221,8 @@ ber = false;
       this.router.navigate(['/audit'],{
         state:{username: this.username , email: this.email, Move_return6:true ,Dont_animation:true ,role:this.userRole ,profile:this.profile}
       })
+        this.ber = false;
+         this.isClosing = false;
     } ,300)
   }
   openpopupnoti(message:string){

@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { TodoService } from '../services/todo.service';
 import { interval, Subscription } from 'rxjs';
+
 type HeaderPanel = 'account' | null;
 @Component({
   selector: 'app-dashboard',
@@ -61,11 +62,16 @@ private productsList: { name: string; count: number; image?: string }[] = [];
   products: 0
   
 };
+
+    saleOrders: any[] = [];
   openpro = false;
   private timeSubscription!: Subscription;
   constructor(private router: Router) {}
 
   ngOnInit(): void {
+        this.loadTopProducts(); 
+      this.loadChartData(); 
+     this.loadSaleOrders(); 
 this.loadTopProducts(); 
     const state = history.state;
     this.username = state.username || '';
@@ -181,6 +187,12 @@ this.loadTopProducts();
       })
     } ,300)
   }
+  onFilterChange(event: any) {
+    const filterValue = event.target.value;
+    // เรียกใช้ Service โดยส่ง filterValue ไปดึงข้อมูลชุดใหม่
+    console.log('Selected filter:', filterValue);
+    // this.todoService.getSaleOrdersByFilter(filterValue).subscribe(...);
+}
   openpopupnoti(message:string){
     this.showpopupnoti = true;
     this.popup = message;
@@ -222,7 +234,22 @@ this.loadTopProducts();
     error: (err) => console.error(err)
   });
 }
-
+loadSaleOrders() {
+  this.todoService.getSaleOrders().subscribe({
+    next: (res) => {
+            this.saleOrders = res.filter(order => order.status?.toLowerCase() === 'completed');
+      
+      // เรียกใช้ฟังก์ชันประมวลผลข้อมูลสำหรับกราฟ
+      this.processSaleOrdersForChart(this.saleOrders);
+      // กรองเอาเฉพาะสถานะ Completed (หรือเอา filter ออกถ้าต้องการแสดงทั้งหมด)
+      this.saleOrders = res.filter(order => {
+        const status = order.status ? order.status.toLowerCase() : '';
+        return status === 'completed'; 
+      });
+    },
+    error: (err) => console.error('Error loading sale orders:', err)
+  });
+}
   loadChartData() {
     this.loader = true; // Set to true before fetching data
     this.todoService.getMonth().subscribe({
@@ -230,6 +257,7 @@ this.loadTopProducts();
         this.data = res;
         this.months = res.map(item => item.month);
         this.loader = false; // Set to false once data is ready
+                this.loadSaleOrders(); 
       },
       error: (err) => {
         console.error(err);
@@ -353,6 +381,32 @@ loadTopProducts() {
     },
     error: (err) => console.error('Error loading top products:', err)
   });
+}
+processSaleOrdersForChart(orders: any[]) {
+  const salesByMonth: { [key: string]: number } = {};
+
+  orders.forEach(order => {
+    // ตรวจสอบสถานะ Completed และต้องมี created_at
+    if (order.status && order.status.toLowerCase() === 'completed' && order.created_at) {
+      
+      // ใช้ created_at ในการดึงเดือน
+      const dateToUse = new Date(order.created_at);
+      const monthName = dateToUse.toLocaleString('en-US', { month: 'short' }); 
+      
+      // ใช้คอลัมน์ amount
+      const amount = Number(order.amount) || 0;
+      
+      salesByMonth[monthName] = (salesByMonth[monthName] || 0) + amount;
+    }
+  });
+
+  // อัปเดตข้อมูลลงในกราฟ
+  if (this.data && this.data.length > 0) {
+    this.data = this.data.map(item => {
+      const newTotal = salesByMonth[item.month] || 0;
+      return { ...item, value: newTotal }; 
+    });
+  }
 }
 
 }

@@ -108,7 +108,7 @@ app.get('/api/sale_order', async (req, res) => {
 app.get('/api/inventory', async (req, res) => {
     try {
         const result = await pool.query(
-            'SELECT * FROM inventory ORDER BY updated_at DESC'
+            'SELECT * FROM inventory ORDER BY id DESC'
         );
         
 

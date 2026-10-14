@@ -94,7 +94,7 @@
 @if (isChatOpen()) {
     <div class="con_live" [class.open]="open" [class.closed]="closed">
       <div class="chat-header">
-        <span><img class="icon_chat" src="image/icon_chat.svg" alt="">Live Chat</span>
+        <span><!-- <img class="icon_chat" src="image/icon_chat.svg" alt="" -->Tamraidee Chat</span>
         
         <div class="header-actions" style="display: flex; gap: 10px; align-items: center;">
           <button class="video-call-btn" (click)="startVideoCall()" style="background: none; border: none; cursor: pointer; font-size: 18px;">
@@ -121,18 +121,16 @@
                     </div>
                 }
 
-                <div [class]="'message animate-message ' + (chat.sender === username ? 'sent' : 'received')">
+                <div [class]="'message animate-message ' + (chat.sender === username ? 'sent ' : 'received ') + (chat.message === '[Image]' ? 'image-only' : '')">
                     @if (chat.sender !== username) { <div class="sender-name">{{ chat.sender }}</div> }
                     
-                    <!-- ปุ่มตอบกลับ -->
-                    <button class="reply-btn" (click)="replyToMessage(chat)" style="background:none; border:none; color:#007bff; cursor:pointer; font-size:10px; padding:0; margin-bottom:5px;">
-                        <small>ตอบกลับ</small>
-                    </button>
+                  <!-- ปุ่มตอบกลับ (เพิ่มเงื่อนไขให้แสดงเฉพาะข้อความของคนอื่น) -->
 
                     <!-- แสดงข้อความที่ถูกอ้างอิงถึง (Reply) -->
                     @if (chat.reply_to_id) {
+                      <strong>Reply {{ chat.reply_sender }}</strong>
                         <div class="replied-message">
-                            <strong>ตอบกลับ {{ chat.reply_sender }}:</strong>
+                            
                             <div>{{ chat.reply_message }}</div>
                         </div>
                     }
@@ -140,6 +138,7 @@
                     @if (chat.message.startsWith('📞')) {
                         <div class="call">
                             📞 Calling
+                         
                             <a [href]="extractLink(chat.message)" target="_blank"><div class="c">JOIN</div></a>
                         </div>
                     } @else if (chat.message === '[Image]' && chat.picture) {
@@ -148,8 +147,14 @@
                         {{ chat.message }}
                     }
                     
+                    
                     @if (chat.sender !== username) { <div class="message-time">{{ chat.created_at | date:'HH:mm' }}</div> }
                 </div>
+                @if (chat.sender !== username) {
+    <button class="reply-btn" (click)="replyToMessage(chat)" >
+      <img class="icon"src="image/reply.png" alt="">
+    </button>
+}
             </div>
         } @empty {
             <div class="empty-state">No Message</div>
@@ -171,14 +176,17 @@
       
       <!-- กล่องแสดงตัวอย่างข้อความที่กำลังจะตอบกลับ -->
       @if (replyingTo()) {
-        <div class="reply-preview" style="padding: 8px 12px; background: #f1f1f1; border-left: 4px solid #84D46E; display: flex; justify-content: space-between; align-items: center;">
+        <div class="reply-preview" >
           <div>
-            <small style="font-weight: bold; color: #333;">ตอบกลับ: {{ replyingTo()?.sender }}</small>
+            <small style="font-weight: bold; color: #333;">Reply: {{ replyingTo()?.sender }}</small>
             <div style="font-size: 12px; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px;">
               {{ replyingTo()?.message }}
             </div>
           </div>
-          <button (click)="cancelReply()" style="background: none; border: none; font-size: 18px; cursor: pointer; color: #888;">&times;</button>
+          <div class="cn_reply">
+            <button class="d"(click)="cancelReply()" >&times;</button>
+          </div>
+
         </div>
       }
 
@@ -187,8 +195,42 @@
         <button class="imagee" (click)="fileInput.click()">
           <img src="image/add_pos.svg" alt="Add Image">
         </button>
-        <input type="text" [(ngModel)]="newMessage" (input)="onTyping()" (keyup.enter)="sendMessage()" placeholder="...">
+
+        <!-- รวม Input และ รูปภาพตัวอย่างไว้ในกล่องเดียวกัน -->
+        <div class="input-container" >
+          
+          @if (pendingImage()) {
+            <div class="image-preview-inline">
+              <img [src]="pendingImage()" alt="Preview">
+              <button class="remove" (click)="cancelImage()">&times;</button>
+            </div>
+          }
+
+          <input type="text" [(ngModel)]="newMessage" (input)="onTyping()" (keyup.enter)="sendMessage()" (paste)="onPaste($event)" placeholder="...">
+        </div>
+
         <button (click)="sendMessage()">Send</button>
       </div>
     </div>
+}
+
+<!-- Modal สำหรับการโทร -->
+<div id="video-call-modal" class="call-modal" style="display: none;">
+  <div class="call-modal-content">
+    <div class="call-header">
+      <span><img class="phone" src="image/phone.png" alt="" style="width: 16px; margin-right: 8px;"> Voice Call</span>
+      <button class="close-btn" (click)="closeCall()">&times;</button>
+    </div>
+    <!-- Jitsi จะถูกสร้างและแสดงผลใน div นี้ -->
+    <div id="jitsi-container" style="width: 100%; height: 400px; background-color: #000;"></div>
+  </div>
+</div>
+
+<!-- Modal สำหรับซูมรูปภาพ -->
+@if (selectedImage) {
+  <div class="image-modal" (click)="closeImageModal()">
+    <div class="image-modal-content">
+      <img [src]="selectedImage" alt="Zoomed Image">
+    </div>
+  </div>
 }

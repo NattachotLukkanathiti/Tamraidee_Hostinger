@@ -116,11 +116,12 @@
                     </div>
                   <div class="con_3btn">
                       <div class="custom-select">
-  <select class="text">
-    <option value="all">All <img class="icon_down"src="image/down.svg" alt=""></option>
-    <option value="option1">Low In Stock</option>
-    <option value="option2">Option 2</option>
+<div class="custom-select">
+  <select class="text" [(ngModel)]="selectedStockFilter" (change)="filterByStockStatus()">
+    <option value="all">All</option>
+    <option value="low">Low In Stock</option>
   </select>
+</div>
 </div>  
 <div class="custom-select">
   <select [(ngModel)]="selectedSupplier" (change)="filterBySupplier()">
@@ -190,32 +191,42 @@
         <div class="table_detail2" *ngFor="let item of  paginatedInventory; let i = index" 
      [style.animation-delay]="i * 0.15 + 's'">
     <div class="table_detail">
-        <div class="sku2">{{ item.sku }}</div>
-        <div class="sku2"><div class="connn">
-        <img class="profile_employee" [src]="item.picture" alt="">{{ item.product_name }}
-    </div></div>
-        <div class="sku2">{{ item.category }}</div>
-        <div class="sku2">{{ item.brand }}</div>
-        <div class="sku2">{{ item.price }}</div>
-        <div class="sku2" [ngClass]="{'text-alert': Number(item.quantity) < Number(item.quantity_alert)}">{{ item.quantity }}</div>
-        <div class="sku2">{{ item.quantity_alert }}</div>
-        <div class="button_small">
-            <img class="icon_small_inventory" src="image/edit.svg" (click)="button_editt(item)">
-            <img class="icon_small_inventory2" src="image/delete.svg" (click)="button_delete(item.sku, i)" alt="">
+    <div class="sku2" data-label="SKU">{{ item.sku }}</div>
+    <div class="sku2" data-label="Product Name">
+        <div class="connn">
+            <img class="profile_employee" [src]="item.picture" alt="">{{ item.product_name }}
         </div>
     </div>
+    <div class="sku2" data-label="Category">{{ item.category }}</div>
+    <div class="sku2" data-label="Brand">{{ item.brand }}</div>
+    <div class="sku2" data-label="Price">{{ item.price }}</div>
+    <div class="sku2" data-label="Quantity" [ngClass]="{'text-alert': Number(item.quantity) < Number(item.quantity_alert)}">{{ item.quantity }}</div>
+    <div class="sku2" data-label="Quantity Alert">{{ item.quantity_alert }}</div>
+    
+    <div class="button_small">
+        <img class="icon_small_inventory" src="image/edit.svg" (click)="button_editt(item)">
+        <img class="icon_small_inventory2" src="image/delete.svg" (click)="button_delete(item.sku, i)" alt="">
+    </div>
+</div>
     <div class="line"></div>
 </div>
     </ng-template>
 </div>
                 </div>
-                <div class="con_tainer_page">
+             <div class="con_tainer_page">
   <div class="pagination">
+    <!-- ปุ่ม Prev -->
     <a class="prev" [class.disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">&lt; Prev</a>
-    <a class="page" [class.active]="currentPage === 1" (click)="changePage(1)">1</a>
-    <a *ngIf="totalPages >= 2" class="page" [class.active]="currentPage === 2" (click)="changePage(2)">2</a>
-    <span *ngIf="totalPages > 3" class="dots">...</span>
-    <a *ngIf="totalPages > 2" class="page" [class.active]="currentPage === totalPages" (click)="changePage(totalPages)">{{ totalPages }}</a>
+    
+    <!-- วนลูปแสดงตัวเลขหน้าจาก visiblePages -->
+    <a *ngFor="let page of visiblePages" 
+       class="page" 
+       [class.active]="currentPage === page" 
+       (click)="changePage(page)">
+       {{ page }}
+    </a>
+
+    <!-- ปุ่ม Next -->
     <a class="next" [class.disabled]="currentPage === totalPages || totalPages === 0" (click)="changePage(currentPage + 1)">Next &gt;</a>
   </div>
 </div>

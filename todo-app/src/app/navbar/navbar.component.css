@@ -306,15 +306,20 @@
 }
 .con_ber {
   padding: 20px;
+  min-height: calc(100vh - 70px); /* ลบความสูงของ Navbar ออกเพื่อไม่ให้จอล้น */
   margin-top: 70px;
-    background-color: #eaeaea;
-    position: absolute;
-    justify-content: flex-start;
-    height: 70%;
+  background-color: #eaeaea;
+  position: absolute;
+  
+  /* ส่วนที่เพิ่ม/แก้ไขเพื่อให้ยืดเต็มจอ */
+  width: 100vw;
+  left: 0;
+  box-sizing: border-box; /* ป้องกันไม่ให้ padding ดันหน้าจอจนล้น */
+  
+  justify-content: flex-start;
   display: block;
-
-top: 0;             
-z-index: 2;
+  top: 0;             
+  z-index: 2;
 }
 .hamburger {
     border: 0.5px solid #00000031;
