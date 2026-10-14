@@ -8,7 +8,17 @@ export interface Todo {
   password: string;
   completed: boolean;
 }
-
+// ประกาศและ Export Interface ที่นี่
+export interface ChatMessage { 
+  id: number; 
+  sender: string; 
+  message: string; 
+  created_at: string; 
+  is_read?: boolean; 
+  profile?: string; 
+  picture?: string; 
+  
+}
 @Injectable({
   providedIn: 'root'
 })
@@ -208,9 +218,9 @@ export class TodoService {
       { headers: this.headers }
     );
   }
-   getChatHistory(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/chat`, { headers: this.headers });
-  }
+   getChatHistory(limit: number, offset: number) {
+  return this.http.get<ChatMessage[]>(`${this.apiUrl}/chat?limit=${limit}&offset=${offset}`, { headers: this.headers });
+}
 
   // เพิ่ม picture?: string เข้าไปเป็นตัวที่ 3
   sendChatMessage(sender: string, message: string, picture?: string, profile?: string): Observable<any> {

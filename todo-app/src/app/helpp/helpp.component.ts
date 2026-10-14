@@ -9,7 +9,18 @@ import { TodoService } from '../services/todo.service';
 declare var JitsiMeetExternalAPI: any;
 
 interface FaqItem { title: string; subtitle: string; }
-interface ChatMessage { id: number; sender: string; message: string; created_at: string; is_read?: boolean; profile?: string; picture?: string; }
+interface ChatMessage { 
+  id: number; 
+  sender: string; 
+  message: string; 
+  created_at: string; 
+  is_read?: boolean; 
+  profile?: string; 
+  picture?: string;
+  reply_to_id?: number;      // <--- เพิ่มบรรทัดนี้
+  reply_message?: string;    // <--- เพิ่มบรรทัดนี้
+  reply_sender?: string;     // <--- เพิ่มบรรทัดนี้
+}
 type HeaderPanel = 'account' | null;
 
 @Component({
@@ -25,15 +36,14 @@ export class HelppComponent implements OnInit, OnDestroy {
   private changeDetector = inject(ChangeDetectorRef);
   private location = inject(Location);
   private todoService = inject(TodoService);
-  private allMessages: ChatMessage[] = [];
-readonly displayCount = signal(10);
-private previousScrollHeight = 0;
+
   @ViewChild('chatBody') private chatBody!: ElementRef;
 
   username = ''; email = ''; userRole = ''; profile = '';
   isTimeOpen = false; isNavOpen = false; isClosing = false;
   openPanel: HeaderPanel = null; currentTime = new Date();
-  
+  open = false;
+  closed = false;
   private timeSubscription!: Subscription;
   private chatSubscription!: Subscription;
 
@@ -46,7 +56,6 @@ private previousScrollHeight = 0;
   readonly typingUsers = signal<string[]>([]);
   private typingTimeout: any;
 
-  
   ngOnInit(): void {
     const state = history.state;
     this.username = state.username || '';
@@ -56,6 +65,7 @@ private previousScrollHeight = 0;
     this.fetchChatHistory();
     this.chatSubscription = interval(3000).subscribe(() => {
       if (this.isChatOpen()) this.fetchChatHistory();
+        this.checkTypingStatus();
     });
   }
 
@@ -72,8 +82,22 @@ private previousScrollHeight = 0;
       this.todoService.sendTypingStatus(this.username, false).subscribe();
     }, 3000);
   }
-
+checkTypingStatus() {
+    this.todoService.getTypingStatus(this.username).subscribe({
+      next: (users: any) => {
+        // Backend ส่งมาเป็น [{ username: "..." }] 
+        // เราดึงเอาเฉพาะชื่อออกมาได้เลย
+        const typing = users
+          .map((u: any) => u.username)
+          .filter((name: string) => name !== this.username); // กรองชื่อตัวเองออก
+        
+        this.typingUsers.set(typing);
+        this.changeDetector.markForCheck();
+      }
+    });
+  }
   toggleChat() {
+   
     this.isChatOpen.set(!this.isChatOpen());
     if (this.isChatOpen()) {
       this.todoService.markChatAsRead(this.username).subscribe({
@@ -85,17 +109,54 @@ private previousScrollHeight = 0;
       setTimeout(() => this.scrollToBottom(), 100);
     }
   }
+  toggleclosed() {
+  this.closed = true; // เริ่มเล่นแอนิเมชัน
+  setTimeout(() => {
+    this.isChatOpen.set(false); // ปิดหน้าต่างเมื่อแอนิเมชันจบ
+    this.closed = false; // รีเซ็ตค่า
+    this.changeDetector.markForCheck();
+  }, 1000); // <--- เปลี่ยนจาก 300 เป็น 1000 ให้ตรงกับ CSS 1s
+}
+  private limit = 10;
+  private offset = 0;
+  private hasMoreMessages = true;
+  readonly isLoadingMore = signal(false); 
+ fetchChatHistory(loadMore = false) {
+  if (!this.hasMoreMessages && loadMore) return;
 
-  fetchChatHistory() {
-  this.todoService.getChatHistory().subscribe({
+  // ถ้าโหลดเพิ่ม ให้ใช้ offset เท่ากับจำนวนข้อความทั้งหมดที่มีอยู่ตอนนี้
+  const currentOffset = loadMore ? this.chatMessages().length : 0;
+
+  this.todoService.getChatHistory(this.limit, currentOffset).subscribe({
     next: (data) => {
-      this.allMessages = data;
-      this.updateDisplayMessages();
+      if (data.length < this.limit && loadMore) {
+        this.hasMoreMessages = false;
+      }
+
+      if (loadMore) {
+        // กรองเอาเฉพาะข้อความที่ยังไม่มีในรายการ (ป้องกันการดึงซ้ำ)
+        const existingIds = new Set(this.chatMessages().map(m => m.id));
+        const newMessages = data.filter(m => !existingIds.has(m.id));
+        
+        if (newMessages.length > 0) {
+          this.chatMessages.set([...newMessages, ...this.chatMessages()]);
+        } else {
+          this.hasMoreMessages = false; // ถ้าไม่มีข้อความใหม่เลย แปลว่าหมดแล้ว
+        }
+      } else {
+        // กรณี Polling (ดึงข้อมูลปกติ)
+        const existingIds = new Set(this.chatMessages().map(m => m.id));
+        const newMessages = data.filter(m => !existingIds.has(m.id));
+        
+        if (newMessages.length > 0) {
+          this.chatMessages.set([...this.chatMessages(), ...newMessages]);
+        }
+      }
+      
       this.changeDetector.markForCheck();
     }
   });
 }
-
   
   sendMessage() {
     if (!this.newMessage().trim()) return;
@@ -194,30 +255,26 @@ openImageModal(imageUrl: string) {
 closeImageModal() {
     this.selectedImage = null;
 }
-updateDisplayMessages() {
-  const start = Math.max(0, this.allMessages.length - this.displayCount());
-  this.chatMessages.set(this.allMessages.slice(start));
-}
-// เพิ่มฟังก์ชันนี้ลงใน Class HelppComponent
-  onScroll() {
-    const element = this.chatBody.nativeElement;
+onScroll() {
+  const element = this.chatBody.nativeElement;
+  if (element.scrollTop === 0 && this.hasMoreMessages) {
+    const previousHeight = element.scrollHeight;
     
-    // ตรวจสอบว่าเลื่อนถึงบนสุดหรือไม่ (scrollTop === 0)
-    if (element.scrollTop === 0) {
-      this.previousScrollHeight = element.scrollHeight;
-      
-      // เพิ่มจำนวนที่จะแสดงทีละ 10 (แต่ไม่เกินจำนวนข้อความทั้งหมด)
-      const nextCount = Math.min(this.displayCount() + 10, this.allMessages.length);
-      
-      if (nextCount !== this.displayCount()) {
-        this.displayCount.set(nextCount);
-        this.updateDisplayMessages();
-        
-        // ปรับตำแหน่ง Scroll ไม่ให้เด้งกลับไปบนสุด
-        setTimeout(() => {
-          element.scrollTop = element.scrollHeight - this.previousScrollHeight;
-        }, 0);
-      }
-    }
+    this.fetchChatHistory(true); // โหลดข้อมูลเพิ่ม
+    
+    // ปรับตำแหน่ง Scroll ให้คงที่ ไม่เด้งไปบนสุด
+    setTimeout(() => {
+      element.scrollTop = element.scrollHeight - previousHeight;
+    }, 100);
   }
+}
+readonly replyingTo = signal<ChatMessage | null>(null);
+
+replyToMessage(chat: ChatMessage) {
+  this.replyingTo.set(chat);
+}
+
+cancelReply() {
+  this.replyingTo.set(null);
+}
 }

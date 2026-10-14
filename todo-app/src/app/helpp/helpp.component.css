@@ -515,8 +515,27 @@ button:disabled {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  
+  /* ตั้งค่าเริ่มต้นให้แสดงผลทันที */
+  transform: translateY(0); 
+  animation: slideUp 1s ease-in-out forwards;
 }
 
+/* แอนิเมชันตอนเปิด */
+@keyframes slideUp {
+    0% { transform: translateY(1000px); }
+    100% { transform: translateY(0); }
+}
+
+/* แอนิเมชันตอนปิด */
+.con_live.closed {
+    animation: slideDown 1s ease-in-out forwards !important;
+}
+
+@keyframes slideDown {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(1000px); }
+}
 .chat-header {
   background: #84D46E;
   color: #fff;
@@ -729,6 +748,47 @@ button:disabled {
     .chat-footer {
         flex-shrink: 0; 
     }
+    .con_live {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  /* ใช้ translate เพื่อให้อยู่ตรงกลาง และ translateY เพื่อเตรียมทำแอนิเมชัน */
+  transform: translate(-50%, -50%); 
+  width: 350px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  font-family: sans-serif;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  
+  animation: slideUpCenter 1s ease-in-out forwards;
+}
+
+/* แอนิเมชันตอนเปิด (เลื่อนจากล่างขึ้นมาตรงกลาง) */
+@keyframes slideUpCenter {
+    0% { 
+        transform: translate(-50%, 150vh); 
+    }
+    100% { 
+        transform: translate(-50%, -50%); 
+    }
+}
+
+/* แอนิเมชันตอนปิด (เลื่อนจากตรงกลางลงไปด้านล่าง) */
+.con_live.closed {
+    animation: slideDownCenter 1s ease-in-out forwards !important;
+}
+
+@keyframes slideDownCenter {
+    0% { 
+        transform: translate(-50%, -50%); 
+    }
+    100% { 
+        transform: translate(-50%, 150vh); 
+    }
+}
 }
 
 
@@ -795,4 +855,23 @@ button:disabled {
     font-size: 40px;
     font-weight: bold;
     cursor: pointer;
+}
+
+.typing-indicator {
+  padding: 5px 15px;
+  font-size: 12px;
+  color: #888;
+  font-style: italic;
+  background: #f9f9f9;
+  border-top: 1px solid #eee;
+}
+
+.replied-message {
+    background-color: rgba(0, 0, 0, 0.05);
+    border-left: 3px solid #84D46E;
+    padding: 4px 8px;
+    margin-bottom: 6px;
+    font-size: 12px;
+    border-radius: 4px;
+    color: #555;
 }

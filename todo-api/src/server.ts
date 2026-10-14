@@ -1040,27 +1040,28 @@ app.post('/create-promptpay-charge', async (req, res) => {
 });
 app.get('/api/chat', async (req, res) => {
   try {
-    // แก้ไขโดยการทำ Type Casting และกำหนดค่าเริ่มต้น
     const limitParam = typeof req.query.limit === 'string' ? req.query.limit : '10';
     const offsetParam = typeof req.query.offset === 'string' ? req.query.offset : '0';
 
     const limit = parseInt(limitParam, 10);
     const offset = parseInt(offsetParam, 10);
 
-    // ใช้ ORDER BY DESC เพื่อเอาข้อความล่าสุดก่อน แล้วค่อย LIMIT
+    // อัปเดต SQL: ทำ LEFT JOIN กับตาราง chat เองเพื่อดึงข้อความที่ถูกตอบกลับ (reply_message)
     const result = await pool.query(
       `SELECT 
-         chat.id, chat.sender, chat.message, chat.created_at, 
-         chat.is_read, chat.picture,
-         todos.profile AS user_profile
+         <unsafe_url>chat.id</unsafe_url>, chat.sender, chat.message, chat.created_at, 
+         chat.is_read, chat.picture, chat.reply_to_id,
+         todos.profile AS user_profile,
+         reply.message AS reply_message,
+         reply.sender AS reply_sender
        FROM chat 
        LEFT JOIN todos ON chat.sender = todos.username
+       LEFT JOIN chat AS reply ON chat.reply_to_id = <unsafe_url>reply.id</unsafe_url>
        ORDER BY chat.created_at DESC
        LIMIT $1 OFFSET $2`,
       [limit, offset]
     );
     
-    // กลับด้านข้อมูลให้ข้อความเก่าอยู่บน ข้อความใหม่อยู่ล่าง ก่อนส่งให้ Angular
     const formattedRows = result.rows.reverse().map(row => ({
       id: row.id,
       sender: row.sender,
@@ -1068,7 +1069,10 @@ app.get('/api/chat', async (req, res) => {
       created_at: row.created_at,
       is_read: row.is_read,
       picture: row.picture,
-      profile: row.user_profile
+      profile: row.user_profile,
+      reply_to_id: row.reply_to_id,
+      reply_message: row.reply_message, // ส่งข้อความที่ถูกตอบกลับไปให้ Angular
+      reply_sender: row.reply_sender     // ส่งชื่อคนส่งข้อความต้นฉบับไปด้วย
     }));
 
     res.json(formattedRows);
