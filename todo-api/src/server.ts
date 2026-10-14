@@ -1040,13 +1040,14 @@ app.post('/create-promptpay-charge', async (req, res) => {
 });
 app.get('/api/chat', async (req, res) => {
   try {
+    // แก้ไขโดยการทำ Type Casting และกำหนดค่าเริ่มต้น
     const limitParam = typeof req.query.limit === 'string' ? req.query.limit : '10';
     const offsetParam = typeof req.query.offset === 'string' ? req.query.offset : '0';
 
     const limit = parseInt(limitParam, 10);
     const offset = parseInt(offsetParam, 10);
 
-    // อัปเดต SQL: ทำ LEFT JOIN กับตาราง chat เองเพื่อดึงข้อความที่ถูกตอบกลับ (reply_message)
+    // โค้ดเดิม: เพิ่มการดึง reply_to_id และ LEFT JOIN chat เพื่อเอาข้อความที่ตอบกลับ
     const result = await pool.query(
       `SELECT 
          <unsafe_url>chat.id</unsafe_url>, chat.sender, chat.message, chat.created_at, 
@@ -1062,6 +1063,7 @@ app.get('/api/chat', async (req, res) => {
       [limit, offset]
     );
     
+    // กลับด้านข้อมูลให้ข้อความเก่าอยู่บน ข้อความใหม่อยู่ล่าง ก่อนส่งให้ Angular
     const formattedRows = result.rows.reverse().map(row => ({
       id: row.id,
       sender: row.sender,
@@ -1070,9 +1072,9 @@ app.get('/api/chat', async (req, res) => {
       is_read: row.is_read,
       picture: row.picture,
       profile: row.user_profile,
-      reply_to_id: row.reply_to_id,
-      reply_message: row.reply_message, // ส่งข้อความที่ถูกตอบกลับไปให้ Angular
-      reply_sender: row.reply_sender     // ส่งชื่อคนส่งข้อความต้นฉบับไปด้วย
+      reply_to_id: row.reply_to_id,       // เพิ่ม
+      reply_message: row.reply_message,   // เพิ่ม
+      reply_sender: row.reply_sender      // เพิ่ม
     }));
 
     res.json(formattedRows);
