@@ -539,7 +539,7 @@ app.post('/api/login', async (req, res) => {
 });
 app.post('/api/request-otp', async (req, res) => {
   const { title } = req.body;
-
+  console.log("BREVO_API_KEY is:", process.env.BREVO_API_KEY ? "Loaded" : "Not Found"); 
   if (!title) {
     return res.status(400).json({ success: false, message: 'Username is required' });
   }
