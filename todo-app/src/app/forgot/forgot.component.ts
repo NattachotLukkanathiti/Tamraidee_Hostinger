@@ -16,7 +16,7 @@ export class ForgotComponent {
   private http = inject(HttpClient);
   private router = inject(Router);
 
-  private apiUrl = 'https://todo-arz1.onrender.com';
+  private apiUrl = 'https://api.tamraidee.tech';
 
   title: string = '';
   isLoading: boolean = false;

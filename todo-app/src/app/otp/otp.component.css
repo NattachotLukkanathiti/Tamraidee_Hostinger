@@ -106,12 +106,15 @@ input:focus{
     background:#84D46E;
     justify-content:center;
     display:flex;
+    cursor: pointer;
     margin-bottom:20px;
     align-items:center;
 }
 .button:hover{
-    background: #98ee80;
-    cursor: pointer;
+    background-color: #77BF63;
+}
+.button:active{
+    background-color: #6AAA58;
 }
 .iconpass {
     position: absolute;

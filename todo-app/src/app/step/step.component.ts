@@ -17,7 +17,7 @@ export class StepComponent implements OnInit, OnDestroy {
   private router = inject(Router);
 
   // URL API บน Render ของคุณ
-  private apiUrl = 'https://todo-arz1.onrender.com';
+  private apiUrl = 'https://api.tamraidee.tech';
 
   // ✏️ เปลี่ยนเป็น Array เก็บเลข 4 ช่อง เพื่อรองรับ HTML แบบ 4 กล่อง
   otpDigits: string[] = ['', '', '', ''];
@@ -133,11 +133,12 @@ export class StepComponent implements OnInit, OnDestroy {
       username: this.userData.username,
       title: this.userData.title,
       password: this.userData.password,
-      otp: fullOtp
+      otp: fullOtp,
+      isReset: this.from === 'forget'
     };
 
     // ยิงไปยัง /todos บน Backend เพื่อตรวจสอบ OTP และบันทึกข้อมูล
-    this.http.post<any>(`${this.apiUrl}/todos`, payload).subscribe({
+    this.http.put<any>(`${this.apiUrl}/todos`, payload).subscribe({
       next: (res) => {
         this.isLoading = false;
          if (this.from === 'forget') {
@@ -196,4 +197,5 @@ sessionStorage.removeItem('otpFrom'); // 📌 เพิ่มบรรทัด�
       clearInterval(this.timer);
     }
   }
+  
 }

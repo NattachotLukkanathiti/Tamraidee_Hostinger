@@ -1,7 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import { pool } from './database/db';
-
+import dotenv from 'dotenv';
+dotenv.config();
 
 
 const app = express();
@@ -285,7 +286,7 @@ app.post('/api/notification', async (req, res) => {
 });
 app.post('/todos', async (req, res) => {
   try {
-    const { username, title, password, otp } = req.body;
+    const { username, title, password, otp ,isReset } = req.body;
     if (!title || !otp) {
       return res.status(400).json({ success: false, message: 'กรุณากรอกอีเมลและรหัส OTP' });
     }
@@ -312,9 +313,19 @@ app.post('/todos', async (req, res) => {
     // ➕ [เพิ่ม] Step 4: ถ้ารหัสถูกต้อง -> ลบรหัสออกจากสมุดโน้ตทันที (กันเอามาใช้ซ้ำ)
     otpStore.delete(title);
 
-    // ------------------------------------------
-    // โค้ดเดิมของคุณ: บันทึกข้อมูลผู้ใช้ลง PostgreSQL
-    // ------------------------------------------
+       if (isReset) {
+      // ถ้าเป็นการรีเซ็ต -> ให้อัปเดตข้อมูลเดิม
+      const result = await pool.query(
+        `UPDATE todos SET password = $1 WHERE title = $2 RETURNING *`,
+        [password, title]
+      );
+      
+      return res.status(200).json({
+        success: true,
+        message: 'เปลี่ยนรหัสผ่านสำเร็จ!',
+        user: result.rows[0]
+      });
+    } else {
     const result = await pool.query(
       `INSERT INTO todos (username, title, password, completed)
        VALUES ($1, $2, $3, false)
@@ -328,12 +339,13 @@ app.post('/todos', async (req, res) => {
       message: 'สมัครสมาชิกสำเร็จ!',
       user: result.rows[0]
     });
-
+  }
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: 'Server Error' });
   }
 });
+
 // (โค้ดส่วนบนของคุณยังคงเดิมทั้งหมด)
 
 app.get('/api/suppliers', async (req, res) => {

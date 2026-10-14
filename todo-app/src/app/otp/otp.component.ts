@@ -17,7 +17,7 @@ export class OtpComponent implements OnInit, OnDestroy {
   private router = inject(Router);
 
   // URL API บน Render ของคุณ
-  private apiUrl = 'https://todo-arz1.onrender.com';
+  private apiUrl = 'https://api.tamraidee.tech';
 
   // ✏️ เปลี่ยนเป็น Array เก็บเลข 4 ช่อง เพื่อรองรับ HTML แบบ 4 กล่อง
   otpDigits: string[] = ['', '', '', ''];
