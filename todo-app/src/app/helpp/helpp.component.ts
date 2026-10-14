@@ -160,10 +160,12 @@ checkTypingStatus() {
   
   sendMessage() {
     if (!this.newMessage().trim()) return;
-    this.todoService.sendChatMessage(this.username, this.newMessage()).subscribe({
+     const replyId = this.replyingTo()?.id || null;
+    this.todoService.sendChatMessage(this.username, this.newMessage(), undefined, replyId).subscribe({
       next: (response) => {
         this.chatMessages.set([...this.chatMessages(), { id: response.data?.id || Date.now(), sender: this.username, message: this.newMessage(), created_at: new Date().toISOString() }]);
         this.newMessage.set('');
+         this.replyingTo.set(null);
         this.changeDetector.markForCheck();
         setTimeout(() => this.scrollToBottom(), 100);
       }

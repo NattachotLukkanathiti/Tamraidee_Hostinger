@@ -17,8 +17,11 @@ export interface ChatMessage {
   is_read?: boolean; 
   profile?: string; 
   picture?: string; 
-  
+   reply_to_id?: number;    // <--- เพิ่ม
+  reply_message?: string;  // <--- เพิ่ม
+  reply_sender?: string;   // <--- เพิ่ม
 }
+  
 @Injectable({
   providedIn: 'root'
 })
@@ -223,13 +226,13 @@ export class TodoService {
 }
 
   // เพิ่ม picture?: string เข้าไปเป็นตัวที่ 3
-  sendChatMessage(sender: string, message: string, picture?: string, profile?: string): Observable<any> {
-    return this.http.post<any>(
-      `${this.apiUrl}/chat`, 
-      { sender, message, picture, profile }, // <--- เพิ่ม profile ตรงนี้
-      { headers: this.headers }
-    );
-  }
+  sendChatMessage(sender: string, message: string, picture?: string, reply_to_id?: number | null): Observable<any> {
+  return this.http.post<any>(
+    `${this.apiUrl}/chat`, 
+    { sender, message, picture, reply_to_id }, // <--- ส่ง reply_to_id ไปที่ Backend
+    { headers: this.headers }
+  );
+}
 
   // --- Chat Typing & Read Status ---
 
