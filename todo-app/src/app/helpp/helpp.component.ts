@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, OnDestroy, signal, inject, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit,computed, OnDestroy, signal, inject, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { CommonModule, DatePipe } from '@angular/common';
@@ -22,7 +22,11 @@ interface ChatMessage {
   reply_sender?: string;     // <--- เพิ่มบรรทัดนี้
 }
 type HeaderPanel = 'account' | null;
-
+interface ChatUser { 
+  name: string; 
+  lastMessage: string; 
+  profile?: string; 
+}
 @Component({
   selector: 'app-help-page',
   standalone: true,
@@ -56,6 +60,41 @@ export class HelppComponent implements OnInit, OnDestroy {
   readonly typingUsers = signal<string[]>([]);
   private typingTimeout: any;
 
+    readonly currentChatUser = signal<string | null>(null);
+  readonly unreadCounts = signal<{ [key: string]: number }>({});
+  
+  readonly chatUsers = computed(() => {
+    const usersMap = new Map<string, ChatUser>();
+    this.chatMessages().forEach(msg => {
+      const otherUser = msg.sender === this.username ? 'Support' : msg.sender; // ปรับตาม Logic ของคุณ
+      if (!usersMap.has(otherUser)) {
+        usersMap.set(otherUser, { name: otherUser, lastMessage: msg.message, profile: msg.profile });
+      } else {
+        usersMap.get(otherUser)!.lastMessage = msg.message;
+      }
+    });
+    return Array.from(usersMap.values());
+  });
+
+  readonly filteredMessages = computed(() => {
+    const target = this.currentChatUser();
+    if (!target) return [];
+    return this.chatMessages().filter(msg => msg.sender === target || (msg.sender === this.username && target === 'Support'));
+  });
+  // --------------------------------
+  openChatWith(user: string) {
+    this.currentChatUser.set(user);
+    const unreads = { ...this.unreadCounts() };
+    unreads[user] = 0;
+    this.unreadCounts.set(unreads);
+    
+    this.todoService.markChatAsRead(user).subscribe(() => this.fetchChatHistory());
+    setTimeout(() => this.scrollToBottom(), 100);
+  }
+
+  backToUserList() {
+    this.currentChatUser.set(null);
+  }
   ngOnInit(): void {
     const state = history.state;
     this.username = state.username || '';
@@ -77,6 +116,13 @@ export class HelppComponent implements OnInit, OnDestroy {
   
   onTyping() {
     this.todoService.sendTypingStatus(this.username, true).subscribe();
+    this.todoService.markChatAsRead(this.username).subscribe({
+    next: () => {
+      // ดึงประวัติแชทใหม่เพื่อให้ UI อัปเดตสถานะ "Read"
+      this.fetchChatHistory(); 
+       this.changeDetector.markForCheck();
+    }
+  });
     clearTimeout(this.typingTimeout);
     this.typingTimeout = setTimeout(() => {
       this.todoService.sendTypingStatus(this.username, false).subscribe();
@@ -122,41 +168,33 @@ checkTypingStatus() {
   private hasMoreMessages = true;
   readonly isLoadingMore = signal(false); 
  fetchChatHistory(loadMore = false) {
-  if (!this.hasMoreMessages && loadMore) return;
-
-  // ถ้าโหลดเพิ่ม ให้ใช้ offset เท่ากับจำนวนข้อความทั้งหมดที่มีอยู่ตอนนี้
-  const currentOffset = loadMore ? this.chatMessages().length : 0;
-
-  this.todoService.getChatHistory(this.limit, currentOffset).subscribe({
-    next: (data) => {
-      if (data.length < this.limit && loadMore) {
-        this.hasMoreMessages = false;
-      }
-
-      if (loadMore) {
-        // กรองเอาเฉพาะข้อความที่ยังไม่มีในรายการ (ป้องกันการดึงซ้ำ)
+    const currentOffset = loadMore ? this.chatMessages().length : 0;
+    this.todoService.getChatHistory(this.limit, currentOffset).subscribe({
+      next: (data) => {
         const existingIds = new Set(this.chatMessages().map(m => m.id));
         const newMessages = data.filter(m => !existingIds.has(m.id));
         
         if (newMessages.length > 0) {
-          this.chatMessages.set([...newMessages, ...this.chatMessages()]);
-        } else {
-          this.hasMoreMessages = false; // ถ้าไม่มีข้อความใหม่เลย แปลว่าหมดแล้ว
+          if (loadMore) {
+            this.chatMessages.set([...newMessages, ...this.chatMessages()]);
+          } else {
+            this.chatMessages.set([...this.chatMessages(), ...newMessages]);
+            
+            // --- อัปเดตตัวเลขแจ้งเตือน ---
+            const unreads = { ...this.unreadCounts() };
+            newMessages.forEach(msg => {
+              if (msg.sender !== this.username && msg.sender !== this.currentChatUser()) {
+                unreads[msg.sender] = (unreads[msg.sender] || 0) + 1;
+              }
+            });
+            this.unreadCounts.set(unreads);
+            // -------------------------
+          }
         }
-      } else {
-        // กรณี Polling (ดึงข้อมูลปกติ)
-        const existingIds = new Set(this.chatMessages().map(m => m.id));
-        const newMessages = data.filter(m => !existingIds.has(m.id));
-        
-        if (newMessages.length > 0) {
-          this.chatMessages.set([...this.chatMessages(), ...newMessages]);
-        }
+        this.changeDetector.markForCheck();
       }
-      
-      this.changeDetector.markForCheck();
-    }
-  });
-}
+    });
+  }
   
   sendMessage() {
      const imageToSend = this.pendingImage();

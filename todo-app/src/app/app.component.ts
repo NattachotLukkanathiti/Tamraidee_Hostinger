@@ -78,7 +78,7 @@ export class AppComponent implements OnInit {
   }
 
   isLoginPage(): boolean {
-  const hiddenRoutes = ['/', '/register', '/otp', '/forgot', '/pos', '/login', '/confirmemployee','/receipt','/step'];
+  const hiddenRoutes = ['/', '/register', '/otp', '/forgot', '/pos', '/login', '/confirmemployee','/receipt','/step','/reset'];
   
   // ใช้ .split('?')[0] เพื่อตัด Query Parameters (เช่น ?fbclid=...) ออกไป
   const currentRoute = this.router.url.split('?')[0];

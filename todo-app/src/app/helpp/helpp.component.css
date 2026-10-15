@@ -724,9 +724,9 @@ button:disabled {
         top:50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        width: 98vw;
-        height: 80vh;
-        border-radius: 15px;
+        width: 100vw;
+        height: 100vh;
+        border-radius: 0px;
         z-index: 1000;
         box-shadow: 0 4px 20px rgba(0,0,0,0.2);
         
@@ -745,6 +745,8 @@ button:disabled {
         min-height: 0; /* แก้บั๊กการ Scroll ใน Flexbox */
         overflow-y: auto; 
         max-height: none;
+                -webkit-overflow-scrolling: touch; /* เพิ่มบรรทัดนี้ */
+                  overscroll-behavior: contain; 
     }
 
     .chat-footer {
@@ -756,9 +758,9 @@ button:disabled {
   left: 50%;
   /* ใช้ translate เพื่อให้อยู่ตรงกลาง และ translateY เพื่อเตรียมทำแอนิเมชัน */
   transform: translate(-50%, -50%); 
-  width: 350px;
+
   background: #fff;
-  border-radius: 10px;
+  border-radius: 0px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.15);
   font-family: sans-serif;
   display: flex;
@@ -974,7 +976,23 @@ button:disabled {
 
 
 
+.user-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+}
 
+.notification-badge {
+  background-color: #ff3b30;
+  color: white;
+  border-radius: 50%;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: bold;
+  margin-left: auto;
+}
 
 
 .input-container {
@@ -984,6 +1002,7 @@ button:disabled {
   border-radius: 20px;
   padding: 2px 5px;
   display: flex;
+  width: 100%;
   align-items: center;
 }
 
@@ -1033,4 +1052,32 @@ button:disabled {
   cursor: pointer;
   margin-left: 5px;
   margin-right: 5px;
+}
+
+
+.send-btn {
+    margin-left: auto;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #84D46E; /* สีเขียวธีมหลักของคุณ */
+    border: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0; /* ป้องกันไม่ให้ปุ่มโดนบีบเมื่อพิมพ์ข้อความยาวๆ */
+    transition: background-color 0.2s ease;
+}
+
+.send-btn:hover {
+    background-color: #72bd5e; /* สีเข้มขึ้นเมื่อเอาเมาส์ชี้ */
+}
+
+.send-btn img {
+    width: 18px;
+    height: 18px;
+    filter: brightness(0) invert(1); /* ย้อมสีไอคอนให้เป็นสีขาว */
+    
 }
