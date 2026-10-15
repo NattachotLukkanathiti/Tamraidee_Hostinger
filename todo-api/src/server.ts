@@ -1055,6 +1055,7 @@ app.get('/api/chat', async (req, res) => {
     const limitParam = typeof req.query.limit === 'string' ? req.query.limit : '10';
     const offsetParam = typeof req.query.offset === 'string' ? req.query.offset : '0';
     const username = typeof req.query.username === 'string' ? req.query.username : null;
+    const receiver = typeof req.query.receiver === 'string' ? req.query.receiver : null; // เพิ่มการรับ receiver
 
     const limit = parseInt(limitParam, 10);
     const offset = parseInt(offsetParam, 10);
@@ -1063,22 +1064,24 @@ app.get('/api/chat', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Username is required' });
     }
 
-    // ดึงเฉพาะข้อความที่ เราเป็นคนส่ง หรือ เราเป็นคนรับ หรือ ส่งหา Support (ส่วนกลาง)
-    const result = await pool.query(
-      `SELECT 
-         chat.id, chat.sender, chat.receiver, chat.message, chat.created_at, 
-         chat.is_read, chat.picture, chat.reply_to_id,
-         todos.profile AS user_profile,
-         reply.message AS reply_message,
-         reply.sender AS reply_sender
-       FROM chat 
-       LEFT JOIN todos ON chat.sender = todos.username
-       LEFT JOIN chat AS reply ON chat.reply_to_id = reply.id
-       WHERE chat.sender = $3 OR chat.receiver = $3 OR (chat.receiver = 'Support' AND $3 = 'Support')
-       ORDER BY chat.created_at DESC
-       LIMIT $1 OFFSET $2`,
-      [limit, offset, username]
-    );
+    let query = `
+      SELECT chat.*, todos.profile AS user_profile 
+      FROM chat 
+      LEFT JOIN todos ON chat.sender = todos.username
+      WHERE (chat.sender = $3 OR chat.receiver = $3)
+    `;
+    
+    const params: any[] = [limit, offset, username];
+
+    // ถ้ามีการระบุ receiver (คู่สนทนา) ให้ดึงเฉพาะแชทระหว่าง 2 คนนี้
+    if (receiver) {
+      query += ` AND (chat.receiver = $4 OR chat.sender = $4)`;
+      params.push(receiver);
+    }
+
+    query += ` ORDER BY chat.created_at DESC LIMIT $1 OFFSET $2`;
+
+    const result = await pool.query(query, params);
     
     const formattedRows = result.rows.reverse().map(row => ({
       id: row.id,
@@ -1088,10 +1091,7 @@ app.get('/api/chat', async (req, res) => {
       created_at: row.created_at,
       is_read: row.is_read,
       picture: row.picture,
-      profile: row.user_profile,
-      reply_to_id: row.reply_to_id,
-      reply_message: row.reply_message,
-      reply_sender: row.reply_sender
+      profile: row.user_profile
     }));
 
     res.json(formattedRows);

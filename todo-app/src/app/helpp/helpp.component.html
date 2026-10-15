@@ -94,151 +94,150 @@
 @if (isChatOpen()) {
     <div class="con_live" [class.open]="open" [class.closed]="closed">
       
-      <!-- โหมดที่ 1: แสดงรายชื่อผู้ติดต่อ (เมื่อยังไม่ได้เลือกแชท) -->
-      @if (!currentChatUser()) {
-        <div class="chat-header">
-          <span>Tamraidee Chat</span>
-          <button class="close-btn" (click)="toggleclosed()">&times;</button>
-        </div>
-        
-        <div class="chat-body">
-          @for (user of chatUsers(); track user.name) {
-            <div class="user-item" (click)="openChatWith(user.name)" style="display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #eee; cursor: pointer;">
-              <div class="chat-avatar" style="margin-right: 12px;">
-                <img [src]="user.profile || 'image/profileee.svg'" alt="">
-              </div>
-              <div style="flex: 1;">
-                <strong style="display: block;">{{ user.name }}</strong>
-                <span style="font-size: 12px; color: #666;">{{ user.lastMessage }}</span>
-              </div>
-              
-              <!-- จุดแจ้งเตือนตัวเลขสีแดง -->
-              @if (unreadCounts()[user.name] > 0) {
-                <span style="background-color: #ff3b30; color: white; border-radius: 50%; padding: 2px 8px; font-size: 12px; font-weight: bold;">
-                  {{ unreadCounts()[user.name] }}
-                </span>
-              }
+        <!-- โหมดที่ 1: แสดงรายชื่อผู้ติดต่อ (เมื่อยังไม่ได้เลือกแชท) -->
+        @if (!currentChatUser()) {
+            <div class="chat-header">
+                <span>Tamraidee Chat</span>
+                <button class="close-btn" (click)="toggleclosed()">&times;</button>
             </div>
-          } @empty {
-            <div class="empty-state">No Conversations</div>
-          }
-        </div>
-      }
-
-      <!-- โหมดที่ 2: แสดงหน้าต่างแชท (เมื่อเลือกผู้ติดต่อแล้ว) -->
-      @else {
-        <div class="chat-header">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <button (click)="backToUserList()" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer;">&lt;</button>
-            <span>{{ currentChatUser() }}</span>
-          </div>
-          
-          <div class="header-actions" style="display: flex; gap: 10px; align-items: center;">
-            <button class="video-call-btn" (click)="startVideoCall()" style="background: none; border: none; cursor: pointer; font-size: 18px;">
-              <img class="phone" src="image/phone.png" alt="">
-            </button>
-            <button class="close-btn" (click)="toggleclosed()">&times;</button>
-          </div>
-        </div>
-
-        <div class="chat-body" #chatBody (scroll)="onScroll()">
-          @for (chat of filteredMessages(); track chat.id || $index) {
-              <div class="message-container {{ chat.sender === username ? 'sent' : 'received' }}">
-                  
-                  @if (chat.sender !== username) {
-                      <div class="chat-avatar">
-                          <img [src]="chat.profile || 'image/profileee.svg'" alt="{{ chat.sender }}">
-                      </div>
-                  }
-                  
-                  @if (chat.sender === username) {
-                      <div class="con_mess">
-                          <div class="message-time">{{ chat.created_at | date:'HH:mm' }}</div>
-                          @if (chat.is_read) { <div class="read-status">Read</div> }
-                      </div>
-                  }
-
-                  <div [class]="'message animate-message ' + (chat.sender === username ? 'sent ' : 'received ') + (chat.message === '[Image]' ? 'image-only' : '')">
-                      @if (chat.sender !== username) { <div class="sender-name">{{ chat.sender }}</div> }
-                      
-                      @if (chat.reply_to_id) {
-                        <strong>Reply {{ chat.reply_sender }}</strong>
-                          <div class="replied-message">
-                              <div>{{ chat.reply_message }}</div>
-                          </div>
-                      }
-
-                      @if (chat.message.startsWith('📞')) {
-                          <div class="call">
-                              📞 Calling
-                              <a [href]="extractLink(chat.message)" target="_blank"><div class="c">JOIN</div></a>
-                          </div>
-                      } @else if (chat.message === '[Image]' && chat.picture) {
-                          <img [src]="chat.picture" alt="Chat Image" style="max-width: 100%; border-radius: 8px; cursor: pointer;" (click)="openImageModal(chat.picture)">
-                      } @else {
-                          {{ chat.message }}
-                      }
-                      
-                      @if (chat.sender !== username) { <div class="message-time">{{ chat.created_at | date:'HH:mm' }}</div> }
-                  </div>
-                  
-                  @if (chat.sender !== username) {
-                      <button class="reply-btn" (click)="replyToMessage(chat)" >
-                        <img class="icon" src="image/reply.png" alt="">
-                      </button>
-                  }
-              </div>
-          } @empty {
-              <div class="empty-state">No Message</div>
-          }
-          
-          @if (typingUsers().length > 0) {
-              <div class="message-container received">
-                  <div class="chat-avatar">
-                      <img src="image/profileee.svg" alt="Typing">
-                  </div>
-                  <div class="message animate-message received">
-                      <div class="sender-name">{{ typingUsers().join(', ') }}</div>
-                      <div style="font-style: italic; color: #666;">Typing...</div>
-                  </div>
-              </div>
-          }
-        </div>
-        
-        @if (replyingTo()) {
-          <div class="reply-preview">
-            <div>
-              <small style="font-weight: bold; color: #333;">Reply: {{ replyingTo()?.sender }}</small>
-              <div style="font-size: 12px; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px;">
-                {{ replyingTo()?.message }}
-              </div>
+            
+            <div class="chat-body">
+                @for (user of chatUsers(); track user.name) {
+                    <div class="user-item" (click)="openChatWith(user.name)" style="display: flex; align-items: center; padding: 12px; border-bottom: 1px solid #eee; cursor: pointer;">
+                        <div class="chat-avatar" style="margin-right: 12px;">
+                            <img [src]="user.profile || 'image/profileee.svg'" alt="">
+                        </div>
+                        <div style="flex: 1;">
+                            <strong style="display: block;">{{ user.name }}</strong>
+                            <span style="font-size: 12px; color: #666;">{{ user.lastMessage }}</span>
+                        </div>
+                        
+                        @if (unreadCounts()[user.name] > 0) {
+                            <span style="background-color: #ff3b30; color: white; border-radius: 50%; padding: 2px 8px; font-size: 12px; font-weight: bold;">
+                                {{ unreadCounts()[user.name] }}
+                            </span>
+                        }
+                    </div>
+                } @empty {
+                    <div class="empty-state">No Conversations</div>
+                }
             </div>
-            <div class="cn_reply">
-              <button class="d" (click)="cancelReply()">&times;</button>
-            </div>
-          </div>
         }
 
-        <div class="chat-footer">
-          <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" style="display: none;">
-          <button class="imagee" (click)="fileInput.click()">
-            <img src="image/add_pos.svg" alt="Add Image">
-          </button>
+        <!-- โหมดที่ 2: แสดงหน้าต่างแชท (เมื่อเลือกผู้ติดต่อแล้ว) -->
+        @else {
+            <div class="chat-header">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <button (click)="backToUserList()" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer;">&lt;</button>
+                    <span>{{ currentChatUser() }}</span>
+                </div>
+                
+                <div class="header-actions" style="display: flex; gap: 10px; align-items: center;">
+                    <button class="video-call-btn" (click)="startVideoCall()" style="background: none; border: none; cursor: pointer; font-size: 18px;">
+                        <img class="phone" src="image/phone.png" alt="">
+                    </button>
+                    <button class="close-btn" (click)="toggleclosed()">&times;</button>
+                </div>
+            </div>
 
-          <div class="input-container">
-            @if (pendingImage()) {
-              <div class="image-preview-inline">
-                <img [src]="pendingImage()" alt="Preview">
-                <button class="remove" (click)="cancelImage()">&times;</button>
-              </div>
+            <div class="chat-body" #chatBody (scroll)="onScroll()">
+                @for (chat of filteredMessages(); track chat.id || $index) {
+                    <div class="message-container {{ chat.sender === username ? 'sent' : 'received' }}">
+                        
+                        @if (chat.sender !== username) {
+                            <div class="chat-avatar">
+                                <img [src]="chat.profile || 'image/profileee.svg'" alt="{{ chat.sender }}">
+                            </div>
+                        }
+                        
+                        @if (chat.sender === username) {
+                            <div class="con_mess">
+                                <div class="message-time">{{ chat.created_at | date:'HH:mm' }}</div>
+                                @if (chat.is_read) { <div class="read-status">Read</div> }
+                            </div>
+                        }
+
+                        <div [class]="'message animate-message ' + (chat.sender === username ? 'sent ' : 'received ') + (chat.message === '[Image]' ? 'image-only' : '')">
+                            @if (chat.sender !== username) { <div class="sender-name">{{ chat.sender }}</div> }
+                            
+                            @if (chat.reply_to_id) {
+                                <strong>Reply {{ chat.reply_sender }}</strong>
+                                <div class="replied-message">
+                                    <div>{{ chat.reply_message }}</div>
+                                </div>
+                            }
+
+                            @if (chat.message.startsWith('📞')) {
+                                <div class="call">
+                                    📞 Calling
+                                    <a [href]="extractLink(chat.message)" target="_blank"><div class="c">JOIN</div></a>
+                                </div>
+                            } @else if (chat.message === '[Image]' && chat.picture) {
+                                <img [src]="chat.picture" alt="Chat Image" style="max-width: 100%; border-radius: 8px; cursor: pointer;" (click)="openImageModal(chat.picture)">
+                            } @else {
+                                {{ chat.message }}
+                            }
+                            
+                            @if (chat.sender !== username) { <div class="message-time">{{ chat.created_at | date:'HH:mm' }}</div> }
+                        </div>
+                        
+                        @if (chat.sender !== username) {
+                            <button class="reply-btn" (click)="replyToMessage(chat)">
+                                <img class="icon" src="image/reply.png" alt="">
+                            </button>
+                        }
+                    </div>
+                } @empty {
+                    <div class="empty-state">No Message</div>
+                }
+                
+                @if (typingUsers().length > 0) {
+                    <div class="message-container received">
+                        <div class="chat-avatar">
+                            <img src="image/profileee.svg" alt="Typing">
+                        </div>
+                        <div class="message animate-message received">
+                            <div class="sender-name">{{ typingUsers().join(', ') }}</div>
+                            <div style="font-style: italic; color: #666;">Typing...</div>
+                        </div>
+                    </div>
+                }
+            </div>
+            
+            @if (replyingTo()) {
+                <div class="reply-preview">
+                    <div>
+                        <small style="font-weight: bold; color: #333;">Reply: {{ replyingTo()?.sender }}</small>
+                        <div style="font-size: 12px; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px;">
+                            {{ replyingTo()?.message }}
+                        </div>
+                    </div>
+                    <div class="cn_reply">
+                        <button class="d" (click)="cancelReply()">&times;</button>
+                    </div>
+                </div>
             }
-            <input type="text" [(ngModel)]="newMessage" (input)="onTyping()" (keyup.enter)="sendMessage()" (paste)="onPaste($event)" placeholder="Aa">
-          </div>
 
-          <button class="send-btn" (click)="sendMessage()"> 
-              <img src="image/send.png" alt="Send Message">
-          </button>
-        </div>
-      }
+            <div class="chat-footer">
+                <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" style="display: none;">
+                <button class="imagee" (click)="fileInput.click()">
+                    <img src="image/add_pos.svg" alt="Add Image">
+                </button>
+
+                <div class="input-container">
+                    @if (pendingImage()) {
+                        <div class="image-preview-inline">
+                            <img [src]="pendingImage()" alt="Preview">
+                            <button class="remove" (click)="cancelImage()">&times;</button>
+                        </div>
+                    }
+                    <input type="text" [(ngModel)]="newMessage" (input)="onTyping()" (keyup.enter)="sendMessage()" (paste)="onPaste($event)" placeholder="Aa">
+                </div>
+
+                <button class="send-btn" (click)="sendMessage()"> 
+                    <img src="image/send.png" alt="Send Message">
+                </button>
+            </div>
+        }
     </div>
 }

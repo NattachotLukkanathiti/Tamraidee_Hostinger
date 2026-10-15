@@ -177,9 +177,9 @@ checkTypingStatus() {
     if (!this.username) return; // ป้องกันการเรียกใช้ถ้าไม่มี username
 
     const currentOffset = loadMore ? this.chatMessages().length : 0;
-    
+    const targetUser = this.currentChatUser(); 
     // ส่ง this.username ไปที่ Service
-    this.todoService.getChatHistory(this.limit, currentOffset, this.username).subscribe({
+    this.todoService.getChatHistory(this.limit, currentOffset, this.username ,targetUser ).subscribe({
       next: (data) => {
         const existingIds = new Set(this.chatMessages().map(m => m.id));
         const newMessages = data.filter(m => !existingIds.has(m.id));
@@ -205,6 +205,9 @@ checkTypingStatus() {
   }
   
   sendMessage() {
+    if (!this.newMessage().trim()) return;
+    
+    const receiver = this.currentChatUser() || 'Support'; 
      const imageToSend = this.pendingImage();
       if (imageToSend) {
     this.sendImageMessage(imageToSend);
@@ -220,7 +223,7 @@ checkTypingStatus() {
   const replyData = this.replyingTo();
   const replyId = replyData?.id || undefined; // <--- เปลี่ยนจาก null เป็น undefined
 
-  this.todoService.sendChatMessage(this.username, this.newMessage(), undefined, replyId).subscribe({
+  this.todoService.sendChatMessage(this.username, this.newMessage(),receiver, undefined, replyId).subscribe({
     next: (response) => {
       this.chatMessages.set([...this.chatMessages(), { 
         id: response.data?.id || Date.now(), 
@@ -309,9 +312,14 @@ checkTypingStatus() {
     new JitsiMeetExternalAPI(domain, options);
 
     const callLink = `https://${domain}/${roomName}`;
-    this.todoService.sendChatMessage(this.username, `📞 ฉันได้เริ่มวิดีโอคอลแล้ว เข้าร่วมได้ที่: ${callLink}`).subscribe({
+    
+    // --- ส่วนที่แก้ไข ---
+    const receiver = this.currentChatUser() || 'Support'; // ดึงผู้รับปัจจุบัน
+    
+    this.todoService.sendChatMessage(this.username, `📞 ฉันได้เริ่มวิดีโอคอลแล้ว เข้าร่วมได้ที่: ${callLink}`, receiver).subscribe({
       next: () => this.fetchChatHistory()
     });
+    // ------------------
   }
 
   joinVideoCall(url: string) {
