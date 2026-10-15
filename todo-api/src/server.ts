@@ -1162,3 +1162,6 @@ app.get('/api/chat/typing/:username', async (req, res) => {
   );
   res.json(result.rows);
 });
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
