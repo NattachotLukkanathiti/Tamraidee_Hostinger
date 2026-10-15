@@ -1054,19 +1054,14 @@ app.get('/api/chat', async (req, res) => {
   try {
     const limitParam = typeof req.query.limit === 'string' ? req.query.limit : '10';
     const offsetParam = typeof req.query.offset === 'string' ? req.query.offset : '0';
-    const username = typeof req.query.username === 'string' ? req.query.username : null;
 
     const limit = parseInt(limitParam, 10);
     const offset = parseInt(offsetParam, 10);
 
-    if (!username) {
-      return res.status(400).json({ success: false, message: 'Username is required' });
-    }
-
-    // ดึงเฉพาะข้อความที่ เราเป็นคนส่ง หรือ เราเป็นคนรับ หรือ ส่งหา Support (ส่วนกลาง)
+    // แก้ไขคำสั่ง SQL โดยเพิ่มการ LEFT JOIN ตาราง chat อีกครั้งเพื่อดึงข้อมูล Reply
     const result = await pool.query(
       `SELECT 
-         chat.id, chat.sender, chat.receiver, chat.message, chat.created_at, 
+         chat.id, chat.sender, chat.message, chat.created_at, 
          chat.is_read, chat.picture, chat.reply_to_id,
          todos.profile AS user_profile,
          reply.message AS reply_message,
@@ -1074,24 +1069,22 @@ app.get('/api/chat', async (req, res) => {
        FROM chat 
        LEFT JOIN todos ON chat.sender = todos.username
        LEFT JOIN chat AS reply ON chat.reply_to_id = reply.id
-       WHERE chat.sender = $3 OR chat.receiver = $3 OR (chat.receiver = 'Support' AND $3 = 'Support')
        ORDER BY chat.created_at DESC
        LIMIT $1 OFFSET $2`,
-      [limit, offset, username]
+      [limit, offset]
     );
     
     const formattedRows = result.rows.reverse().map(row => ({
       id: row.id,
       sender: row.sender,
-      receiver: row.receiver,
       message: row.message,
       created_at: row.created_at,
       is_read: row.is_read,
       picture: row.picture,
       profile: row.user_profile,
       reply_to_id: row.reply_to_id,
-      reply_message: row.reply_message,
-      reply_sender: row.reply_sender
+      reply_message: row.reply_message, // <--- ส่งข้อมูลกลับไปให้ Angular
+      reply_sender: row.reply_sender     // <--- ส่งข้อมูลกลับไปให้ Angular
     }));
 
     res.json(formattedRows);
@@ -1104,8 +1097,9 @@ app.put('/api/chat/read', async (req, res) => {
   const { username } = req.body;
   
   try {
+    // อัปเดตข้อความที่คนอื่นส่งมา ให้กลายเป็นอ่านแล้ว (is_read = true)
     await pool.query(
-      `UPDATE chat SET is_read = true WHERE receiver = $1 AND is_read = false`, 
+      `UPDATE chat SET is_read = true WHERE sender != $1`, 
       [username]
     );
     
@@ -1118,17 +1112,17 @@ app.put('/api/chat/read', async (req, res) => {
 
 app.post('/api/chat', async (req, res) => {
   try {
-    const { sender, receiver, message, picture, reply_to_id, profile } = req.body;
+    const { sender, message, picture, reply_to_id, profile } = req.body;
 
     if (!sender || !message) {
       return res.status(400).json({ success: false, message: 'กรุณากรอกข้อมูล sender และ message' });
     }
 
     const insertResult = await pool.query(
-      `INSERT INTO chat (sender, receiver, message, picture, reply_to_id, profile) 
-       VALUES ($1, $2, $3, $4, $5, $6) 
+      `INSERT INTO chat (sender, message, picture, reply_to_id, profile) 
+       VALUES ($1, $2, $3, $4, $5) 
        RETURNING *`,
-      [sender, receiver || 'Support', message, picture || null, reply_to_id || null, profile || null] 
+      [sender, message, picture || null, reply_to_id || null, profile || null] 
     );
 
     const newChat = insertResult.rows[0];
@@ -1153,7 +1147,7 @@ app.post('/api/chat/typing', async (req, res) => {
   res.sendStatus(200);
 });
 
-// 5. ดึงสถานะคนอื่นที่กำลังพิมพ์
+// ดึงสถานะคนอื่นที่กำลังพิมพ์
 app.get('/api/chat/typing/:username', async (req, res) => {
   const { username } = req.params;
   const result = await pool.query(
