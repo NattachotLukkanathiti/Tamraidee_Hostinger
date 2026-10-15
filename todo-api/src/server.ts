@@ -1052,23 +1052,18 @@ app.post('/create-promptpay-charge', async (req, res) => {
 });
 app.get('/api/chat', async (req, res) => {
   try {
-    const limitParam = typeof req.query.limit === 'string' ? req.query.limit : '10';
-    const offsetParam = typeof req.query.offset === 'string' ? req.query.offset : '0';
+    const limit = parseInt(req.query.limit as string || '10', 10);
+    const offset = parseInt(req.query.offset as string || '0', 10);
 
-    const limit = parseInt(limitParam, 10);
-    const offset = parseInt(offsetParam, 10);
-
-    // แก้ไขคำสั่ง SQL โดยเพิ่มการ LEFT JOIN ตาราง chat อีกครั้งเพื่อดึงข้อมูล Reply
+    // ตัด LEFT JOIN todos ออกไป ใช้ profile จากตาราง chat โดยตรง
     const result = await pool.query(
       `SELECT 
-         chat.id, chat.sender, chat.message, chat.created_at, 
-         chat.is_read, chat.picture, chat.reply_to_id,
-         todos.profile AS user_profile,
+         <unsafe_url>chat.id</unsafe_url>, chat.sender, chat.message, chat.created_at, 
+         chat.is_read, chat.picture, chat.reply_to_id, chat.profile,
          reply.message AS reply_message,
          reply.sender AS reply_sender
        FROM chat 
-       LEFT JOIN todos ON chat.sender = todos.username
-       LEFT JOIN chat AS reply ON chat.reply_to_id = reply.id
+       LEFT JOIN chat AS reply ON chat.reply_to_id = <unsafe_url>reply.id</unsafe_url>
        ORDER BY chat.created_at DESC
        LIMIT $1 OFFSET $2`,
       [limit, offset]
@@ -1081,10 +1076,10 @@ app.get('/api/chat', async (req, res) => {
       created_at: row.created_at,
       is_read: row.is_read,
       picture: row.picture,
-      profile: row.user_profile,
+      profile: row.profile, // ใช้ profile จาก chat ได้เลย
       reply_to_id: row.reply_to_id,
-      reply_message: row.reply_message, // <--- ส่งข้อมูลกลับไปให้ Angular
-      reply_sender: row.reply_sender     // <--- ส่งข้อมูลกลับไปให้ Angular
+      reply_message: row.reply_message,
+      reply_sender: row.reply_sender
     }));
 
     res.json(formattedRows);

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit,computed, OnDestroy, signal, inject, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, OnDestroy, signal, inject, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { CommonModule, DatePipe } from '@angular/common';
@@ -22,11 +22,7 @@ interface ChatMessage {
   reply_sender?: string;     // <--- เพิ่มบรรทัดนี้
 }
 type HeaderPanel = 'account' | null;
-interface ChatUser { 
-  name: string; 
-  lastMessage: string; 
-  profile?: string; 
-}
+
 @Component({
   selector: 'app-help-page',
   standalone: true,
@@ -60,41 +56,6 @@ export class HelppComponent implements OnInit, OnDestroy {
   readonly typingUsers = signal<string[]>([]);
   private typingTimeout: any;
 
-    readonly currentChatUser = signal<string | null>(null);
-  readonly unreadCounts = signal<{ [key: string]: number }>({});
-  
-  readonly chatUsers = computed(() => {
-    const usersMap = new Map<string, ChatUser>();
-    this.chatMessages().forEach(msg => {
-      const otherUser = msg.sender === this.username ? 'Support' : msg.sender; // ปรับตาม Logic ของคุณ
-      if (!usersMap.has(otherUser)) {
-        usersMap.set(otherUser, { name: otherUser, lastMessage: msg.message, profile: msg.profile });
-      } else {
-        usersMap.get(otherUser)!.lastMessage = msg.message;
-      }
-    });
-    return Array.from(usersMap.values());
-  });
-
-  readonly filteredMessages = computed(() => {
-    const target = this.currentChatUser();
-    if (!target) return [];
-    return this.chatMessages().filter(msg => msg.sender === target || (msg.sender === this.username && target === 'Support'));
-  });
-  // --------------------------------
-  openChatWith(user: string) {
-    this.currentChatUser.set(user);
-    const unreads = { ...this.unreadCounts() };
-    unreads[user] = 0;
-    this.unreadCounts.set(unreads);
-    
-    this.todoService.markChatAsRead(user).subscribe(() => this.fetchChatHistory());
-    setTimeout(() => this.scrollToBottom(), 100);
-  }
-
-  backToUserList() {
-    this.currentChatUser.set(null);
-  }
   ngOnInit(): void {
     const state = history.state;
     this.username = state.username || '';
@@ -102,10 +63,11 @@ export class HelppComponent implements OnInit, OnDestroy {
     this.userRole = state.role || '';
     
     this.fetchChatHistory();
-    this.chatSubscription = interval(3000).subscribe(() => {
-      if (this.isChatOpen()) this.fetchChatHistory();
-        this.checkTypingStatus();
-    });
+    // ใน ngOnInit()
+this.chatSubscription = interval(3000).subscribe(() => {
+  this.fetchChatHistory(); // <--- เอา if ออก
+  this.checkTypingStatus();
+});
   }
 
   ngOnDestroy(): void {
@@ -116,13 +78,6 @@ export class HelppComponent implements OnInit, OnDestroy {
   
   onTyping() {
     this.todoService.sendTypingStatus(this.username, true).subscribe();
-    this.todoService.markChatAsRead(this.username).subscribe({
-    next: () => {
-      // ดึงประวัติแชทใหม่เพื่อให้ UI อัปเดตสถานะ "Read"
-      this.fetchChatHistory(); 
-       this.changeDetector.markForCheck();
-    }
-  });
     clearTimeout(this.typingTimeout);
     this.typingTimeout = setTimeout(() => {
       this.todoService.sendTypingStatus(this.username, false).subscribe();
@@ -168,30 +123,39 @@ checkTypingStatus() {
   private hasMoreMessages = true;
   readonly isLoadingMore = signal(false); 
  fetchChatHistory(loadMore = false) {
+  
+    if (!this.hasMoreMessages && loadMore) return;
+
     const currentOffset = loadMore ? this.chatMessages().length : 0;
+
     this.todoService.getChatHistory(this.limit, currentOffset).subscribe({
       next: (data) => {
+        if (data.length < this.limit) this.hasMoreMessages = false;
+
         const existingIds = new Set(this.chatMessages().map(m => m.id));
         const newMessages = data.filter(m => !existingIds.has(m.id));
-        
+
         if (newMessages.length > 0) {
           if (loadMore) {
             this.chatMessages.set([...newMessages, ...this.chatMessages()]);
           } else {
+            // เพิ่มเฉพาะข้อความใหม่ต่อท้าย
             this.chatMessages.set([...this.chatMessages(), ...newMessages]);
-            
-            // --- อัปเดตตัวเลขแจ้งเตือน ---
-            const unreads = { ...this.unreadCounts() };
-            newMessages.forEach(msg => {
-              if (msg.sender !== this.username && msg.sender !== this.currentChatUser()) {
-                unreads[msg.sender] = (unreads[msg.sender] || 0) + 1;
-              }
-            });
-            this.unreadCounts.set(unreads);
-            // -------------------------
           }
+           const incomingMessages = newMessages.filter(m => m.sender !== this.username);
+  if (incomingMessages.length > 0) {
+    if (!this.isChatOpen()) {
+      const lastMsg = incomingMessages[incomingMessages.length - 1];
+      this.showDesktopNotification(
+        `ข้อความใหม่จาก ${lastMsg.sender}`, 
+        lastMsg.message
+      );
+    } else {
+      this.todoService.markChatAsRead(this.username).subscribe();
+    }
+  }
+          this.changeDetector.markForCheck();
         }
-        this.changeDetector.markForCheck();
       }
     });
   }
@@ -293,7 +257,7 @@ checkTypingStatus() {
         prejoinConfig: { enabled: false },
         requireDisplayName: false,
         disableDeepLinking: true,
-        startWithVideoMuted: true,
+        startWithVideoMuted: false,
         enableLobby: false 
       }
     };
@@ -305,6 +269,48 @@ checkTypingStatus() {
       next: () => this.fetchChatHistory()
     });
   }
+
+  startCall() {
+    if (typeof JitsiMeetExternalAPI === 'undefined') return;
+
+    const modal = document.getElementById('video-call-modal');
+    if (modal) modal.style.display = 'flex';
+
+    // เปลี่ยนจาก 8x8.vc เป็น meet.jit.si
+    const domain = 'jitsi.riot.im';
+    // สร้างชื่อห้องแบบสุ่ม
+    const roomName = 'SupportRoom-' + Math.random().toString(36).substring(7);
+    
+    const container = document.querySelector('#jitsi-container');
+    if (container) container.innerHTML = '';
+
+    const options = {
+      roomName: roomName,
+      width: '100%',
+      height: '100%',
+      parentNode: container,
+      userInfo: { 
+        displayName: this.username,
+        avatarURL: this.profile
+      },
+      configOverwrite: { 
+        prejoinPageEnabled: false,
+        prejoinConfig: { enabled: false },
+        requireDisplayName: false,
+        disableDeepLinking: true,
+        startWithVideoMuted: false,
+        enableLobby: false 
+      }
+    };
+
+    new JitsiMeetExternalAPI(domain, options);
+
+    const callLink = `https://${domain}/${roomName}`;
+    this.todoService.sendChatMessage(this.username, `📞 ฉันได้เริ่มวิดีโอคอลแล้ว เข้าร่วมได้ที่: ${callLink}`).subscribe({
+      next: () => this.fetchChatHistory()
+    });
+  }
+
 
   joinVideoCall(url: string) {
     if (url === '#') return;
@@ -423,5 +429,18 @@ onPaste(event: ClipboardEvent) {
 cancelImage() {
   this.pendingImage.set(null);
 }
+// ฟังก์ชันขอสิทธิ์และแสดงแจ้งเตือน
+  showDesktopNotification(title: string, body: string) {
+    if (!("Notification" in window)) return;
 
+    if (Notification.permission === "granted") {
+      new Notification(title, { body, icon: 'image/logo.svg' });
+    } else if (Notification.permission !== "denied") {
+      Notification.requestPermission().then(permission => {
+        if (permission === "granted") {
+          new Notification(title, { body, icon: 'image/logo.svg' });
+        }
+      });
+    }
+  }
 }

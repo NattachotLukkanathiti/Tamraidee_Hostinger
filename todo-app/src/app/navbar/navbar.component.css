@@ -178,6 +178,7 @@
 }
 .account-sidebar__menu button, .account-sidebar__logout {
   width: 100%;
+  z-index: 999999;
   padding: 0;
   border: 0;
   background: transparent;
