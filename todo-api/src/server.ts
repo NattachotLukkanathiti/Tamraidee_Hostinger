@@ -1052,17 +1052,22 @@ app.post('/create-promptpay-charge', async (req, res) => {
 });
 app.get('/api/chat', async (req, res) => {
   try {
-    const limit = parseInt(req.query.limit as string || '10', 10);
-    const offset = parseInt(req.query.offset as string || '0', 10);
+    const limitParam = typeof req.query.limit === 'string' ? req.query.limit : '10';
+    const offsetParam = typeof req.query.offset === 'string' ? req.query.offset : '0';
 
-    // ตัด LEFT JOIN todos ออกไป ใช้ profile จากตาราง chat โดยตรง
+    const limit = parseInt(limitParam, 10);
+    const offset = parseInt(offsetParam, 10);
+
+    // นำ LEFT JOIN todos กลับมา แต่เลือกดึงเฉพาะ profile
     const result = await pool.query(
       `SELECT 
          chat.id, chat.sender, chat.message, chat.created_at, 
-         chat.is_read, chat.picture, chat.reply_to_id, chat.profile,
+         chat.is_read, chat.picture, chat.reply_to_id,
+         todos.profile AS user_profile,
          reply.message AS reply_message,
          reply.sender AS reply_sender
        FROM chat 
+       LEFT JOIN todos ON chat.sender = todos.username
        LEFT JOIN chat AS reply ON chat.reply_to_id = reply.id
        ORDER BY chat.created_at DESC
        LIMIT $1 OFFSET $2`,
@@ -1076,7 +1081,7 @@ app.get('/api/chat', async (req, res) => {
       created_at: row.created_at,
       is_read: row.is_read,
       picture: row.picture,
-      profile: row.profile, // ใช้ profile จาก chat ได้เลย
+      profile: row.user_profile, // ใช้ profile จาก todos
       reply_to_id: row.reply_to_id,
       reply_message: row.reply_message,
       reply_sender: row.reply_sender
