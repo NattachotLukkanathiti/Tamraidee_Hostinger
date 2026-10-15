@@ -101,16 +101,10 @@ export class HelppComponent implements OnInit, OnDestroy {
     this.email = state.email || '';
     this.userRole = state.role || '';
     
-    // ตรวจสอบว่ามี username ก่อนค่อยดึงข้อมูล
-    if (this.username) {
-      this.fetchChatHistory();
-    }
-
+    this.fetchChatHistory();
     this.chatSubscription = interval(3000).subscribe(() => {
-      if (this.isChatOpen() && this.username) {
-        this.fetchChatHistory();
-      }
-      this.checkTypingStatus();
+      if (this.isChatOpen()) this.fetchChatHistory();
+        this.checkTypingStatus();
     });
   }
 
@@ -174,12 +168,8 @@ checkTypingStatus() {
   private hasMoreMessages = true;
   readonly isLoadingMore = signal(false); 
  fetchChatHistory(loadMore = false) {
-    if (!this.username) return; // ป้องกันการเรียกใช้ถ้าไม่มี username
-
     const currentOffset = loadMore ? this.chatMessages().length : 0;
-    const targetUser = this.currentChatUser(); 
-    // ส่ง this.username ไปที่ Service
-    this.todoService.getChatHistory(this.limit, currentOffset, this.username ,targetUser ).subscribe({
+    this.todoService.getChatHistory(this.limit, currentOffset).subscribe({
       next: (data) => {
         const existingIds = new Set(this.chatMessages().map(m => m.id));
         const newMessages = data.filter(m => !existingIds.has(m.id));
@@ -190,6 +180,7 @@ checkTypingStatus() {
           } else {
             this.chatMessages.set([...this.chatMessages(), ...newMessages]);
             
+            // --- อัปเดตตัวเลขแจ้งเตือน ---
             const unreads = { ...this.unreadCounts() };
             newMessages.forEach(msg => {
               if (msg.sender !== this.username && msg.sender !== this.currentChatUser()) {
@@ -197,6 +188,7 @@ checkTypingStatus() {
               }
             });
             this.unreadCounts.set(unreads);
+            // -------------------------
           }
         }
         this.changeDetector.markForCheck();
@@ -205,9 +197,6 @@ checkTypingStatus() {
   }
   
   sendMessage() {
-    if (!this.newMessage().trim()) return;
-    
-    const receiver = this.currentChatUser() || 'Support'; 
      const imageToSend = this.pendingImage();
       if (imageToSend) {
     this.sendImageMessage(imageToSend);
@@ -223,7 +212,7 @@ checkTypingStatus() {
   const replyData = this.replyingTo();
   const replyId = replyData?.id || undefined; // <--- เปลี่ยนจาก null เป็น undefined
 
-  this.todoService.sendChatMessage(this.username, this.newMessage(),receiver, undefined, replyId).subscribe({
+  this.todoService.sendChatMessage(this.username, this.newMessage(), undefined, replyId).subscribe({
     next: (response) => {
       this.chatMessages.set([...this.chatMessages(), { 
         id: response.data?.id || Date.now(), 
@@ -312,14 +301,9 @@ checkTypingStatus() {
     new JitsiMeetExternalAPI(domain, options);
 
     const callLink = `https://${domain}/${roomName}`;
-    
-    // --- ส่วนที่แก้ไข ---
-    const receiver = this.currentChatUser() || 'Support'; // ดึงผู้รับปัจจุบัน
-    
-    this.todoService.sendChatMessage(this.username, `📞 ฉันได้เริ่มวิดีโอคอลแล้ว เข้าร่วมได้ที่: ${callLink}`, receiver).subscribe({
+    this.todoService.sendChatMessage(this.username, `📞 ฉันได้เริ่มวิดีโอคอลแล้ว เข้าร่วมได้ที่: ${callLink}`).subscribe({
       next: () => this.fetchChatHistory()
     });
-    // ------------------
   }
 
   joinVideoCall(url: string) {

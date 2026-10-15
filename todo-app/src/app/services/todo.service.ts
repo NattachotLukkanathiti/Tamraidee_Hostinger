@@ -221,25 +221,18 @@ export class TodoService {
       { headers: this.headers }
     );
   }
-   getChatHistory(limit: number, offset: number, username: string, receiver: string | null): Observable<ChatMessage[]> {
-    let url = `${this.apiUrl}/chat?limit=${limit}&offset=${offset}&username=${encodeURIComponent(username)}`;
-    
-    // ถ้ามีคู่สนทนา ให้แนบไปด้วย
-    if (receiver) {
-      url += `&receiver=${encodeURIComponent(receiver)}`;
-    }
-
-    return this.http.get<ChatMessage[]>(url, { headers: this.headers });
-  }
+   getChatHistory(limit: number, offset: number) {
+  return this.http.get<ChatMessage[]>(`${this.apiUrl}/chat?limit=${limit}&offset=${offset}`, { headers: this.headers });
+}
 
   // เพิ่ม picture?: string เข้าไปเป็นตัวที่ 3
-  sendChatMessage(sender: string, message: string, receiver: string, picture?: string, reply_to_id?: number | null): Observable<any> {
-    return this.http.post<any>(
-      `${this.apiUrl}/chat`, 
-      { sender, message, receiver, picture, reply_to_id }, // <--- เพิ่ม receiver ตรงนี้ด้วย
-      { headers: this.headers }
-    );
-  }
+  sendChatMessage(sender: string, message: string, picture?: string, reply_to_id?: number | null): Observable<any> {
+  return this.http.post<any>(
+    `${this.apiUrl}/chat`, 
+    { sender, message, picture, reply_to_id }, // <--- ส่ง reply_to_id ไปที่ Backend
+    { headers: this.headers }
+  );
+}
 
   // --- Chat Typing & Read Status ---
 
