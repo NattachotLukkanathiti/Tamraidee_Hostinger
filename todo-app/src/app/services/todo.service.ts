@@ -221,9 +221,12 @@ export class TodoService {
       { headers: this.headers }
     );
   }
-   getChatHistory(limit: number, offset: number) {
-  return this.http.get<ChatMessage[]>(`${this.apiUrl}/chat?limit=${limit}&offset=${offset}`, { headers: this.headers });
-}
+   getChatHistory(limit: number, offset: number, username: string): Observable<ChatMessage[]> {
+    return this.http.get<ChatMessage[]>(
+      `${this.apiUrl}/chat?limit=${limit}&offset=${offset}&username=${encodeURIComponent(username)}`, 
+      { headers: this.headers }
+    );
+  }
 
   // เพิ่ม picture?: string เข้าไปเป็นตัวที่ 3
   sendChatMessage(sender: string, message: string, picture?: string, reply_to_id?: number | null): Observable<any> {

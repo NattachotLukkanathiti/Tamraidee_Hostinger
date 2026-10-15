@@ -101,10 +101,16 @@ export class HelppComponent implements OnInit, OnDestroy {
     this.email = state.email || '';
     this.userRole = state.role || '';
     
-    this.fetchChatHistory();
+    // ตรวจสอบว่ามี username ก่อนค่อยดึงข้อมูล
+    if (this.username) {
+      this.fetchChatHistory();
+    }
+
     this.chatSubscription = interval(3000).subscribe(() => {
-      if (this.isChatOpen()) this.fetchChatHistory();
-        this.checkTypingStatus();
+      if (this.isChatOpen() && this.username) {
+        this.fetchChatHistory();
+      }
+      this.checkTypingStatus();
     });
   }
 
@@ -168,8 +174,12 @@ checkTypingStatus() {
   private hasMoreMessages = true;
   readonly isLoadingMore = signal(false); 
  fetchChatHistory(loadMore = false) {
+    if (!this.username) return; // ป้องกันการเรียกใช้ถ้าไม่มี username
+
     const currentOffset = loadMore ? this.chatMessages().length : 0;
-    this.todoService.getChatHistory(this.limit, currentOffset).subscribe({
+    
+    // ส่ง this.username ไปที่ Service
+    this.todoService.getChatHistory(this.limit, currentOffset, this.username).subscribe({
       next: (data) => {
         const existingIds = new Set(this.chatMessages().map(m => m.id));
         const newMessages = data.filter(m => !existingIds.has(m.id));
@@ -180,7 +190,6 @@ checkTypingStatus() {
           } else {
             this.chatMessages.set([...this.chatMessages(), ...newMessages]);
             
-            // --- อัปเดตตัวเลขแจ้งเตือน ---
             const unreads = { ...this.unreadCounts() };
             newMessages.forEach(msg => {
               if (msg.sender !== this.username && msg.sender !== this.currentChatUser()) {
@@ -188,7 +197,6 @@ checkTypingStatus() {
               }
             });
             this.unreadCounts.set(unreads);
-            // -------------------------
           }
         }
         this.changeDetector.markForCheck();
