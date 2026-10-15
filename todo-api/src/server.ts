@@ -1058,12 +1058,12 @@ app.get('/api/chat', async (req, res) => {
     // ตัด LEFT JOIN todos ออกไป ใช้ profile จากตาราง chat โดยตรง
     const result = await pool.query(
       `SELECT 
-         <unsafe_url>chat.id</unsafe_url>, chat.sender, chat.message, chat.created_at, 
+         chat.id, chat.sender, chat.message, chat.created_at, 
          chat.is_read, chat.picture, chat.reply_to_id, chat.profile,
          reply.message AS reply_message,
          reply.sender AS reply_sender
        FROM chat 
-       LEFT JOIN chat AS reply ON chat.reply_to_id = <unsafe_url>reply.id</unsafe_url>
+       LEFT JOIN chat AS reply ON chat.reply_to_id = reply.id
        ORDER BY chat.created_at DESC
        LIMIT $1 OFFSET $2`,
       [limit, offset]
