@@ -64,7 +64,8 @@ groupedSaleOrders: any[] = [];
   constructor(private router: Router) {}
 
   ngOnInit(): void {
-
+       window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.loadSupplierBrands();
     const state = history.state;
     this.username = state.username || '';
     this.email = state.email || '';
@@ -111,18 +112,8 @@ groupedSaleOrders: any[] = [];
       this.currentTime = new Date();
     });
   }
-  // ฟังก์ชันเปลี่ยนหน้า
-  changePage(page: number) {
-    if (page >= 1 && page <= this.totalPages) {
-      this.currentPage = page;
-    }
-  }
 
-  // ฟังก์ชันดึงข้อมูลเฉพาะหน้าปัจจุบัน
-  get paginatedSaleOrders() {
-    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-    return this.filteredSaleOrders.slice(startIndex, startIndex + this.itemsPerPage);
-  }
+ 
 
   // ฟังก์ชันอัปเดตตัวเลขหน้า
   updatePagination() {
@@ -417,4 +408,97 @@ groupOrdersByCode(orders: any[]) {
     this.updatePagination();
   });
 }
+// ฟังก์ชันเปลี่ยนหน้า
+  changePage(page: number) {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+    }
+  }
+
+  // ฟังก์ชันดึงข้อมูลเฉพาะหน้าปัจจุบัน
+  get paginatedSaleOrders() {
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    return this.filteredSaleOrders.slice(startIndex, startIndex + this.itemsPerPage);
+  }
+
+
+
+  // ---> เพิ่มฟังก์ชันนี้เข้าไปเพื่อให้เหมือน Inventory <---
+  get visiblePages(): number[] {
+    const blockSize = 3; // กำหนดให้แสดงทีละ 3 หน้า
+    const currentBlock = Math.floor((this.currentPage - 1) / blockSize);
+    const startPage = (currentBlock * blockSize) + 1;
+    const endPage = Math.min(startPage + blockSize - 1, this.totalPages);
+
+    const pages = [];
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    return pages;
+  }
+
+
+
+  // 1. เพิ่มตัวแปรสำหรับเก็บค่าตัวกรอง
+selectedDateRange: string = 'all';
+selectedBrand: string = 'all';
+selectedCategory: string = 'all';
+  supplierBrands: string[] = [];
+
+// 2. เพิ่มฟังก์ชันกรองข้อมูล
+filterSales() {
+  const now = new Date();
+
+  this.filteredSaleOrders = this.saleOrders.filter(order => {
+    // --- กรองตามวันที่ (Date Range) ---
+    let matchDate = true;
+    if (this.selectedDateRange !== 'all') {
+      const orderDate = new Date(order.created_at);
+      const diffTime = now.getTime() - orderDate.getTime();
+      const diffDays = diffTime / (1000 * 60 * 60 * 24);
+
+      if (this.selectedDateRange === '7' && diffDays > 7) matchDate = false;
+      if (this.selectedDateRange === '30' && diffDays > 30) matchDate = false;
+    }
+
+    // --- กรองตาม Brand (เช็คจาก Items ด้านใน) ---
+    let matchBrand = true;
+    if (this.selectedBrand !== 'all') {
+      // ตรวจสอบว่าใน order นั้นมีสินค้าที่ตรงกับ Brand ที่เลือกหรือไม่
+      matchBrand = order.items && order.items.some((item: any) => item.brand === this.selectedBrand);
+    }
+
+    // --- กรองตาม Category ---
+    let matchCategory = true;
+    if (this.selectedCategory !== 'all') {
+      matchCategory = order.items && order.items.some((item: any) => item.category === this.selectedCategory);
+    }
+
+    return matchDate && matchBrand && matchCategory;
+  });
+
+  // รีเซ็ตหน้ากลับไปหน้าแรก และอัปเดต Pagination
+  this.currentPage = 1;
+  this.updatePagination(); 
+}
+loadSupplierBrands() {
+    // สมมติว่าใน todoService ของคุณมีฟังก์ชัน getSuppliers() 
+    // ถ้าไม่มี ให้สร้างเพิ่มใน service โดยดึงจากตาราง suppliers ครับ
+    this.todoService.getSuppliers().subscribe({
+      next: (suppliers) => {
+        // ดึงเฉพาะชื่อ brand หรือ name ของ supplier ออกมา
+        // ใช้ Set เพื่อป้องกันกรณีมีชื่อซ้ำ
+        const brands = new Set<string>();
+        suppliers.forEach((sup: any) => {
+          // เปลี่ยน 'brand_name' เป็นชื่อคอลัมน์จริงในตาราง suppliers ของคุณ (เช่น name, supplier_name)
+          if (sup.brand_name) { 
+            brands.add(sup.brand_name);
+          }
+        });
+        this.supplierBrands = Array.from(brands);
+      },
+      error: (err) => console.error('Error fetching suppliers:', err)
+    });
+  }
+
 }

@@ -142,6 +142,7 @@
     <div class="sku">Employee</div>
     <div class="sku">Email</div>
     <div class="sku">Phone</div>
+    <div class="sku">Status</div>
     </div>
     <ng-container *ngIf="loader; else realData">
                         <div class="card">
@@ -168,6 +169,7 @@
 <div class="sku2"><div class="connn"><img class="iconsetting4" [src]="order.profile || 'image/profileee.svg' " alt="">{{ order.username }}</div></div>
 <div class="sku2">{{ order.title }}</div>
 <div class="sku2">{{ order.phone }}</div>
+<div class="sku2">{{ order.status }}</div>
 <div class="button_small">
             <img class="icon_small_inventory"  *ngIf="userRole === 'admin' || userRole === 'manager'" src="image/edit.svg" (click)="button_edit_account2(order)">
             <img class="icon_small_inventory2"  *ngIf="(userRole === 'admin' || userRole === 'manager') && isGuest(order.role)" src="image/delete.svg" alt="">

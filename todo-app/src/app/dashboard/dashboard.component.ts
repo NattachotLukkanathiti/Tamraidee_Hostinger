@@ -69,6 +69,7 @@ private productsList: { name: string; count: number; image?: string }[] = [];
   constructor(private router: Router) {}
 
   ngOnInit(): void {
+       window.scrollTo({ top: 0, behavior: 'smooth' });
         this.loadTopProducts(); 
       this.loadChartData(); 
      this.loadSaleOrders(); 

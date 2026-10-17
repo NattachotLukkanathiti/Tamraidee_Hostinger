@@ -257,6 +257,26 @@ button:disabled {
 }
 
 @media (max-width: 720px) {
+       .page-heading{
+        margin-left: 30px;
+    }
+    .back-button{
+        position: absolute;
+          flex: 0 0 auto;
+    width: 30px;
+    height: 30px;
+    margin-left: 10px;
+    margin-top: 70px;
+
+    padding: 0;
+    border: 0;
+    border-radius: 5px;
+    color: #2b2f38;
+    background: transparent;
+    display: grid;
+    place-items: center;
+    transition: background-color 120ms ease;
+    }
     .page {
         padding: 8px 16px 16px;
     }

@@ -105,7 +105,19 @@ export class EditComponent implements OnInit, OnDestroy {
   }
 
   closepopup() {
-     this.router.navigate(['/']);
+       this.router.navigate(['/profile'],{
+        state:{  
+          id: this.userId,
+          username: this.username, 
+          email: this.email, 
+          role: this.userRole, 
+          profile: this.profile,
+          dob: this.dob,
+
+           phone: this.phone,
+          Move_return: true 
+        }
+      })
     this.showpopup = false;
     this.cdr.markForCheck();
   }
@@ -159,27 +171,56 @@ export class EditComponent implements OnInit, OnDestroy {
 
   button_cancels() { this.back(); }
   onProfileImageSelected(event: any) {
-  const file = event.target.files[0];
-  
-  if (file) {
-    // ตรวจสอบว่าเป็นไฟล์รูปภาพจริงหรือไม่
-    if (!file.type.startsWith('image/')) {
-      this.openpopup('กรุณาเลือกไฟล์รูปภาพเท่านั้น');
-      return;
+    const file = event.target.files[0];
+    
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        this.openpopup('กรุณาเลือกไฟล์รูปภาพเท่านั้น');
+        return;
+      }
+
+      this.isLoading = true;
+      this.cdr.markForCheck();
+
+      const reader = new FileReader();
+      
+      reader.onload = (e: any) => {
+        const img = new Image();
+        img.src = e.target.result;
+        
+        img.onload = () => {
+          const MAX_WIDTH = 250;
+          const MAX_HEIGHT = 250;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          // บีบอัดรูปภาพเหลือ 50% (0.5)
+          this.profile = canvas.toDataURL('image/jpeg', 0.5);
+          
+          this.isLoading = false;
+          this.cdr.markForCheck();
+        };
+      };
+      
+      reader.readAsDataURL(file);
     }
-
-    this.isLoading = true;
-    this.cdr.markForCheck();
-
-    const reader = new FileReader();
-    
-    reader.onload = (e: any) => {
-      this.isLoading = false;
-      this.profile = e.target.result;
-      this.cdr.markForCheck(); // สั่งให้อัปเดตหน้าจอ
-    };
-    
-    reader.readAsDataURL(file);
   }
-}
 }

@@ -122,6 +122,7 @@ categories: string[] = [];
   constructor(private router: Router, private ngZone: NgZone) {}
 
   ngOnInit(): void {
+       window.scrollTo({ top: 0, behavior: 'smooth' });
     this.supabase
       .channel('realtime-inventory')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'inventory' }, (payload) => {

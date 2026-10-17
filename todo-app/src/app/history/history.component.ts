@@ -44,7 +44,7 @@ export class HistoryComponent {
   out = true;
   history: any[] = []; 
   reload = false;
-  isLoading = true; 
+  isLoading = false; 
   loader = false;
   profile = '';
  play_Return = false;
@@ -64,6 +64,7 @@ export class HistoryComponent {
   constructor(private router: Router, private ngZone: NgZone) {}
 
   ngOnInit(): void {
+       window.scrollTo({ top: 0, behavior: 'smooth' });
     // เพิ่มการเชื่อมต่อ Realtime สำหรับตาราง history
     this.supabase
       .channel('realtime-history')
@@ -196,32 +197,27 @@ export class HistoryComponent {
 
  loadHistory() {
     this.loader = true;
-    
-    // 1. ดึงข้อมูลผู้ใช้จากตาราง todos ก่อน
     this.todoService.getTodoss().subscribe({
       next: (users) => {
-        
-        // 2. เมื่อได้ข้อมูลผู้ใช้แล้ว ค่อยดึงข้อมูล History
         this.todoService.getHistory().subscribe({
           next: (res) => {
             this.history = res.map((item: any) => {
-              // ค้นหาผู้ใช้ที่ตรงกับ created_by
               const user = users.find((u: any) => u.username === item.created_by);
-              
               return {
                 ...item,
                 created_by: item.created_by || 'Unknown User',
-                // ใช้รูปจากฟิลด์ profile ในตาราง todos
                 picture: user && user.profile ? user.profile : 'assets/default-avatar.png'
               };
             });
             
-          
+            // ---> เพิ่ม 2 บรรทัดนี้ <---
+            this.filteredHistory = [...this.history];
+            this.updatePagination();
+
             this.isLoading = false;
             this.loader = false;
           }
         });
-        
       },
       error: (err) => {
         console.error('Error fetching users:', err);
@@ -524,5 +520,76 @@ export class HistoryComponent {
       this.loadHistory();
     });
 }
+// --- เพิ่มตัวแปรสำหรับ Pagination ---
+  itemsPerPage: number = 10; 
+  currentPage: number = 1;
+  totalPages: number = 1;
+  pagesArray: number[] = [];
+  filteredHistory: any[] = [];
 
+  // --- เพิ่มฟังก์ชัน Pagination ---
+  changePage(page: number) {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+    }
+  }
+
+  get paginatedHistory() {
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    return this.filteredHistory.slice(startIndex, startIndex + this.itemsPerPage);
+  }
+
+  updatePagination() {
+    this.totalPages = Math.ceil(this.filteredHistory.length / this.itemsPerPage);
+    this.pagesArray = Array.from({ length: this.totalPages }, (_, i) => i + 1);
+    
+    if (this.currentPage > this.totalPages && this.totalPages > 0) {
+      this.currentPage = this.totalPages;
+    }
+  }
+
+  get visiblePages(): number[] {
+    const blockSize = 3;
+    const currentBlock = Math.floor((this.currentPage - 1) / blockSize);
+    const startPage = (currentBlock * blockSize) + 1;
+    const endPage = Math.min(startPage + blockSize - 1, this.totalPages);
+
+    const pages = [];
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    return pages;
+  }
+
+
+  // 1. เพิ่มตัวแปรเหล่านี้ใน Class
+selectedStatus: string = 'all';
+selectedDateRange: string = 'all';
+
+// 2. เพิ่มฟังก์ชัน filterHistory()
+filterHistory() {
+  const now = new Date();
+  
+  this.filteredHistory = this.history.filter(item => {
+    // กรองตามสถานะ (Status)
+    const matchStatus = this.selectedStatus === 'all' || item.status === this.selectedStatus;
+
+    // กรองตามวันที่ (Date)
+    let matchDate = true;
+    if (this.selectedDateRange !== 'all') {
+      const itemDate = new Date(item.date); // ตรวจสอบให้แน่ใจว่า item.date เป็นรูปแบบ YYYY-MM-DD
+      const diffTime = now.getTime() - itemDate.getTime();
+      const diffDays = diffTime / (1000 * 60 * 60 * 24); // แปลงมิลลิวินาทีเป็นวัน
+      
+      if (this.selectedDateRange === '7' && diffDays > 7) matchDate = false;
+      if (this.selectedDateRange === '30' && diffDays > 30) matchDate = false;
+    }
+
+    return matchStatus && matchDate;
+  });
+
+  // อัปเดต Pagination หลังจากกรองข้อมูลเสร็จ
+  this.currentPage = 1;
+  this.updatePagination();
+}
 }

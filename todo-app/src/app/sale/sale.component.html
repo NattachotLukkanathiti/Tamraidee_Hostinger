@@ -107,25 +107,26 @@
                             (input)="filterS()">
                         <img class="iconsearch" src="image/search.svg" alt="">
                     </div>
-                      <div class="custom-select">
-  <select class="text">
-    <option value="all">Last 7 Days <img class="icon_down"src="image/down.svg" alt=""></option>
-    <option value="option1">Option 1</option>
-    <option value="option2">Option 2</option>
+                   <div class="custom-select">
+  <select class="text" [(ngModel)]="selectedDateRange" (change)="filterSales()">
+    <option value="all">All Time</option>
+    <option value="7">Last 7 Days</option>
+    <option value="30">Last 30 Days</option>
   </select>
 </div>  
+
 <div class="custom-select">
-  <select>
-    <option value="all">Brand <img src="image/down.svg" alt=""></option>
-    <option value="option1">Option 1</option>
-    <option value="option2">Option 2</option>
+  <select [(ngModel)]="selectedBrand" (change)="filterSales()">
+    <option value="all">All Brands</option>
+        <option *ngFor="let brand of supplierBrands" [value]="brand">{{ brand }}</option>
   </select>
 </div>
+
 <div class="custom-select">
-  <select>
-    <option value="all">Category</option>
-    <option value="option1">Option 1</option>
-    <option value="option2">Option 2</option>
+  <select [(ngModel)]="selectedCategory" (change)="filterSales()">
+    <option value="all">All Categories</option>
+    <option value="Category 1">Category 1</option>
+    <option value="Category 2">Category 2</option>
   </select>
 </div>
                     <div class="con_3btn">

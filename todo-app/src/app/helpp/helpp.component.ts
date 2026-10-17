@@ -17,9 +17,10 @@ interface ChatMessage {
   is_read?: boolean; 
   profile?: string; 
   picture?: string;
-  reply_to_id?: number;      // <--- เพิ่มบรรทัดนี้
-  reply_message?: string;    // <--- เพิ่มบรรทัดนี้
-  reply_sender?: string;     // <--- เพิ่มบรรทัดนี้
+  reply_to_id?: number;
+  reply_message?: string;
+  reply_sender?: string;
+  reply_picture?: string;
 }
 type HeaderPanel = 'account' | null;
 
@@ -56,18 +57,45 @@ export class HelppComponent implements OnInit, OnDestroy {
   readonly typingUsers = signal<string[]>([]);
   private typingTimeout: any;
 
+  // 1. เพิ่มตัวแปร isLoading เพื่อเช็คสถานะการโหลด
+  readonly isLoading = signal(true); 
+
   ngOnInit(): void {
     const state = history.state;
     this.username = state.username || '';
     this.email = state.email || '';
     this.userRole = state.role || '';
-    
+      if ("Notification" in window && Notification.permission === "default") {
+    Notification.requestPermission();
+  }
+  
     this.fetchChatHistory();
-    // ใน ngOnInit()
-this.chatSubscription = interval(3000).subscribe(() => {
-  this.fetchChatHistory(); // <--- เอา if ออก
-  this.checkTypingStatus();
-});
+    
+    this.chatSubscription = interval(1000).subscribe(() => {
+      this.fetchChatHistory(); 
+      this.checkTypingStatus();
+       if (this.isChatOpen() && !document.hidden) {
+        this.todoService.markChatAsRead(this.username).subscribe({
+          next: () => {
+            this.chatMessages.update(messages => 
+                  messages.map(m => m.sender !== this.username ? { ...m, is_read: true } : m)
+            );
+            this.changeDetector.markForCheck();
+          }
+        });
+      }
+    });
+    
+    if (this.isChatOpen()) {
+      this.todoService.markChatAsRead(this.username).subscribe({
+        next: () => {
+          this.chatMessages.update(messages => 
+            messages.map(m => ({ ...m, is_read: true }))
+          );
+          this.changeDetector.markForCheck();
+        }
+      });
+    }
   }
 
   ngOnDestroy(): void {
@@ -81,120 +109,122 @@ this.chatSubscription = interval(3000).subscribe(() => {
     clearTimeout(this.typingTimeout);
     this.typingTimeout = setTimeout(() => {
       this.todoService.sendTypingStatus(this.username, false).subscribe();
-    }, 3000);
+    }, 1000);
   }
-checkTypingStatus() {
+
+  checkTypingStatus() {
     this.todoService.getTypingStatus(this.username).subscribe({
       next: (users: any) => {
-        // Backend ส่งมาเป็น [{ username: "..." }] 
-        // เราดึงเอาเฉพาะชื่อออกมาได้เลย
         const typing = users
           .map((u: any) => u.username)
-          .filter((name: string) => name !== this.username); // กรองชื่อตัวเองออก
+          .filter((name: string) => name !== this.username);
         
         this.typingUsers.set(typing);
         this.changeDetector.markForCheck();
       }
     });
   }
+
   toggleChat() {
-  this.isChatOpen.set(!this.isChatOpen());
-  if (this.isChatOpen()) {
-    this.todoService.markChatAsRead(this.username).subscribe({
-      next: () => {
-        // สั่งดึงข้อมูลใหม่ทันที เพื่อให้ได้สถานะ "Read" ล่าสุดจาก Backend มาแสดงผล
-        this.fetchChatHistory(); 
-        this.changeDetector.markForCheck();
-      }
-    });
-    setTimeout(() => this.scrollToBottom(), 100);
+    this.isChatOpen.set(!this.isChatOpen());
+    if (this.isChatOpen()) {
+      this.todoService.markChatAsRead(this.username).subscribe({
+        next: () => {
+          this.fetchChatHistory(); 
+          this.changeDetector.markForCheck();
+        }
+      });
+      setTimeout(() => this.scrollToBottom(), 100);
+    }
   }
-}
+
   toggleclosed() {
-  this.closed = true; // เริ่มเล่นแอนิเมชัน
-  setTimeout(() => {
-    this.isChatOpen.set(false); // ปิดหน้าต่างเมื่อแอนิเมชันจบ
-    this.closed = false; // รีเซ็ตค่า
-    this.changeDetector.markForCheck();
-  }, 1000); // <--- เปลี่ยนจาก 300 เป็น 1000 ให้ตรงกับ CSS 1s
-}
+    this.closed = true;
+    setTimeout(() => {
+      this.isChatOpen.set(false);
+      this.closed = false;
+      this.changeDetector.markForCheck();
+    }, 1000);
+  }
+
   private limit = 10;
   private offset = 0;
   private hasMoreMessages = true;
   readonly isLoadingMore = signal(false); 
- fetchChatHistory(loadMore = false) {
-  
-    if (!this.hasMoreMessages && loadMore) return;
 
-    const currentOffset = loadMore ? this.chatMessages().length : 0;
+  fetchChatHistory(loadMore = false) {
+  if (!this.hasMoreMessages && loadMore) return;
 
-    this.todoService.getChatHistory(this.limit, currentOffset).subscribe({
-      next: (data) => {
-        if (data.length < this.limit) this.hasMoreMessages = false;
+  const currentOffset = loadMore ? this.chatMessages().length : 0;
 
-        const existingIds = new Set(this.chatMessages().map(m => m.id));
-        const newMessages = data.filter(m => !existingIds.has(m.id));
+  this.todoService.getChatHistory(this.limit, currentOffset).subscribe({
+    next: (data) => {
+      this.isLoading.set(false);
+      if (data.length < this.limit) this.hasMoreMessages = false;
 
-        if (newMessages.length > 0) {
-          if (loadMore) {
-            this.chatMessages.set([...newMessages, ...this.chatMessages()]);
-          } else {
-            // เพิ่มเฉพาะข้อความใหม่ต่อท้าย
-            this.chatMessages.set([...this.chatMessages(), ...newMessages]);
-          }
-           const incomingMessages = newMessages.filter(m => m.sender !== this.username);
-  if (incomingMessages.length > 0) {
-    if (!this.isChatOpen()) {
-      const lastMsg = incomingMessages[incomingMessages.length - 1];
-      this.showDesktopNotification(
-        `ข้อความใหม่จาก ${lastMsg.sender}`, 
-        lastMsg.message
-      );
-    } else {
-      this.todoService.markChatAsRead(this.username).subscribe();
-    }
-  }
-          this.changeDetector.markForCheck();
+      const existingIds = new Set(this.chatMessages().map(m => m.id));
+      const newMessages = data.filter(m => !existingIds.has(m.id));
+
+      if (newMessages.length > 0) {
+        if (loadMore) {
+          this.chatMessages.set([...newMessages, ...this.chatMessages()]);
+        } else {
+          this.chatMessages.set([...this.chatMessages(), ...newMessages]);
         }
+        
+        const incomingMessages = newMessages.filter(m => m.sender !== this.username);
+        
+        if (incomingMessages.length > 0) {
+          if (!this.isChatOpen() || document.hidden) {
+          incomingMessages.forEach(msg => {
+              this.showDesktopNotification(
+                `${msg.sender}`, 
+                msg.message
+              );
+            });
+          }
+        }
+        this.changeDetector.markForCheck();
       }
-    });
-  }
-  
-  sendMessage() {
-     const imageToSend = this.pendingImage();
-      if (imageToSend) {
-    this.sendImageMessage(imageToSend);
-    this.pendingImage.set(null); // เคลียร์รูปภาพ
-    return;
-  }
-
-  // ถ้าไม่มีรูปภาพ ให้ส่งข้อความตามปกติ
-  if (!this.newMessage().trim()) return;
-  
-  if (!this.newMessage().trim()) return;
-  
-  const replyData = this.replyingTo();
-  const replyId = replyData?.id || undefined; // <--- เปลี่ยนจาก null เป็น undefined
-
-  this.todoService.sendChatMessage(this.username, this.newMessage(), undefined, replyId).subscribe({
-    next: (response) => {
-      this.chatMessages.set([...this.chatMessages(), { 
-        id: response.data?.id || Date.now(), 
-        sender: this.username, 
-        message: this.newMessage(), 
-        created_at: new Date().toISOString(),
-        reply_to_id: replyId,                         
-        reply_message: replyData?.message || undefined, 
-        reply_sender: replyData?.sender || undefined    
-      }]);
-      
-      this.newMessage.set('');
-      this.replyingTo.set(null); 
-      this.changeDetector.markForCheck();
-      setTimeout(() => this.scrollToBottom(), 100);
+    },
+    error: () => {
+      this.isLoading.set(false);
     }
   });
 }
+  sendMessage() {
+    const imageToSend = this.pendingImage();
+    if (imageToSend) {
+      this.sendImageMessage(imageToSend);
+      this.pendingImage.set(null);
+      return;
+    }
+
+    if (!this.newMessage().trim()) return;
+    
+    const replyData = this.replyingTo();
+    const replyId = replyData?.id || undefined;
+
+    this.todoService.sendChatMessage(this.username, this.newMessage(), undefined, replyId).subscribe({
+      next: (response) => {
+        this.chatMessages.set([...this.chatMessages(), { 
+          id: response.data?.id || Date.now(), 
+          sender: this.username, 
+          message: this.newMessage(), 
+          created_at: new Date().toISOString(),
+          reply_to_id: replyId,                         
+          reply_message: replyData?.message || undefined, 
+          reply_sender: replyData?.sender || undefined   ,
+           reply_picture: replyData?.picture || undefined    
+        }]);
+        
+        this.newMessage.set('');
+        this.replyingTo.set(null); 
+        this.changeDetector.markForCheck();
+        setTimeout(() => this.scrollToBottom(), 100);
+      }
+    });
+  }
 
   sendImageMessage(base64Image: string) {
     this.todoService.sendChatMessage(this.username, '[Image]', base64Image).subscribe({
@@ -214,7 +244,11 @@ checkTypingStatus() {
     const file = event.target.files[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = (e: any) => this.sendImageMessage(e.target.result);
+          reader.onload = async (e: any) => {
+      // บีบอัดรูปภาพก่อนส่ง
+      const resizedImage = await this.resizeImage(e.target.result);
+      this.sendImageMessage(resizedImage);
+    };
       reader.readAsDataURL(file);
     }
   }
@@ -231,193 +265,85 @@ checkTypingStatus() {
 
   startVideoCall() {
     if (typeof JitsiMeetExternalAPI === 'undefined') return;
-
     const modal = document.getElementById('video-call-modal');
     if (modal) modal.style.display = 'flex';
-
-    // เปลี่ยนจาก 8x8.vc เป็น meet.jit.si
     const domain = 'jitsi.riot.im';
-    // สร้างชื่อห้องแบบสุ่ม
     const roomName = 'SupportRoom-' + Math.random().toString(36).substring(7);
-    
     const container = document.querySelector('#jitsi-container');
     if (container) container.innerHTML = '';
-
     const options = {
-      roomName: roomName,
-      width: '100%',
-      height: '100%',
-      parentNode: container,
-      userInfo: { 
-        displayName: this.username,
-        avatarURL: this.profile
-      },
-      configOverwrite: { 
-        prejoinPageEnabled: false,
-        prejoinConfig: { enabled: false },
-        requireDisplayName: false,
-        disableDeepLinking: true,
-        startWithVideoMuted: false,
-        enableLobby: false 
-      }
+      roomName: roomName, width: '100%', height: '100%', parentNode: container,
+      userInfo: { displayName: this.username, avatarURL: this.profile },
+      configOverwrite: { prejoinPageEnabled: false, prejoinConfig: { enabled: false }, requireDisplayName: false, disableDeepLinking: true, startWithVideoMuted: false, enableLobby: false }
     };
-
     new JitsiMeetExternalAPI(domain, options);
-
     const callLink = `https://${domain}/${roomName}`;
-    this.todoService.sendChatMessage(this.username, `📞 ฉันได้เริ่มวิดีโอคอลแล้ว เข้าร่วมได้ที่: ${callLink}`).subscribe({
-      next: () => this.fetchChatHistory()
-    });
+    this.todoService.sendChatMessage(this.username, `📞 ฉันได้เริ่มวิดีโอคอลแล้ว เข้าร่วมได้ที่: ${callLink}`).subscribe({ next: () => this.fetchChatHistory() });
   }
 
-  startCall() {
-    if (typeof JitsiMeetExternalAPI === 'undefined') return;
-
-    const modal = document.getElementById('video-call-modal');
-    if (modal) modal.style.display = 'flex';
-
-    // เปลี่ยนจาก 8x8.vc เป็น meet.jit.si
-    const domain = 'jitsi.riot.im';
-    // สร้างชื่อห้องแบบสุ่ม
-    const roomName = 'SupportRoom-' + Math.random().toString(36).substring(7);
-    
-    const container = document.querySelector('#jitsi-container');
-    if (container) container.innerHTML = '';
-
-    const options = {
-      roomName: roomName,
-      width: '100%',
-      height: '100%',
-      parentNode: container,
-      userInfo: { 
-        displayName: this.username,
-        avatarURL: this.profile
-      },
-      configOverwrite: { 
-        prejoinPageEnabled: false,
-        prejoinConfig: { enabled: false },
-        requireDisplayName: false,
-        disableDeepLinking: true,
-        startWithVideoMuted: false,
-        enableLobby: false 
-      }
-    };
-
-    new JitsiMeetExternalAPI(domain, options);
-
-    const callLink = `https://${domain}/${roomName}`;
-    this.todoService.sendChatMessage(this.username, `📞 ฉันได้เริ่มวิดีโอคอลแล้ว เข้าร่วมได้ที่: ${callLink}`).subscribe({
-      next: () => this.fetchChatHistory()
-    });
-  }
-
+  startCall() { this.startVideoCall(); }
 
   joinVideoCall(url: string) {
     if (url === '#') return;
-    
     const domain = 'jitsi.riot.im'; 
     const roomName = url.split(domain + '/')[1]; 
-
     const modal = document.getElementById('video-call-modal');
     if (modal) modal.style.display = 'flex';
-
     const container = document.querySelector('#jitsi-container');
     if (container) container.innerHTML = '';
-
     const options = {
-      roomName: roomName,
-      width: '100%',
-      height: '100%',
-      parentNode: container,
-      userInfo: { 
-        displayName: this.username,
-        avatarURL: this.profile
-      },
-      // เพิ่ม configOverwrite เพื่อบังคับข้ามหน้าจอ
-      configOverwrite: { 
-        prejoinPageEnabled: false,
-        requireDisplayName: false,
-        disableDeepLinking: true,
-        startWithVideoMuted: true
-      },
-      // เพิ่ม interfaceConfigOverwrite เพื่อซ่อนปุ่มและหน้าต่างที่ไม่จำเป็น
-      interfaceConfigOverwrite: {
-        SHOW_JITSI_WATERMARK: false,
-        SHOW_WATERMARK_FOR_GUESTS: false,
-        DEFAULT_LOCAL_DISPLAY_NAME: this.username
-      }
+      roomName: roomName, width: '100%', height: '100%', parentNode: container,
+      userInfo: { displayName: this.username, avatarURL: this.profile },
+      configOverwrite: { prejoinPageEnabled: false, requireDisplayName: false, disableDeepLinking: true, startWithVideoMuted: true },
+      interfaceConfigOverwrite: { SHOW_JITSI_WATERMARK: false, SHOW_WATERMARK_FOR_GUESTS: false, DEFAULT_LOCAL_DISPLAY_NAME: this.username }
     };
-
     const api = new JitsiMeetExternalAPI(domain, options);
-
-    // สั่งให้ตั้งชื่อและเข้าห้องทันทีเมื่อโหลดเสร็จ
-    api.addEventListener('videoConferenceJoined', () => {
-      api.executeCommand('displayName', this.username);
-    });
+    api.addEventListener('videoConferenceJoined', () => { api.executeCommand('displayName', this.username); });
   }
-  // เพิ่มฟังก์ชันนี้ใน class HelppComponent
+
   extractLink(message: string): string {
     const urlMatch = message.match(/(https?:\/\/[^\s]+)/);
     return urlMatch ? urlMatch[0] : '#';
   }
 
+  selectedImage: string | null = null;
+  openImageModal(imageUrl: string) { this.selectedImage = imageUrl; }
+  closeImageModal() { this.selectedImage = null; }
 
-  // เพิ่มตัวแปรนี้ใน Class
-selectedImage: string | null = null;
-
-// เพิ่มฟังก์ชันเหล่านี้
-openImageModal(imageUrl: string) {
-    this.selectedImage = imageUrl;
-}
-
-closeImageModal() {
-    this.selectedImage = null;
-}
-onScroll() {
-  const element = this.chatBody.nativeElement;
-  if (element.scrollTop === 0 && this.hasMoreMessages) {
-    const previousHeight = element.scrollHeight;
-    
-    this.fetchChatHistory(true); // โหลดข้อมูลเพิ่ม
-    
-    // ปรับตำแหน่ง Scroll ให้คงที่ ไม่เด้งไปบนสุด
-    setTimeout(() => {
-      element.scrollTop = element.scrollHeight - previousHeight;
-    }, 100);
+  onScroll() {
+    const element = this.chatBody.nativeElement;
+    if (element.scrollTop === 0 && this.hasMoreMessages) {
+      const previousHeight = element.scrollHeight;
+      this.fetchChatHistory(true);
+      setTimeout(() => { element.scrollTop = element.scrollHeight - previousHeight; }, 100);
+    }
   }
-}
-readonly replyingTo = signal<ChatMessage | null>(null);
 
-replyToMessage(chat: ChatMessage) {
-  this.replyingTo.set(chat);
-}
-
-cancelReply() {
-  this.replyingTo.set(null);
-}
-closeCall() {
-  const modal = document.getElementById('video-call-modal');
-  if (modal) modal.style.display = 'none';
+  readonly replyingTo = signal<ChatMessage | null>(null);
+  replyToMessage(chat: ChatMessage) { this.replyingTo.set(chat); }
+  cancelReply() { this.replyingTo.set(null); }
   
-  const container = document.querySelector('#jitsi-container');
-  if (container) container.innerHTML = ''; // เคลียร์ iframe ออก
-}
+  closeCall() {
+    const modal = document.getElementById('video-call-modal');
+    if (modal) modal.style.display = 'none';
+    const container = document.querySelector('#jitsi-container');
+    if (container) container.innerHTML = '';
+  }
 
-readonly pendingImage = signal<string | null>(null);
-
-// แก้ไขฟังก์ชัน onPaste
-onPaste(event: ClipboardEvent) {
+  readonly pendingImage = signal<string | null>(null);
+  
+  onPaste(event: ClipboardEvent) {
   const items = event.clipboardData?.items;
-  
   if (items) {
     for (let i = 0; i < items.length; i++) {
       if (items[i].type.indexOf('image') !== -1) {
         const file = items[i].getAsFile();
         if (file) {
           const reader = new FileReader();
-          reader.onload = (e: any) => {
-            // เก็บรูปภาพไว้ในตัวแปรแทนการส่งทันที
-            this.pendingImage.set(e.target.result);
+          reader.onload = async (e: any) => {
+            // บีบอัดรูปภาพก่อนเก็บลงตัวแปร
+            const resizedImage = await this.resizeImage(e.target.result);
+            this.pendingImage.set(resizedImage);
             this.changeDetector.markForCheck();
           };
           reader.readAsDataURL(file);
@@ -426,21 +352,122 @@ onPaste(event: ClipboardEvent) {
     }
   }
 }
-cancelImage() {
-  this.pendingImage.set(null);
-}
-// ฟังก์ชันขอสิทธิ์และแสดงแจ้งเตือน
+  
+  cancelImage() { this.pendingImage.set(null); }
+
   showDesktopNotification(title: string, body: string) {
     if (!("Notification" in window)) return;
-
     if (Notification.permission === "granted") {
       new Notification(title, { body, icon: 'image/logo.svg' });
     } else if (Notification.permission !== "denied") {
       Notification.requestPermission().then(permission => {
-        if (permission === "granted") {
-          new Notification(title, { body, icon: 'image/logo.svg' });
-        }
+        if (permission === "granted") { new Notification(title, { body, icon: 'image/logo.svg' }); }
       });
     }
   }
+
+  // เพิ่มตัวแปรเก็บเวลาล่าสุดที่มีการพิมพ์ (สมมติว่าดึงมาจาก API)
+readonly lastActiveTime = signal<Date | null>(new Date());
+
+// ฟังก์ชันเช็คว่าออนไลน์อยู่หรือไม่ (ภายใน 1 นาที)
+isUserActive(): boolean {
+  const last = this.lastActiveTime();
+  if (!last) return false;
+  const diffMs = new Date().getTime() - new Date(last).getTime();
+  return diffMs < 60000; // 60,000 ms = 1 นาที
+}
+
+// ฟังก์ชันแสดงข้อความสถานะ
+getStatusText(): string {
+  if (this.isUserActive()) {
+    return 'กำลังใช้งาน';
+  }
+  
+  const last = this.lastActiveTime();
+  if (!last) return 'ออฟไลน์';
+
+  const diffMs = new Date().getTime() - new Date(last).getTime();
+  const minutes = Math.floor(diffMs / 60000);
+  
+  if (minutes < 60) return `ใช้งานล่าสุดเมื่อ ${minutes} นาทีที่แล้ว`;
+  return 'ออฟไลน์';
+}
+getChatPartnerName(): string {
+  if (this.userRole === 'admin') {
+    // หาข้อความที่ไม่ได้ส่งโดยตัวเราเอง เพื่อเอาชื่อคนอื่นมาแสดง
+    const otherMessage = this.chatMessages().find(chat => chat.sender !== this.username);
+    return otherMessage ? otherMessage.sender : 'User';
+  }
+  return 'Admin'; // ถ้าเราเป็น User ให้แสดงว่าคุยกับ Admin
+}
+
+
+// เพิ่มตัวแปรสถานะและรายการสติกเกอร์
+readonly isStickerMenuOpen = signal(false);
+// อัปเดตรายการสติกเกอร์ให้ตรงกับชื่อไฟล์ในโฟลเดอร์ public/sticker
+readonly stickers = signal<string[]>([
+  // กลุ่มไฟล์ main
+  'sticker/main.png',
+  ...Array.from({ length: 18 }, (_, i) => `sticker/main (${i + 1}).png`),
+  
+  // กลุ่มไฟล์ sticker
+  ...Array.from({ length: 39 }, (_, i) => `sticker/sticker (${i + 1}).png`)
+]);
+
+// ฟังก์ชันเปิด/ปิด ป๊อปอัพ
+toggleStickerMenu() {
+  this.isStickerMenuOpen.set(!this.isStickerMenuOpen());
+}
+
+// ฟังก์ชันส่งสติกเกอร์
+sendSticker(stickerUrl: string) {
+  this.sendImageMessage(stickerUrl); // ใช้ฟังก์ชันส่งรูปเดิม
+  this.isStickerMenuOpen.set(false); // ปิดป๊อปอัพเมื่อส่งแล้ว
+}
+resizeImage(base64Str: string, maxWidth = 800, quality = 0.7): Promise<string> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.src = base64Str;
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let width = img.width;
+      let height = img.height;
+
+      // คำนวณสัดส่วนใหม่หากความกว้างเกินที่กำหนด
+      if (width > maxWidth) {
+        height = Math.round((height * maxWidth) / width);
+        width = maxWidth;
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext('2d');
+      ctx?.drawImage(img, 0, 0, width, height);
+
+      // แปลงกลับเป็น Base64 โดยลดคุณภาพลง (0.7 = 70%)
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+  });
+}
+isFirstUnread(chatId: number): boolean {
+  const unreadMessages = this.chatMessages().filter(m => !m.is_read && m.sender !== this.username);
+  if (unreadMessages.length === 0) return false;
+  return unreadMessages[0].id === chatId;
+}
+hasUnreadMessages(): boolean {
+  return this.chatMessages().some(m => !m.is_read && m.sender !== this.username);
+}
+
+// เพิ่มฟังก์ชันนี้เข้าไปใน class HelppComponent
+  formatMessage(message: string): string {
+    if (!message) return '';
+    // Regex ตรวจหา URL
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    // แปลง URL ให้เป็นลิงก์สีฟ้าและขีดเส้นใต้
+    return message.replace(urlRegex, (url) => {
+      return `<a href="${url}" target="_blank" style="color: #0066cc; text-decoration: underline;">${url}</a>`;
+    });
+  }
+
 }

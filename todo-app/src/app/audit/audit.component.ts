@@ -62,7 +62,7 @@ export class AuditComponent {
   constructor(private router: Router) {}
 
   ngOnInit(): void {
-
+   window.scrollTo({ top: 0, behavior: 'smooth' });
     const state = history.state;
     this.username = state.username || '';
     this.email = state.email || '';
@@ -122,14 +122,7 @@ export class AuditComponent {
     this.changePage(1);
   }
 
-  changePage(page: number) {
-    if (page < 1 || page > this.totalPages) return;
-    this.currentPage = page;
-    
-    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-    const endIndex = startIndex + this.itemsPerPage;
-    this.paginatedAuditLogs = this.filteredAuditLogs.slice(startIndex, endIndex);
-  }
+
 
   getPagesArray(): number[] {
     return Array.from({ length: this.totalPages }, (_, i) => i + 1);
@@ -227,6 +220,7 @@ export class AuditComponent {
 
   loadAudit() {
     this.loader = true;
+    
     this.todoService.getAudit().subscribe({
       next: (res) => {
         this.auditLogs = res;
@@ -280,6 +274,29 @@ export class AuditComponent {
         this.router.navigate(['/login']); 
       }
     });
+  }
+  // เพิ่มฟังก์ชันนี้เข้าไป
+  get visiblePages(): number[] {
+    const blockSize = 3; // แสดงทีละ 3 หน้า
+    const currentBlock = Math.floor((this.currentPage - 1) / blockSize);
+    const startPage = (currentBlock * blockSize) + 1;
+    const endPage = Math.min(startPage + blockSize - 1, this.totalPages);
+
+    const pages = [];
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    return pages;
+  }
+
+  // อัปเดตฟังก์ชัน changePage เดิม
+  changePage(page: number) {
+    if (page < 1 || page > this.totalPages) return;
+    this.currentPage = page;
+    
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    const endIndex = startIndex + this.itemsPerPage;
+    this.paginatedAuditLogs = this.filteredAuditLogs.slice(startIndex, endIndex);
   }
 }
 

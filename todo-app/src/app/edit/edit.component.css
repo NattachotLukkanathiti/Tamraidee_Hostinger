@@ -14,6 +14,29 @@
     cursor: pointer;
     transition: opacity 0.2s ease;
 }
+.buttonclose {
+    width: 80%;
+    height: 20px;
+    padding: 23px;
+    font-size: 16px;
+    color: #FFFFFF;
+    border: 2px solid #E6EAED;
+    border-radius: 8px;
+    background: #84D46E;
+    justify-content: center;
+    display: flex;
+    margin-bottom: 20px;
+    align-items: center;
+    margin: 0 auto;
+    cursor: pointer;
+}
+
+.buttonclose:hover {
+    background: #77BF63;
+}
+.buttonclose:active {
+    background: #6AAA58;
+}
 
 /* เพิ่มเอฟเฟกต์ตอนเอาเมาส์ไปชี้ ให้รู้ว่าคลิกได้ */
 .profile-avatar:hover {
@@ -275,6 +298,29 @@ button:disabled {
 }
 
 @media (max-width: 720px) {
+    .p{
+
+    }
+    .page-heading{
+        margin-left: 30px;
+    }
+    .back-button{
+        position: absolute;
+          flex: 0 0 auto;
+    width: 30px;
+    height: 30px;
+    margin-left: 10px;
+    margin-top: 70px;
+
+    padding: 0;
+    border: 0;
+    border-radius: 5px;
+    color: #2b2f38;
+    background: transparent;
+    display: grid;
+    place-items: center;
+    transition: background-color 120ms ease;
+    }
     .page {
         padding: 8px 16px 16px;
     }

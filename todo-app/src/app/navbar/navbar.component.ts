@@ -66,6 +66,7 @@ ber = false;
   openpro = false;
   private timeSubscription!: Subscription;
     private notiSubscription!: Subscription;
+      private profileSubscription!: Subscription;
   constructor(private router: Router) {}
 
   ngOnInit(): void {
@@ -84,11 +85,18 @@ ber = false;
   }
       if (this.username) {
       this.loadNotifications();
+          this.loadChatMessages(); 
       
       // 2. ตั้งให้เช็คแจ้งเตือนใหม่ทุกๆ 30 วินาที (30000 มิลลิวินาที)
-      this.notiSubscription = interval(30000).subscribe(() => {
+      this.notiSubscription = interval(1000).subscribe(() => {
         this.loadNotifications();
       });
+       this.profileSubscription = interval(1000).subscribe(() => {
+        this.loadProfileData(); 
+      });
+         this.chatSubscription = interval(1000).subscribe(() => {
+      this.loadChatMessages(); // ดึงข้อมูลแชทใหม่ทุก 3 วินาที
+    });
     }
   // เข้ามาจาก Login
   else if (state.stan === true) {
@@ -240,6 +248,7 @@ ber = false;
   ngOnDestroy() {
     this.timeSubscription?.unsubscribe();
         this.notiSubscription?.unsubscribe();
+          this.profileSubscription?.unsubscribe(); 
   }
   // ปรับชื่อและค่า scale ให้เหมาะกับความสูงของกราฟ
   calculateHeight(valueInBaht: number): number {
@@ -415,15 +424,17 @@ loadNotifications(): void {
     status: this.todoService.getNotificationStatus(this.username)
   }).subscribe({
     next: (res: any) => {
-      this.notification = Array.isArray(res.notifications)
+        this.notification = Array.isArray(res.notifications)
         ? res.notifications
         : (res.notifications?.data || []);
 
-      this.notification_status = Array.isArray(res.status)
-        ? res.status
+      this.notification_status = Array.isArray(res.status) 
+        ? res.status 
         : (res.status?.data || []);
 
+      // 2. บังคับให้ Angular อัปเดตหน้าจอทุกครั้ง
       this.changeDetector.markForCheck();
+    
     },
     error: (err) => {
       console.error('Error loading notifications:', err);
@@ -438,15 +449,68 @@ loadNotifications(): void {
     // ทำให้ตัวอักษรตัวแรกเป็นตัวพิมพ์ใหญ่สำหรับ Role อื่นๆ
     return this.userRole.charAt(0).toUpperCase() + this.userRole.slice(1);
   }
-  get hasUnreadNotifications(): boolean {
-  const readIds = new Set(
-    this.notification_status.map(
-      (status: any) => Number(status.notification_id)
-    )
-  );
+get hasUnreadNotifications(): boolean {
+  if (!this.notification || this.notification.length === 0) return false;
+  if (!this.notification_status) return true;
 
-  return this.notification.some(
-    (item: any) => !readIds.has(Number(item.id))
-  );
+  // 1. ดึง ID ของข้อความที่อ่านแล้วมาเก็บไว้
+  const readIds = new Set(this.notification_status.map((status: any) => String(status.notification_id)));
+
+  // 2. กรองเอาเฉพาะข้อความที่ผู้ใช้คนนี้ "มีสิทธิ์มองเห็น" และ "ยังไม่ได้อ่าน"
+  const unreadVisibleItems = this.notification.filter((item: any) => {
+    const isRead = readIds.has(String(item.id));
+    if (isRead) return false; // ถ้าอ่านแล้ว ไม่ต้องนับ
+
+    const title = item.title || '';
+    const role = this.userRole;
+
+    // เงื่อนไขการซ่อน (เอามาจาก HTML ของคุณ)
+    const isHiddenForAdmin = title.includes('submitted') && role !== 'admin';
+    const isHiddenForBackendPos = !title.includes('submitted') && title.includes('Pending Approvals') && role !== 'backend' && role !== 'pos';
+    const isHiddenForStatus = (title.includes('Accepted') || title.includes('Rejected')) && role !== 'backend' && role !== 'pos';
+
+    // ถ้าเข้าเงื่อนไขซ่อน = ไม่ต้องนับ
+    if (isHiddenForAdmin || isHiddenForBackendPos || isHiddenForStatus) {
+      return false;
+    }
+
+    return true; // นับเฉพาะอันที่มองเห็นและยังไม่ได้อ่าน
+  });
+
+  // 3. ถ้ามีข้อความที่ยังไม่ได้อ่านและมองเห็นได้ > 0 ให้แสดงจุดแดง
+  return unreadVisibleItems.length > 0;
+}
+
+  loadProfileData() {
+    this.todoService.getTodoss().subscribe({
+      next: (res) => {
+        // ค้นหาข้อมูลของผู้ใช้ปัจจุบัน
+        const currentUser = res.find((user: any) => user.username === this.username);
+        if (currentUser) {
+          this.profile = currentUser.profile || this.profile;
+          this.userRole = currentUser.role || this.userRole;
+          this.changeDetector.markForCheck(); // สั่งอัปเดตหน้าจอ
+        }
+      },
+      error: (err) => console.error('Error loading profile:', err)
+    });
+  }
+
+  chatMessages: any[] = [];
+private chatSubscription!: Subscription;
+loadChatMessages() {
+  this.todoService.getChatHistory(20, 0).subscribe({
+    next: (data) => {
+      this.chatMessages = data;
+      this.changeDetector.markForCheck(); // สั่งอัปเดต UI
+    },
+    error: (err) => console.error('Error loading chat messages:', err)
+  });
+}
+get hasProfileUpdate(): boolean {
+  if (!this.chatMessages || this.chatMessages.length === 0) return false;
+  
+  // เช็คว่ามีข้อความที่ยังไม่ได้อ่าน (is_read เป็น false) และผู้ส่งไม่ใช่ตัวเราเอง
+  return this.chatMessages.some(m => !m.is_read && m.sender !== this.username);
 }
 }

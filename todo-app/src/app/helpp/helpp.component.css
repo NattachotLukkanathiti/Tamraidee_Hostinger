@@ -537,9 +537,23 @@ button:disabled {
     100% { transform: translateY(1000px); }
 }
 .chat-header {
-  background: #84D46E;
-  color: #fff;
-  padding: 20px;
+  /* ไล่สีจากดำทึบ (80%) -> เขียว -> แล้วค่อยๆ จางหายไปเป็นโปร่งใสที่ขอบล่าง */
+  background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, #84d46e 60%, rgba(132, 212, 110, 0) 100%);
+  
+  color: #FFFFFF;
+  position: absolute;
+  z-index: 1000;
+  width: 100%;
+  
+  /* ใช้ backdrop-filter เพื่อเบลอสิ่งที่อยู่ข้างหลัง */
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  
+  /* เพิ่ม mask เพื่อให้ขอบล่างของความเบลอฟุ้งหายไป ไม่เป็นเส้นตรง */
+  mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+
+  padding: 15px 10px 25px 10px; /* เพิ่ม padding ด้านล่างเพื่อให้มีพื้นที่ให้สีจางลง */
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -559,8 +573,8 @@ button:disabled {
 }
 
 .chat-body {
-  padding: 15px;
-  height: 300px;
+    padding: 15px 15px 105px 15px; 
+  height: 430px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -588,11 +602,20 @@ button:disabled {
 }
 
 .chat-footer {
-  padding: 10px;
-  display: flex;
-  width: 100%;
-  gap: 10px;
-  border-top: 1px solid #ddd;
+    box-sizing: border-box;
+    padding: 10px;
+    padding-bottom: 30px;
+    position: absolute;
+    bottom: 0; /* ---> เพิ่ม: สั่งให้ยึดติดด้านล่างสุด */
+    left: 0;   /* ---> เพิ่ม: สั่งให้ชิดซ้าย */
+    z-index: 10; /* ---> เพิ่ม: ดันให้ลอยขึ้นมาเหนือข้อความ */
+    display: flex;
+    background-color: rgba(255, 255, 255, 0.8) !important; /* แนะนำ: ใส่สีขาวโปร่งใสเพื่อให้มองเห็นปุ่มชัดขึ้น */
+    backdrop-filter: blur(10px); /* เพิ่มความเบลอให้ดูสวยงาม */
+    width: 100%;
+    gap: 10px;
+    
+    border-top: 1px solid #ddd;
 }
 .call{
     display: flex;
@@ -611,7 +634,9 @@ button:disabled {
   
 }
 .chat-footer input {
+    box-sizing: border-box;
   flex: 1;
+  width: 100%;
   padding: 8px;
   border: 1px solid #ddd;
   border-radius: 20px;
@@ -634,6 +659,7 @@ button:disabled {
 }
 .chat-footer button {
   padding: 8px 15px;
+  box-sizing: border-box;
   background: #84D46E;
   color: #fff;
   border: none;
@@ -698,9 +724,9 @@ button:disabled {
 }
 .imagee {
     
-  width: 40px;          /* กำหนดความกว้าง */
-  height: 40px;         /* กำหนดความสูงให้เท่ากับความกว้าง */
-  border-radius: 50%;   /* ทำให้เป็นวงกลม */
+  width: 30px;          /* กำหนดความกว้าง */
+  height: 30px;         /* กำหนดความสูงให้เท่ากับความกว้าง */
+  border-radius: 100%;   /* ทำให้เป็นวงกลม */
   padding: 0;           /* เอาช่องว่างด้านในออก */
   display: flex;
   justify-content: center;
@@ -740,14 +766,15 @@ button:disabled {
         flex-shrink: 0; 
     }
 
+    
     .chat-body {
-        flex: 1 1 auto; /* ให้ขยายและหดได้ตามพื้นที่ */
-        height: auto !important; /* ล้างค่าความสูง 200px ของ Desktop ออก */
-        min-height: 0; /* แก้บั๊กการ Scroll ใน Flexbox */
+        flex: 1; /* เปลี่ยนจาก 1 1 auto เป็น 1 เพื่อให้ยืดเต็มพื้นที่ที่เหลือ */
+        min-height: 0; /* สำคัญมาก! ช่วยแก้บั๊ก Scroll ใน Flexbox บนมือถือ */
+        height: 100% !important; /* เปลี่ยนจาก auto เป็น 100% */
         overflow-y: auto; 
-        max-height: none;
-                -webkit-overflow-scrolling: touch; /* เพิ่มบรรทัดนี้ */
-                  overscroll-behavior: contain; 
+        -webkit-overflow-scrolling: touch; /* เพิ่มความลื่นไหลในการเลื่อนบน iOS */
+        overscroll-behavior: contain; /* ป้องกันไม่ให้หน้าเว็บหลักเลื่อนตามเมื่อเลื่อนสุดขอบแชท */
+        padding-bottom: 100px; /* เว้นที่ด้านล่างไม่ให้ข้อความโดนกล่องพิมพ์บัง */
     }
 
     .chat-footer {
@@ -850,9 +877,17 @@ button:disabled {
   background: #f9f9f9;
   border-top: 1px solid #eee;
 }
-.reply-preview{
-    padding: 20px;
+.reply-preview {
+    padding: 10px 20px;
     display: flex;
+    position: absolute;
+    bottom: 80px; /* ดันให้ลอยขึ้นมาเหนือ chat-footer (ปรับตัวเลขตามความสูงของ footer) */
+    left: 0;
+    width: 100%; /* ให้กว้างเต็มกล่องแชท */
+    background-color: rgba(255, 255, 255, 0.9); /* ใส่พื้นหลังทึบเล็กน้อยเพื่อไม่ให้กลืนกับแชท */
+    border-top: 1px solid #ddd;
+    box-sizing: border-box;
+    z-index: 15; /* ให้อยู่เหนือ chat-body แต่ไม่ทับ footer */
 }
 .cn_reply{
     border: none;
@@ -879,7 +914,7 @@ button:disabled {
 }
 .replied-message {
  
-    color: rgb(0, 0, 0);
+    color: rgb(250, 250, 250);
 }
 .reply-btn{
     border: none;
@@ -995,18 +1030,27 @@ button:disabled {
   margin-left: auto;
 }
 .logo{
-    width: 40px;
-    height: 40px;
+    width: 30px;
+    height: 30px;
     background-color: white;
     border-radius: 100%;
 }
-
+.con_he{
+    padding: 10px;
+    display: flex;
+    color: white;
+    align-items: center;
+    border-radius: 15px;
+    gap: 8px;
+    font-size: 14px;
+}
 .input-container {
+margin-top: 10px;
+  margin-bottom: 10px;
   position: relative;
-  background: #fff;
-  border: 1px solid #ddd;
+    background-color: #f7f7f7;
+  border: 1px solid #ebebeb;
   border-radius: 20px;
-  padding: 2px 5px;
   display: flex;
   width: 100%;
   align-items: center;
@@ -1015,8 +1059,9 @@ button:disabled {
 .input-container input {
   border: none !important; /* เอาเส้นขอบของ input เดิมออก */
   outline: none;
+    background-color: #d6d6d600;
   flex: 1;
-  padding: 8px 12px;
+  padding: 8px ;
 }
 
 .image-preview-inline {
@@ -1063,8 +1108,8 @@ button:disabled {
 
 .send-btn {
     margin-left: auto;
-    width: 40px;
-    height: 40px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     background-color: #84D46E; /* สีเขียวธีมหลักของคุณ */
     border: none;
@@ -1086,4 +1131,137 @@ button:disabled {
     height: 18px;
     filter: brightness(0) invert(1); /* ย้อมสีไอคอนให้เป็นสีขาว */
     
+}
+
+
+
+.header-title {
+  display: flex;
+  flex-direction: column;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.user-status {
+  font-size: 11px;
+  color: #888;
+  font-weight: normal;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #ccc; /* สีเทาตอนออฟไลน์ */
+}
+user-status.online.status-dot {
+  background-color: #22c55e; /* สีเขียวตอนออนไลน์ */
+}
+.user{
+    margin-left: -10px;
+    font-size: 14px;
+    display: block;
+}
+.active{
+    font-size: 10px;
+}
+user-status.online {
+  color: #22c55e;
+}
+
+
+
+
+.sticker-popup {
+  position: absolute;
+  width: 100%;
+  margin-bottom: 20px;
+  margin-left: -10px;
+  max-height: 450px; /* 1. กำหนดความสูงสูงสุดที่ต้องการให้แสดง */
+  overflow-y: auto;  /* 2. สั่งให้เลื่อนขึ้น-ลงได้เมื่อเนื้อหาเกินความสูง */
+  bottom: 60px; 
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px;
+  z-index: 1000;
+}
+
+.sticker-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* เรียงแถวละ 5 รูป */
+  gap: 8px;
+}
+.containerrr{
+    display: flex;
+    width: 100%;
+    gap: 3%;
+    align-items: center;
+    justify-content: center;
+}
+.sticker-grid img {
+  width: 70px;
+  height: 70px;
+  cursor: pointer;
+  transition: transform 0.2s;
+  margin: 0 auto; /* จัดให้รูปอยู่ตรงกลางช่อง */
+}
+
+.sticker-grid img:hover {
+  transform: scale(1.1); 
+}
+
+
+
+.unread-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 15px 0;
+}
+
+.unread-divider::before,
+.unread-divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #ff4d4d; /* สีแดง */
+}
+
+.unread-divider span {
+    padding: 0 10px;
+    color: #ff4d4d;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+
+
+
+
+
+
+.contact-card {
+  position: relative; /* สำคัญ: ต้องมีเพื่อให้จุดสีแดงอิงตำแหน่งจากการ์ดนี้ */
+}
+
+.red_notification {
+  width: 10px;
+  height: 10px;
+  background-color: #FF2222;
+  border-radius: 50%;
+  position: absolute;
+  border: 2px solid white;
+  box-shadow: 0px 0px 4px 0px #ff2222b1;
+  right: 0;
+  transform: translate(30%, -30%); 
+}
+.reply-thumbnail {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-top: 4px;
 }

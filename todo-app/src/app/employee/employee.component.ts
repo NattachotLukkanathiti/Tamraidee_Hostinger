@@ -62,7 +62,7 @@ selectedaccount: any = { role: '' };
   constructor(private router: Router) {}
 
   ngOnInit(): void {
-
+   window.scrollTo({ top: 0, behavior: 'smooth' });
     const state = history.state;
     this.username = state.username || '';
     this.email = state.email || '';

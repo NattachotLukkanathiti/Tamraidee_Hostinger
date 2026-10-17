@@ -215,6 +215,12 @@ loadNotifications() {
     // 1. อัปเดตสถานะใน UI ทันที
     item.is_read = true;
 
+     const hasUnread = this.notifications.some(n => !n.is_read);
+    
+    // 3. ถ้าอ่านหมดแล้ว ให้ส่งสัญญาณบอก Navbar ทันที (ผ่าน localStorage)
+    if (!hasUnread) {
+      localStorage.setItem('clear_notification_dot', 'true');
+    }
     // 2. ส่งข้อมูลไปบันทึกที่ Backend (ตาราง notification_status)
     this.todoService.markNotificationAsRead(item.id, this.username).subscribe({
       next: () => console.log('Marked as read successfully'),

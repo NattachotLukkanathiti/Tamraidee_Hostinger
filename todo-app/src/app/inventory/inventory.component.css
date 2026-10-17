@@ -1699,6 +1699,17 @@ flex-direction: column; /* ใส่หรือไม่ใส่ก็ได�
 }
 
 @media (max-width:768px) {
+    .detail_con{
+        margin-top: 100px;
+    }
+    .con_3btn{
+       
+        
+    }
+    .con_am{
+        margin-top: 60px;
+        position: absolute;
+    }
     .tab{
         margin-top: 60px;
     }

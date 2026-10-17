@@ -1,5 +1,5 @@
 :host{
-    background-color: #F4F5FC !important;
+    background-color: white !important;
 }
 .navbaar {
   display: flex;/* กระจายองค์ประกอบให้เต็มพื้นที่ */
@@ -485,6 +485,7 @@ width: 100%;
     position: relative;
     width: 280px;
     padding: 20px;
+    display: none;
     overflow: hidden;
     background: #F4F5FC;
     transition: all .3s ease;
@@ -906,7 +907,7 @@ width: 100%;
     box-sizing: border-box; /* ป้องกันไม่ให้ padding ทำให้เกิด Scrollbar หรือพื้นที่เกิน */
     min-width: 0; 
     padding: 20px; 
-    background: #F4F5FC; 
+    background: white; 
     margin-right: 0;
     z-index: 2;
     width: 100%;
@@ -927,6 +928,11 @@ width: 100%;
     }
 }
 @media (max-width:768px){
+      .header_Inventory{
+        font-size: 50px !important;
+        transform: translateY(10px) !important;
+        
+    }
     .headercompany {
     display: flex;
     margin-left: -6px;

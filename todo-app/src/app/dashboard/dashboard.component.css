@@ -60,6 +60,7 @@
     }
 }
 .consale {
+    margin-top:70px;
     width: 40vw;
     position: relative;
     z-index: 4;
@@ -839,6 +840,9 @@ box-sizing: border-box;
 }
 
 @media (max-width:768px) {
+    .consale{
+        width: 100%;
+    }
     .CH{
         font-size: 15px;
     }
@@ -851,7 +855,7 @@ box-sizing: border-box;
         padding: 2px;
     }
     .tab{
-        margin-top: 30px;
+        margin-top: 40px;
     }
     .header_Inventory{
         font-size: 50px !important;
@@ -892,18 +896,18 @@ box-sizing: border-box;
         height: 40px;
     }
     .in_bt {
-    display: flex;
-    gap: 8px;
+    display: flex !important;
+    right: 0;
+    margin-top: 30px;
     position: absolute;
-    padding: 20px;
-    justify-content: center;
+    gap: 8px;
     align-items: center;
 }
     .search {
         display: none;
     }
     .over{
-        width: 100vw !important;
+        
     
     }
     .navbaar {
@@ -1382,10 +1386,19 @@ box-sizing: border-box;
     display: flex;
     margin-left: auto;
     gap: 8px;
-    justify-content: center;
+    width: 100%;
+    display: none;
+    justify-content: flex-end;
     align-items: center;
 }
-
+.in_bt2 {
+    display: flex;
+    margin-left: auto;
+    gap: 8px;
+    width: 100%;
+    justify-content: flex-end;
+    align-items: center;
+}
 .xs {
     display: flex;
     justify-content: center;
@@ -1725,16 +1738,6 @@ box-sizing: border-box;
     background: #0d4797;
 }
 
-@media (max-width: 720px) {
-    :host {
-        padding: 16px;
-        gap: 16px;
-    }
-
-    .heatmap__times {
-        flex-basis: 56px;
-    }
-}
 .product-row__qty {
     margin-left: auto; /* ดันให้ไปอยู่ขวาสุด */
     font-weight: 600;

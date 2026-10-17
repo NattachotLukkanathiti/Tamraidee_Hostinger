@@ -1,5 +1,5 @@
 :host{
-    background-color: #F4F5FC !important;
+    background-color: white !important;
 }
 .navbaar {
   display: flex;/* กระจายองค์ประกอบให้เต็มพื้นที่ */
@@ -540,6 +540,7 @@ input::placeholder{
     width: 280px;
     padding: 20px;
     overflow: hidden;
+    display: none;
     background: #F4F5FC;
     transition: all .3s ease;
     flex-shrink: 0;
@@ -930,7 +931,7 @@ input::placeholder{
     box-sizing: border-box; /* ป้องกันไม่ให้ padding ทำให้เกิด Scrollbar หรือพื้นที่เกิน */
     min-width: 0; 
     padding: 20px; 
-    background: #F4F5FC; 
+
     margin-right: 0;
     z-index: 2;
     width: 100%;

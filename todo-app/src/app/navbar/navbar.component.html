@@ -48,9 +48,20 @@
     <img src="image/Chart.svg" alt="" />
   </button>
 </div>
+<div class="red_noti">
+  <!-- จุดสีแดง (แสดงเมื่อมีเงื่อนไขที่คุณกำหนด) -->
+  <div class="red_notification" *ngIf="hasProfileUpdate"></div>
 
-
-<button class="avatar-button" type="button" aria-label="Open account menu" [attr.aria-expanded]="openPanel === 'account'" (click)="toggleAccountMenu()"><img [src]="profile || 'image/profileee.svg'" /></button>
+  <!-- ปุ่มโปรไฟล์ที่รวมแล้ว -->
+  <button 
+    class="avatar-button" 
+    type="button" 
+    aria-label="Open account menu" 
+    [attr.aria-expanded]="openPanel === 'account'" 
+    (click)="toggleAccountMenu()">
+    <img [src]="profile || 'image/profileee.svg'" alt="Profile" />
+  </button>
+</div>
  <button class="hamburger" (click)="hambar()">
         <img src="image/ham.svg" alt="">
     </button>
@@ -76,10 +87,15 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
         Profile
       </button>
-      <button type="button" (click)="openHelp()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z"/></svg>
-        Help
-      </button>
+      <button type="button" (click)="openHelp()" style="position: relative;">
+  <!-- จุดสีแดงแจ้งเตือน -->
+  <div class="red_notification" *ngIf="hasProfileUpdate" style="top: 12px; right: 15px;"></div>
+
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z"/>
+  </svg>
+  Help
+</button>
        <button type="button" (click)="openSetting()">
         <img src="image/setting_bar.svg" alt="">
         Setting

@@ -96,22 +96,23 @@
                         <img class="iconsearch" src="image/search.svg" alt="">
                     </div>
                     <div class="con_3btn">
-                        <div class="custom-select">
-  <select class="text">
-    <option value="all">All <img class="icon_down"src="image/down.svg" alt=""></option>
-    <option value="option1">Option 1</option>
-    <option value="option2">Option 2</option>
-  </select>
-</div>  
-<div class="custom-select">
-  <select>
-    <option value="all">Last 7 Days <img class="icon_down" src="image/down.svg" alt=""></option>
-    <option value="option1">Option 1</option>
-    <option value="option2">Option 2</option>
-  </select>
-</div>
+  <div class="custom-select">
+    <select class="text" [(ngModel)]="selectedStatus" (change)="filterHistory()">
+      <option value="all">All Status</option>
+      <option value="Approved">Approved</option>
+      <option value="Pending">Pending</option>
+      <option value="Rejected">Rejected</option>
+    </select>
+  </div>
 
-                    </div>
+  <div class="custom-select">
+    <select [(ngModel)]="selectedDateRange" (change)="filterHistory()">
+      <option value="all">All Time</option>
+      <option value="7">Last 7 Days</option>
+      <option value="30">Last 30 Days</option>
+    </select>
+  </div>
+</div>
                        <div class="reload" (click)="reloads()">
                                     <img src="image/Group.svg" alt="">
                                 </div>
@@ -152,44 +153,48 @@
 
                     </ng-container>
     <!-- Data Rows -->
+  <!-- Data Rows -->
    <ng-template #realData>
-     <div  class="table_detail2" *ngFor="let order of history; let i = index" [style.animation-delay]="i * 0.15 + 's'">
-    <div class="table_detail" (click)="detail(order)">
-        <div class="sku2">{{ order.date }}</div>
-<div class="sku2">{{ order.sku }}</div>
-<div class="sku2">{{ order.product_name }}</div>
-<div class="sku2">{{ order.brand }}</div>
-<div class="sku2">{{ order.price }}</div>
-<div class="sku2">{{ order.quantity }}</div>
-<div class="sku2" [ngClass]="{'text-green': order.status === 'Approved', 'text-gray': order.status === 'Pending' , 'text-red': order.status === 'Rejected'}">
-  {{ order.status }}
-</div>
-<div class="sku3">
-    <div class="connn">
-        <img class="profile_employee" [src]="order.picture" alt="">
-{{ order.created_by }}
-    </div>
-    <img class="icon" *ngIf="userRole === 'admin' && order.status === 'Pending'" (click)="requestFromHistory(order); $event.stopPropagation()" src="image/file.svg" alt="">
-<img class="icon" 
-     *ngIf="userRole === 'backend' && order.status !== 'Pending'" 
-     (click)="request2(order); $event.stopPropagation()" 
-     src="image/file.svg" 
-     alt="">
-</div>
-    </div>
-    <div class="line"></div>
-</div>
+     <div class="table_detail2" *ngFor="let order of paginatedHistory; let i = index" [style.animation-delay]="i * 0.15 + 's'">
+        <div class="table_detail" (click)="detail(order)">
+            <div class="sku2">{{ order.date }}</div>
+            <div class="sku2">{{ order.sku }}</div>
+            <div class="sku2">{{ order.product_name }}</div>
+            <div class="sku2">{{ order.brand }}</div>
+            <div class="sku2">{{ order.price }}</div>
+            <div class="sku2">{{ order.quantity }}</div>
+            <div class="sku2" [ngClass]="{'text-green': order.status === 'Approved', 'text-gray': order.status === 'Pending' , 'text-red': order.status === 'Rejected'}">
+              {{ order.status }}
+            </div>
+            <div class="sku3">
+                <div class="connn">
+                    <img class="profile_employee" [src]="order.picture" alt="">
+                    {{ order.created_by }}
+                </div>
+                <img class="icon" *ngIf="userRole === 'admin' && order.status === 'Pending'" (click)="requestFromHistory(order); $event.stopPropagation()" src="image/file.svg" alt="">
+                <img class="icon" *ngIf="userRole === 'backend' && order.status !== 'Pending'" (click)="request2(order); $event.stopPropagation()" src="image/file.svg" alt="">
+            </div>
+        </div>
+        <div class="line"></div>
+     </div>
    </ng-template>
 </div>
- <div class="con_tainer_page">
+<div class="con_tainer_page">
      <div class="pagination">
-  <a href="#" class="prev">&lt; Prev</a>
-  <a href="#" class="page active">1</a>
-  <a href="#" class="page">2</a>
-  <span class="dots">...</span>
-  <a href="#" class="page">11</a>
-  <a href="#" class="next">Next &gt;</a>
-</div>
+        <!-- ปุ่ม Prev -->
+        <a class="prev" [class.disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">&lt; Prev</a>
+        
+        <!-- วนลูปแสดงตัวเลขหน้า -->
+        <a *ngFor="let page of visiblePages" 
+           class="page" 
+           [class.active]="currentPage === page" 
+           (click)="changePage(page)">
+           {{ page }}
+        </a>
+
+        <!-- ปุ่ม Next -->
+        <a class="next" [class.disabled]="currentPage === totalPages || totalPages === 0" (click)="changePage(currentPage + 1)">Next &gt;</a>
+     </div>
  </div>
                 </div>
                 

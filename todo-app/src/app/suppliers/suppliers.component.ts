@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule, DatePipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { TodoService } from '../services/todo.service';
-import { interval, Subscription } from 'rxjs';
+import { interval, Subscription, forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-suppliers',
@@ -68,6 +68,7 @@ export class SuppliersComponent {
   constructor(private router: Router) {}
 
   ngOnInit(): void {
+       window.scrollTo({ top: 0, behavior: 'smooth' });
     const state = history.state;
     this.username = state.username || '';
     this.email = state.email || '';
@@ -108,14 +109,46 @@ export class SuppliersComponent {
   openpopupnoti(message:string){ this.showpopupnoti = true; this.popup = message; }
   closepopup(){ this.showpopup = false; this.showpopupnoti = false; this.router.navigate(['/login']); }
   ngOnDestroy() { this.timeSubscription?.unsubscribe(); }
+loadSuppliers() {
+  this.loader = true;
+  
+  forkJoin({
+    suppliers: this.todoService.getSuppliers(),
+    orders: this.todoService.getSaleOrders(),
+    inventory: this.todoService.getInventory() // 1. ดึงข้อมูล Inventory เพิ่ม
+  }).subscribe({
+    next: (res: any) => {
+      const allOrders = Array.isArray(res.orders) ? res.orders : (res.orders.data || []);
+      const completedOrders = allOrders.filter((order: any) => order.status === 'Completed');
 
-  loadSuppliers() {
-    this.loader = true;
-    this.todoService.getSuppliers().subscribe({
-      next: (res) => { this.suppliers = res; this.isLoading = false; this.loader = false; },
-      error: (err) => { console.error('Error fetching history:', err); this.loader = false; }
-    });
-  }
+      this.suppliers = res.suppliers.map((supplier: any) => {
+        
+        const supplierOrders = completedOrders.filter((order: any) => {
+          // 2. ค้นหา brand จาก Inventory โดยใช้ product_name
+          const invItem = res.inventory.find((inv: any) => inv.product_name === order.product_name);
+          const brandName = invItem?.brand || order.brand; // ถ้าไม่เจอใน Inventory ให้ใช้ brand เดิมจาก order
+
+          if (!brandName) return false;
+          
+          // 3. เทียบ brand กับ supplier_name
+          return String(brandName).toLowerCase() === String(supplier.supplier_name).toLowerCase();
+        });
+        
+        return {
+          ...supplier,
+          order_history: supplierOrders.length
+        };
+      });
+
+      this.isLoading = false; 
+      this.loader = false;
+    },
+    error: (err) => { 
+      console.error('Error fetching data:', err); 
+      this.loader = false; 
+    }
+  });
+}
 
   toggleMenu() { this.out = false; this.isMenuOpen = !this.isMenuOpen; this.isMenuOpenprofile = !this.isMenuOpenprofile; }
   hambar(){ this.isMenuOpen = !this.isMenuOpen; }

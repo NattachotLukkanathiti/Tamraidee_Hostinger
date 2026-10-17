@@ -187,13 +187,20 @@
 </div>
    </ng-template>
 </div>
-    <div class="con_tainer_page">
+   <div class="con_tainer_page">
   <div class="pagination">
+    <!-- ปุ่ม Prev -->
     <a class="prev" [class.disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">&lt; Prev</a>
-    <a class="page" [class.active]="currentPage === 1" (click)="changePage(1)">1</a>
-    <a *ngIf="totalPages >= 2" class="page" [class.active]="currentPage === 2" (click)="changePage(2)">2</a>
-    <span *ngIf="totalPages > 3" class="dots">...</span>
-    <a *ngIf="totalPages > 2" class="page" [class.active]="currentPage === totalPages" (click)="changePage(totalPages)">{{ totalPages }}</a>
+    
+    <!-- วนลูปแสดงตัวเลขหน้าจาก visiblePages -->
+    <a *ngFor="let page of visiblePages" 
+       class="page" 
+       [class.active]="currentPage === page" 
+       (click)="changePage(page)">
+       {{ page }}
+    </a>
+
+    <!-- ปุ่ม Next -->
     <a class="next" [class.disabled]="currentPage === totalPages || totalPages === 0" (click)="changePage(currentPage + 1)">Next &gt;</a>
   </div>
 </div>
