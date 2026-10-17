@@ -33,6 +33,7 @@ type HeaderPanel = 'account' | null;
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HelppComponent implements OnInit, OnDestroy {
+  
   private router = inject(Router);
   private changeDetector = inject(ChangeDetectorRef);
   private location = inject(Location);
@@ -71,18 +72,22 @@ export class HelppComponent implements OnInit, OnDestroy {
   
     this.fetchChatHistory();
     
-    this.chatSubscription = interval(1000).subscribe(() => {
-      this.fetchChatHistory(); 
-      this.checkTypingStatus();
-       if (this.isChatOpen() && !document.hidden) {
-        this.todoService.markChatAsRead(this.username).subscribe({
-          next: () => {
-            this.chatMessages.update(messages => 
-                  messages.map(m => m.sender !== this.username ? { ...m, is_read: true } : m)
-            );
-            this.changeDetector.markForCheck();
-          }
-        });
+   this.chatSubscription = interval(3000).subscribe(() => {
+      // เพิ่มการเช็ค document.hidden ตรงนี้
+      if (!document.hidden) {
+        this.fetchChatHistory(); 
+        this.checkTypingStatus();
+        
+        if (this.isChatOpen()) {
+          this.todoService.markChatAsRead(this.username).subscribe({
+            next: () => {
+              this.chatMessages.update(messages => 
+                messages.map(m => m.sender !== this.username ? { ...m, is_read: true } : m)
+              );
+              this.changeDetector.markForCheck();
+            }
+          });
+        }
       }
     });
     
@@ -205,17 +210,22 @@ export class HelppComponent implements OnInit, OnDestroy {
     const replyData = this.replyingTo();
     const replyId = replyData?.id || undefined;
 
+    // สร้างเวลาปัจจุบันในรูปแบบที่ไม่มีตัว Z (UTC) ต่อท้าย
+    const now = new Date();
+    const localISOTime = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().slice(0, 19).replace('T', ' ');
+
     this.todoService.sendChatMessage(this.username, this.newMessage(), undefined, replyId).subscribe({
       next: (response) => {
         this.chatMessages.set([...this.chatMessages(), { 
           id: response.data?.id || Date.now(), 
           sender: this.username, 
           message: this.newMessage(), 
-          created_at: new Date().toISOString(),
+          // ใช้เวลาท้องถิ่นที่สร้างไว้ หรือใช้เวลาที่ตอบกลับมาจาก Backend
+          created_at: response.data?.created_at || localISOTime,
           reply_to_id: replyId,                         
           reply_message: replyData?.message || undefined, 
-          reply_sender: replyData?.sender || undefined   ,
-           reply_picture: replyData?.picture || undefined    
+          reply_sender: replyData?.sender || undefined,
+          reply_picture: replyData?.picture || undefined    
         }]);
         
         this.newMessage.set('');
@@ -469,5 +479,25 @@ hasUnreadMessages(): boolean {
       return `<a href="${url}" target="_blank" style="color: #0066cc; text-decoration: underline;">${url}</a>`;
     });
   }
+// เพิ่มฟังก์ชันนี้ใน class HelppComponent
+toggleFullScreen() {
+  // เปลี่ยนจาก .logo เป็น .con_live เพื่อให้ขยายทั้งกล่องแชท
+  const elem = document.querySelector('.con_live') as HTMLElement;
+  
+  if (!elem) return;
 
+  if (!document.fullscreenElement) {
+    if (elem.requestFullscreen) {
+      elem.requestFullscreen();
+    } else if ((elem as any).webkitRequestFullscreen) { 
+      (elem as any).webkitRequestFullscreen();
+    }
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if ((document as any).webkitExitFullscreen) { 
+      (document as any).webkitExitFullscreen();
+    }
+  }
+}
 }

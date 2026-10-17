@@ -537,8 +537,7 @@ button:disabled {
     100% { transform: translateY(1000px); }
 }
 .chat-header {
-  /* ไล่สีจากดำทึบ (80%) -> เขียว -> แล้วค่อยๆ จางหายไปเป็นโปร่งใสที่ขอบล่าง */
-  background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, #84d46e 60%, rgba(132, 212, 110, 0) 100%);
+  background: linear-gradient(to bottom, #84d46e 0%, #84d46e 60%, rgba(132, 212, 110, 0) 100%);
   
   color: #FFFFFF;
   position: absolute;
@@ -553,7 +552,7 @@ button:disabled {
   mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
   -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
 
-  padding: 15px 10px 25px 10px; /* เพิ่ม padding ด้านล่างเพื่อให้มีพื้นที่ให้สีจางลง */
+  padding: 0px 5px 25px 5px; /* เพิ่ม padding ด้านล่างเพื่อให้มีพื้นที่ให้สีจางลง */
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -574,14 +573,26 @@ button:disabled {
 
 .chat-body {
     padding: 15px 15px 105px 15px; 
-  height: 430px;
+  height: 500px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 10px;
+    resize: both;
+  overflow: auto;
   background: #f9f9f9;
 }
+.con_live:fullscreen {
+  width: 100vw !important;
+  height: 100vh !important;
+  display: flex;
+  flex-direction: column;
+}
 
+.con_live:fullscreen .chat-body {
+  flex: 1; /* สั่งให้กล่องข้อความยืดเต็มพื้นที่ที่เหลือ */
+  height: auto !important;
+}
 .message {
   padding: 8px 12px;
   border-radius: 15px;
@@ -604,7 +615,6 @@ button:disabled {
 .chat-footer {
     box-sizing: border-box;
     padding: 10px;
-    padding-bottom: 30px;
     position: absolute;
     bottom: 0; /* ---> เพิ่ม: สั่งให้ยึดติดด้านล่างสุด */
     left: 0;   /* ---> เพิ่ม: สั่งให้ชิดซ้าย */
@@ -764,6 +774,7 @@ button:disabled {
 
     .chat-header {
         flex-shrink: 0; 
+        padding: 15px 10px 50px 10px
     }
 
     
@@ -779,6 +790,7 @@ button:disabled {
 
     .chat-footer {
         flex-shrink: 0; 
+            padding-bottom: 30px;
     }
     .con_live {
   position: fixed;
@@ -1265,3 +1277,20 @@ user-status.online {
     border-radius: 4px;
     margin-top: 4px;
 }
+
+.All{
+    transform: translateX(2000px);
+    animation: open_help 1s ease-in-out forwards;
+}
+@keyframes open_help {
+    0%{
+
+    }
+    100%{
+        transform: translateX(0px);
+    }
+}
+
+
+
+

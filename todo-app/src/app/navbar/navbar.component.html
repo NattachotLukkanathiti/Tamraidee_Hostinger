@@ -33,7 +33,10 @@
 <!--         <img class="iconsetting1" src="image/Maximize Icon.svg" (click)="toggleMenu()" [class.Max]="Max" alt=""> -->
         <!-- <img class="iconsetting2" src="image/Song.svg" alt=""> -->
       
-
+<button (click)="toggleSound()" class="con_sound" *ngIf="isActive">
+  <span *ngIf="isSoundEnabled"><img class="icon" src="icon_sound/on.png" alt=""></span>
+  <span *ngIf="!isSoundEnabled"><img class="icon" src="icon_sound/off.png" alt=""></span>
+</button>
 <div class="red_noti">
   <div
     class="red_notification"
@@ -48,6 +51,7 @@
     <img src="image/Chart.svg" alt="" />
   </button>
 </div>
+
 <div class="red_noti">
   <!-- จุดสีแดง (แสดงเมื่อมีเงื่อนไขที่คุณกำหนด) -->
   <div class="red_notification" *ngIf="hasProfileUpdate"></div>
@@ -122,4 +126,23 @@
 <div class="h" (click)="Animation_out5()">Help</div>
 <div class="h" (click)="Animation_out5()">Setting</div>
 </div>
+    </div>
+
+
+
+
+
+     <div *ngIf="showpopupnoti" class="backpop">
+        <div *ngIf="showpopupnoti" class="popupcontainer">
+            <div class="popup-content">
+                <img class="iconsuccess" src="image/cross.svg" alt="">
+                <div class="headerpop">
+                    Something went Wrong
+                </div>
+                <div class="subheadersuccess">
+                    {{popup}}
+                </div>
+                <button class="buttonnoti" (click)="closepopup()">OK</button>
+            </div>
+        </div>
     </div>

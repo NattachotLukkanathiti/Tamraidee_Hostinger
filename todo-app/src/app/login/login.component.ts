@@ -77,6 +77,7 @@ export class LoginComponent {
         this.isLoading = false; // ซ่อน Loading
         const profile = response.user.profile;
         const role = response.user.role; // ปรับให้ตรงกับตัวแปร role จาก API ของคุณ
+                const status = response.user.status;
         // --- ส่วนที่เพิ่ม: เตรียมข้อมูลสำหรับ Audit Log ---
          const now = new Date();
         const auditData = {
@@ -103,6 +104,7 @@ export class LoginComponent {
             stan: true,
             inhere: true,
             role: role,
+            status: status,
             
             // เพิ่มข้อมูลส่วนตัวไปด้วย เพื่อให้หน้า Profile แสดงผลได้ทันที
             dob: response.user.dob,

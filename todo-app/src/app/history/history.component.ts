@@ -52,8 +52,8 @@ export class HistoryComponent {
   return = false;
     stan = false;
    userRole: string = '';
-   private supabaseUrl = 'https://ehyhllaxvozjdndddfku.supabase.co';
-  private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVoeWhsbGF4dm96amRuZGRkZmt1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ4NjUyMzAsImV4cCI6MjEwMDQ0MTIzMH0.FQ98R2OopmNkIBQLTeieKGETr0asT2KAaMf-G6uSLq4';
+   private supabaseUrl = 'https://iemqkiftkhyoalyqpjzj.supabase.co'; 
+private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImllbXFraWZ0a2h5b2FseXFwanpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyNjExODMsImV4cCI6MjEwNzgzNzE4M30.zk_zlo7QSHuNlM943ikEfwS6eWWbRjTYlWEN94kxn7o';
   private supabase = createClient(this.supabaseUrl, this.supabaseKey);
 
   // ... (ตัวแปรอื่นๆ ของคุณ)

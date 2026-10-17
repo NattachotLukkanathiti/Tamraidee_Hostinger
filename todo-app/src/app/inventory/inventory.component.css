@@ -1198,6 +1198,7 @@ flex-direction: column; /* ใส่หรือไม่ใส่ก็ได�
 
 .fix2 {
     display: flex;
+    display: none;
     position: relative;
     top: 0;
     margin-left: auto;
@@ -1294,7 +1295,7 @@ flex-direction: column; /* ใส่หรือไม่ใส่ก็ได�
   /*   border: 1px solid #E6EAED; */
     height: 100%;
     padding: 20px;
-    background: #fff;
+    background: white;
    /*  box-shadow: 0 8px 24px rgba(0, 0, 0, .08); */
     box-sizing: border-box;
 }
@@ -2313,4 +2314,11 @@ flex-direction: column; /* ใส่หรือไม่ใส่ก็ได�
 }
 .he:hover{
     color: #89898b;
+}
+
+.back{
+    background-color: white;
+    position: fixed;
+    height: 100vh;
+    width: 100vw;
 }

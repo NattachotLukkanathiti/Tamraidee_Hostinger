@@ -62,6 +62,7 @@ export class NavbarComponent implements OnInit {
   products: 0
   
 };
+status: string = '';
 ber = false;
   openpro = false;
   private timeSubscription!: Subscription;
@@ -76,6 +77,7 @@ ber = false;
     this.email = state.email || '';
     this.userRole = state.role || 'user';
     this.profile = state.profile || '';
+    this.status = state.status || '';
     this.loadTodos()
      if (state.Move_return === true) {
     this.stan = false;
@@ -83,20 +85,35 @@ ber = false;
     this.inhere = true;
     this.loadSummary(); 
   }
-      if (this.username) {
+     if (this.username) {
+      interval(3000).subscribe(() => {
+        if (!document.hidden) {
+          this.loadTodos();
+        }
+      });
+      
+      this.loadProfileData(); 
       this.loadNotifications();
-          this.loadChatMessages(); 
+      this.loadChatMessages(); 
       
       // 2. ตั้งให้เช็คแจ้งเตือนใหม่ทุกๆ 30 วินาที (30000 มิลลิวินาที)
-      this.notiSubscription = interval(1000).subscribe(() => {
-        this.loadNotifications();
+      this.notiSubscription = interval(3000).subscribe(() => {
+        if (!document.hidden) {
+          this.loadNotifications();
+        }
       });
-       this.profileSubscription = interval(1000).subscribe(() => {
-        this.loadProfileData(); 
+      
+      this.profileSubscription = interval(3000).subscribe(() => {
+        if (!document.hidden) {
+          this.loadProfileData(); 
+        }
       });
-         this.chatSubscription = interval(1000).subscribe(() => {
-      this.loadChatMessages(); // ดึงข้อมูลแชทใหม่ทุก 3 วินาที
-    });
+      
+      this.chatSubscription = interval(3000).subscribe(() => {
+        if (!document.hidden) {
+          this.loadChatMessages(); // ดึงข้อมูลแชทใหม่ทุก 3 วินาที
+        }
+      });
     }
   // เข้ามาจาก Login
   else if (state.stan === true) {
@@ -115,7 +132,7 @@ ber = false;
     return;
   }
     this.loadChartData();
-    this.timeSubscription = interval(1000).subscribe(() => {
+    this.timeSubscription = interval(3000).subscribe(() => {
       this.currentTime = new Date();
     });
   
@@ -257,20 +274,31 @@ ber = false;
     
     return Math.min(valueInBaht * scale, maxHeight);
   }
- loadTodos() {
-  
+loadTodos() {
   this.todoService.getTodoss().subscribe({
     next: (res) => {
-     
-      
-      // สมมติว่าคุณมีตัวแปร currentState ที่เก็บข้อมูล state ที่ส่งมา
-      const currentEmail = this.navigationState?.state?.email;
+      // กรองเอาเฉพาะข้อมูลของ user ปัจจุบัน
+      this.todos = res.filter(todo => todo.username === this.username);
 
-      if (currentEmail) {
-        // กรองให้เหลือเฉพาะ todo ที่ email ตรงกับ state
-        this.todos = res.filter(todo => todo.email === currentEmail);
-      } else {
-        this.todos = res;
+      if (this.todos.length > 0) {
+        const currentUser = this.todos[0];
+        const roleValue = currentUser.role || currentUser.userRole;
+        
+        // 1. เช็คว่า Role หายไปหรือไม่
+        const isMissingRole = !roleValue || roleValue.trim() === "";
+        
+        // 2. เช็คว่า Status เป็น Locked หรือไม่ (เปรียบเทียบแบบไม่สนใจตัวพิมพ์เล็ก-ใหญ่)
+        const isLocked = currentUser.status && currentUser.status.toLowerCase() === 'locked';
+
+        if (isLocked) {
+          this.popup = "Your account has been Locked. Please contact admin.";
+          this.showpopupnoti = true;
+        } else if (isMissingRole) {
+          this.popup = "Warning: Your account is missing a 'Role'.";
+          this.showpopupnoti = true;
+        } else {
+          this.showpopupnoti = false;
+        }
       }
     },
     error: (err) => console.error(err)
@@ -289,6 +317,7 @@ ber = false;
         console.error(err);
         this.loader = false; // Also set to false on error
       }
+      
     });
   }
   
@@ -489,7 +518,9 @@ get hasUnreadNotifications(): boolean {
         if (currentUser) {
           this.profile = currentUser.profile || this.profile;
           this.userRole = currentUser.role || this.userRole;
+                   this.status = currentUser.status || this.status; 
           this.changeDetector.markForCheck(); // สั่งอัปเดตหน้าจอ
+          
         }
       },
       error: (err) => console.error('Error loading profile:', err)
@@ -501,16 +532,84 @@ private chatSubscription!: Subscription;
 loadChatMessages() {
   this.todoService.getChatHistory(20, 0).subscribe({
     next: (data) => {
+      const existingIds = new Set(this.chatMessages.map(m => m.id));
+      const newMessages = data.filter((m: any) => !existingIds.has(m.id));
+
       this.chatMessages = data;
-      this.changeDetector.markForCheck(); // สั่งอัปเดต UI
+      
+      if (newMessages.length > 0 && !this.isInitialLoad) {
+            if (this.status.toLowerCase() === 'inactive') { return; } 
+                  if (!this.isSoundEnabled || this.status.toLowerCase() === 'inactive') { 
+          return; 
+        }
+
+
+        
+        const incomingMessages = newMessages.filter((m: any) => m.sender !== this.username);
+        if (incomingMessages.length > 0) {
+          const latestMessage = incomingMessages[incomingMessages.length - 1] as any;
+          
+          // ดึง status ของคนส่ง (ถ้าไม่มีให้ถือว่าเป็น Active ไว้ก่อน)
+          const senderStatus = latestMessage.status || 'Active';
+          
+          // 1. เช็คก่อนเลยว่า ถ้าเป็น Inactive ให้ข้ามไป ไม่ต้องแจ้งเตือน
+          if (senderStatus === 'Inactive') {
+            return; 
+          }
+
+          // 2. ถ้าสถานะปกติ ให้เช็ค Role เพื่อแจ้งเตือนตามตำแหน่ง
+          const senderRole = latestMessage.userRole || 'user';
+
+          if (this.userRole === 'admin' && senderRole !== 'admin') {
+            // เราเป็น Admin และคนส่งเป็น User ทั่วไป
+            this.playNotificationSound();
+          } else if (this.userRole !== 'admin' && senderRole === 'admin') {
+            // เราเป็น User ทั่วไป และคนส่งเป็น Admin
+            this.playNotificationSound();
+          } else if (['backend', 'frontend'].includes(this.userRole) && senderRole !== this.userRole) {
+            // เพิ่มเติม: สำหรับ backend/frontend ถ้าคนส่งไม่ใช่ตำแหน่งเดียวกัน ให้แจ้งเตือน
+            this.playNotificationSound();
+          }
+        }
+      }
+
+      this.isInitialLoad = false;
+      this.changeDetector.markForCheck();
     },
-    error: (err) => console.error('Error loading chat messages:', err)
+    error: (err) => {
+      console.error('Error loading chat messages:', err);
+      this.isInitialLoad = false;
+    }
   });
 }
 get hasProfileUpdate(): boolean {
+   if (this.status.toLowerCase() === 'inactive') return false; 
   if (!this.chatMessages || this.chatMessages.length === 0) return false;
   
   // เช็คว่ามีข้อความที่ยังไม่ได้อ่าน (is_read เป็น false) และผู้ส่งไม่ใช่ตัวเราเอง
   return this.chatMessages.some(m => !m.is_read && m.sender !== this.username);
+}
+
+
+private isInitialLoad = true; // ป้องกันเสียงดังตอนรีเฟรช
+  
+  // ฟังก์ชันเล่นเสียง
+  playNotificationSound() {
+    const audio = new Audio('assets/sounds/notification.mp3');
+    audio.play().catch(err => console.error('ไม่สามารถเล่นเสียงได้:', err));
+  }
+  // ค่าเริ่มต้นเป็น true (เปิดเสียง) โดยดึงจาก localStorage ถ้ามี
+  isSoundEnabled: boolean = localStorage.getItem('soundEnabled') !== 'false';
+
+  // ฟังก์ชันสำหรับกด เปิด-ปิด เสียง
+  toggleSound() {
+    this.isSoundEnabled = !this.isSoundEnabled;
+    localStorage.setItem('soundEnabled', String(this.isSoundEnabled));
+  }
+
+  // เพิ่มฟังก์ชันนี้ใน navbar.component.ts
+get isActive(): boolean {
+  if (!this.status) return false; // ถ้าไม่มีค่า status ให้ซ่อนไว้ก่อน
+  return this.status.toLowerCase() === 'active'; // ถ้าเป็น active (ตัวเล็กหรือใหญ่ก็ได้) ให้แสดงผล
 }
 }

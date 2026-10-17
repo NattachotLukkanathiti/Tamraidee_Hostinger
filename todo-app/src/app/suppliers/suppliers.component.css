@@ -489,6 +489,65 @@ input::placeholder{
     flex-shrink: 0;
     
 }
+
+
+.out_comimport{
+
+    animation: movess 0.5s ease-in-out;
+}
+
+@keyframes movess {
+    0% {
+         opacity: 1;
+
+        clip-path: polygon(0 0,
+                100% 0,
+                100% 100%,
+                0 100%);
+                filter: blur(0);
+    }
+    50%{
+
+        clip-path: polygon(0 0,
+                100% 0,
+                80% 100%,
+                
+                20% 100%);
+                filter: 2px;
+    }
+    100% {
+         width: 10px;
+        height: 10px;
+        margin-top: 300px;
+        clip-path: polygon(0 0,
+                100% 0,
+                80% 100%,
+                20% 100%);
+                filter: blur(5px);
+
+    }
+}
+@keyframes moves {
+    0% {
+        width: 0px;
+        height: 0px;
+        margin-left: 50vw;
+        margin-top: -50vh;
+        clip-path: polygon(80% 0, 50% 0, 100% 100%,40% 100%);
+        filter: blur(5px); 
+    }
+    50%{
+        clip-path: polygon(50% 0, 100% 0, 100% 100%, 10% 100%);
+    }
+    100% {
+
+
+        opacity: 1;
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+        filter: blur(2px); 
+
+    }
+}
 /* @keyframes openn {
   0% {
     width: 0px;

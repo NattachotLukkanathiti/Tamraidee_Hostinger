@@ -34,7 +34,8 @@
 <div class="container">
     
     <main class="page help-page">
-  <div class="detail">
+  <div class="All">
+    <div class="detail">
     <div class="page-heading">
     <button type="button" class="back-button"  (click)="back()" ><img src="image/back.svg" alt=""></button>
     <h1>Help & Support</h1>
@@ -89,6 +90,7 @@
     </section>
   </div>
   </div>
+  </div>
 </main>
 </div>
 
@@ -99,7 +101,7 @@
         
        <!--  <span><img class="icon_chat" src="image/icon_chat.svg" alt=""Tamraidee Chat</span> -->
         <div class="con_he">
-          <img class="logo" src="image/logoo.svg" alt="">
+          <img class="logo" src="image/logoo.svg" alt="" (click)="toggleFullScreen()">
           Tamraidee Live Chat
         </div>
         <div class="header-actions" style="display: flex; gap: 10px; align-items: center;">
@@ -270,3 +272,8 @@
     </div>
   </div>
 }
+
+
+
+
+   
