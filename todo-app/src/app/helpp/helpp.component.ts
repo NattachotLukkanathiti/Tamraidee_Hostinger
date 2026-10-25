@@ -5,7 +5,7 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { interval, Subscription } from 'rxjs';
 import { Location } from '@angular/common';
 import { TodoService } from '../services/todo.service';
-
+import { createClient } from '@supabase/supabase-js';
 declare var JitsiMeetExternalAPI: any;
 
 interface FaqItem { title: string; subtitle: string; }
@@ -21,6 +21,7 @@ interface ChatMessage {
   reply_message?: string;
   reply_sender?: string;
   reply_picture?: string;
+  
 }
 type HeaderPanel = 'account' | null;
 
@@ -33,7 +34,10 @@ type HeaderPanel = 'account' | null;
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HelppComponent implements OnInit, OnDestroy {
-  
+
+private supabaseUrl = 'https://iemqkiftkhyoalyqpjzj.supabase.co'; 
+private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImllbXFraWZ0a2h5b2FseXFwanpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyNjExODMsImV4cCI6MjEwNzgzNzE4M30.zk_zlo7QSHuNlM943ikEfwS6eWWbRjTYlWEN94kxn7o';
+private supabase = createClient(this.supabaseUrl, this.supabaseKey);
   private router = inject(Router);
   private changeDetector = inject(ChangeDetectorRef);
   private location = inject(Location);
@@ -46,6 +50,8 @@ export class HelppComponent implements OnInit, OnDestroy {
   openPanel: HeaderPanel = null; currentTime = new Date();
   open = false;
   closed = false;
+  // จากเดิม: status = '';
+readonly status = signal<string>('active');
   private timeSubscription!: Subscription;
   private chatSubscription!: Subscription;
 
@@ -62,17 +68,29 @@ export class HelppComponent implements OnInit, OnDestroy {
   readonly isLoading = signal(true); 
 
   ngOnInit(): void {
+    
+           window.scrollTo({ top: 0, behavior: 'smooth' });
     const state = history.state;
     this.username = state.username || '';
     this.email = state.email || '';
     this.userRole = state.role || '';
+    this.todoService.getTodoss().subscribe({
+  next: (users) => {
+    // เปลี่ยนจาก u.title เป็น u.username
+    const currentUser = users.find(u => u.username === this.username); 
+    
+    if (currentUser && currentUser.status) {
+      this.status.set(currentUser.status);
+    }
+  }
+});
       if ("Notification" in window && Notification.permission === "default") {
     Notification.requestPermission();
   }
   
     this.fetchChatHistory();
-    
-   this.chatSubscription = interval(3000).subscribe(() => {
+     this.setupRealtime(); 
+/*    this.chatSubscription = interval(3000).subscribe(() => {
       // เพิ่มการเช็ค document.hidden ตรงนี้
       if (!document.hidden) {
         this.fetchChatHistory(); 
@@ -89,7 +107,7 @@ export class HelppComponent implements OnInit, OnDestroy {
           });
         }
       }
-    });
+    }); */
     
     if (this.isChatOpen()) {
       this.todoService.markChatAsRead(this.username).subscribe({
@@ -210,22 +228,17 @@ export class HelppComponent implements OnInit, OnDestroy {
     const replyData = this.replyingTo();
     const replyId = replyData?.id || undefined;
 
-    // สร้างเวลาปัจจุบันในรูปแบบที่ไม่มีตัว Z (UTC) ต่อท้าย
-    const now = new Date();
-    const localISOTime = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().slice(0, 19).replace('T', ' ');
-
     this.todoService.sendChatMessage(this.username, this.newMessage(), undefined, replyId).subscribe({
       next: (response) => {
         this.chatMessages.set([...this.chatMessages(), { 
           id: response.data?.id || Date.now(), 
           sender: this.username, 
           message: this.newMessage(), 
-          // ใช้เวลาท้องถิ่นที่สร้างไว้ หรือใช้เวลาที่ตอบกลับมาจาก Backend
-          created_at: response.data?.created_at || localISOTime,
+          created_at: new Date().toISOString(),
           reply_to_id: replyId,                         
           reply_message: replyData?.message || undefined, 
-          reply_sender: replyData?.sender || undefined,
-          reply_picture: replyData?.picture || undefined    
+          reply_sender: replyData?.sender || undefined   ,
+           reply_picture: replyData?.picture || undefined    
         }]);
         
         this.newMessage.set('');
@@ -469,7 +482,7 @@ hasUnreadMessages(): boolean {
   return this.chatMessages().some(m => !m.is_read && m.sender !== this.username);
 }
 
-// เพิ่มฟังก์ชันนี้เข้าไปใน class HelppComponent
+
   formatMessage(message: string): string {
     if (!message) return '';
     // Regex ตรวจหา URL
@@ -479,9 +492,9 @@ hasUnreadMessages(): boolean {
       return `<a href="${url}" target="_blank" style="color: #0066cc; text-decoration: underline;">${url}</a>`;
     });
   }
-// เพิ่มฟังก์ชันนี้ใน class HelppComponent
+
 toggleFullScreen() {
-  // เปลี่ยนจาก .logo เป็น .con_live เพื่อให้ขยายทั้งกล่องแชท
+ 
   const elem = document.querySelector('.con_live') as HTMLElement;
   
   if (!elem) return;
@@ -500,4 +513,73 @@ toggleFullScreen() {
     }
   }
 }
+
+setupRealtime() {
+ 
+  this.supabase
+    .channel('chat-realtime')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat' }, (payload: any) => {
+      this.fetchChatHistory(); 
+      this.changeDetector.markForCheck();
+      setTimeout(() => this.scrollToBottom(), 200);
+
+      if (this.isChatOpen()) {
+        this.todoService.markChatAsRead(this.username).subscribe({
+          next: () => {
+             this.chatMessages.update(messages => 
+              messages.map(m => m.sender !== this.username ? { ...m, is_read: true } : m)
+            );
+                  setTimeout(() => this.scrollToBottom(), 200);
+            this.changeDetector.markForCheck();
+          }
+        });
+      }
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_typing' }, () => {
+      this.checkTypingStatus();
+            setTimeout(() => this.scrollToBottom(), 200);
+      this.changeDetector.markForCheck();
+    })
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'chat' }, () => {
+      this.fetchChatHistory();
+      this.changeDetector.markForCheck();
+      
+    })
+    .subscribe();
+
+  this.supabase
+    .channel('user-status-realtime')
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'users' }, (payload: any) => {
+      if (payload.new.username === this.username) {
+        this.status.set(payload.new.status);
+        if (payload.new.status.toLowerCase() === 'inactive') {
+          this.isChatOpen.set(false);
+        }
+        this.changeDetector.markForCheck();
+      }
+    })
+    .subscribe();
+}
+/* setupRealtime() {
+  this.supabase
+    .channel('chat-realtime')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat' }, (payload: any) => {
+      console.log('New message received:', payload);
+      
+      // 1. ดึงข้อมูลใหม่จาก API เพื่อให้ได้ข้อมูลที่ถูกต้องที่สุด
+      this.fetchChatHistory();
+      
+      // 2. สั่งให้ Angular อัปเดตหน้าจอทันที
+      this.changeDetector.markForCheck();
+      
+      // 3. เลื่อนลงล่างสุด
+      setTimeout(() => this.scrollToBottom(), 200);
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_typing' }, () => {
+      this.checkTypingStatus();
+    })
+    .subscribe((status) => {
+      console.log('Realtime connection status:', status);
+    });
+} */
 }

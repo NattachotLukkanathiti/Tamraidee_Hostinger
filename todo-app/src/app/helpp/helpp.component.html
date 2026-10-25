@@ -94,13 +94,16 @@
 </main>
 </div>
 
-@if (isChatOpen())  {
-    <div class="con_live"*ngIf="userRole === 'admin' " [class.open]="open" [class.closed]="closed">
+@if (isChatOpen() && status().toLowerCase() === 'active')  {
+    <div class="con_live" [class.open]="open" [class.closed]="closed">
       <div class="chat-header">
-        
+          
         
        <!--  <span><img class="icon_chat" src="image/icon_chat.svg" alt=""Tamraidee Chat</span> -->
         <div class="con_he">
+          <button class="close-btn" (click)="toggleclosed()">
+            <img class="phone" src="image/close_chat.png" alt="">
+          </button>
           <img class="logo" src="image/logoo.svg" alt="" (click)="toggleFullScreen()">
           Tamraidee Live Chat
         </div>
@@ -111,9 +114,9 @@
            <button class="video-call-btn" (click)="startVideoCall()" style="background: none; border: none; cursor: pointer; font-size: 18px;">
             <img class="phone" src="image/video_call.png" alt="">
           </button>
-          <button class="close-btn" (click)="toggleclosed()">
+        <!--   <button class="close-btn" (click)="toggleclosed()">
             <img class="phone" src="image/close_chat.png" alt="">
-          </button>
+          </button> -->
         </div>
       </div>
 
@@ -191,7 +194,7 @@
                 </div>
                 <div class="message animate-message received">
                     <div class="sender-name">{{ typingUsers().join(', ') }}</div>
-                    <div style="font-style: italic; color: #666;">Typing...</div>
+                    <div style=" color: #666;">Typing...</div>
                 </div>
             </div>
         }

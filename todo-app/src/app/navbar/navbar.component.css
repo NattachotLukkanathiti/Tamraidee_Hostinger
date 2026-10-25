@@ -363,10 +363,13 @@
     border-radius: 50px;
 }
 .con_ber {
+  
   padding: 20px;
   margin-top: 70px;
     background-color: #eaeaea;
-    position: absolute;
+     /* เปลี่ยนจาก absolute เป็น fixed เพื่อให้อยู่กับที่และไม่เลื่อนตามหน้าจอ */
+  position: fixed; 
+  
     justify-content: flex-start;
     height: 70%;
   display: none;

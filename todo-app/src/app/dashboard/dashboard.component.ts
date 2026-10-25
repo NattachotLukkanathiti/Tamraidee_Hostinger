@@ -55,20 +55,19 @@ private productsList: { name: string; count: number; image?: string }[] = [];
   openPanel: HeaderPanel = null;
   isNavOpen = false;
    isClosing = false;
-  summary: any = {
-  todays_sale: 0,
-  yearly_total_sales: 0,
-  net_income: 0,
-  products: 0
-  
-};
-
+summary: any = {
+    todays_sale: 0,
+    yearly_total_sales: 0,
+    net_income: 0,
+    products: 0
+  };
     saleOrders: any[] = [];
   openpro = false;
   private timeSubscription!: Subscription;
   constructor(private router: Router) {}
 
   ngOnInit(): void {
+        this.loadSummary(); 
        window.scrollTo({ top: 0, behavior: 'smooth' });
         this.loadTopProducts(); 
       this.loadChartData(); 

@@ -32,51 +32,6 @@
         opacity: 1;
     }
 }
-@media (max-width: 768px) {
-    /* ซ่อนส่วนหัวของตารางในมือถือ */
-    .table {
-        display: none;
-    }
-
-    /* ปรับให้แถวแสดงผลเป็นแบบการ์ด */
-    .table_detail {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        background: #fff;
-        margin-bottom: 10px;
-        padding: 15px;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        position: relative;
-    }
-
-    /* ปรับขนาดและระยะห่างของข้อมูลแต่ละช่อง */
-    .sku2 {
-        width: 100%;
-        display: flex;
-        justify-content: space-between;
-        padding: 5px 0;
-        font-size: 14px;
-    }
-
-    /* เพิ่มป้ายกำกับ (Label) ด้านหน้าข้อมูล */
-    .sku2::before {
-        content: attr(data-label);
-        font-weight: 600;
-        color: #6C757D;
-        margin-right: 10px;
-    }
-    .table{
-        display: none !important;
-    }
-    /* จัดตำแหน่งปุ่มแก้ไขและลบให้อยู่มุมขวาบนของการ์ด */
-    .button_small {
-        position: absolute;
-        top: 15px;
-        right: 15px;
-    }
-}
 .fade-out {
     animation: Move_sale 0.5s ease-in-out !important;
 }
@@ -1707,6 +1662,12 @@ flex-direction: column; /* ใส่หรือไม่ใส่ก็ได�
        
         
     }
+        .con_import_product2{
+        width: 100vw;
+    }
+        .con_import_product{
+        width: 100vw;
+    }
     .con_am{
         margin-top: 60px;
         position: absolute;
@@ -1809,11 +1770,9 @@ flex-direction: column; /* ใส่หรือไม่ใส่ก็ได�
         width: 100%;
         /* เปลี่ยนจาก max-width เป็น width */
         box-sizing: border-box;
-        /* ป้องกันไม่ให้ padding ทำให้เกิด Scrollbar หรือพื้นที่เกิน */
         min-width: 0;
         padding: 0;
-        margin-top: 10px;
-        background: #F4F5FC;
+  
         margin-right: 0;
     }
 
@@ -1979,8 +1938,65 @@ flex-direction: column; /* ใส่หรือไม่ใส่ก็ได�
     }
 
     .iconsuccess {
+        transform: translateY(-40px);
         width: 60px !important;
         height: 60px !important;
+    }
+}
+
+@media (max-width: 768px) {
+    /* ซ่อนส่วนหัวของตารางในมือถือ */
+    .over{
+        
+    }
+    .table {
+        display: none;
+    }
+
+    /* ปรับให้แถวแสดงผลเป็นแบบการ์ด */
+    .table_detail {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        background: #fff;
+        margin-bottom: 10px;
+        padding: 15px;
+        margin-left: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        position: relative;
+        margin-bottom: 70px;
+    }
+    .button_small {
+    margin-top: 200px;
+
+}
+    /* ปรับขนาดและระยะห่างของข้อมูลแต่ละช่อง */
+    .sku2 {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        padding: 5px 0;
+        font-size: 14px;
+    }
+    .table_detail{
+        padding-bottom: 50px;
+    }
+
+    /* เพิ่มป้ายกำกับ (Label) ด้านหน้าข้อมูล */
+    .sku2::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #6C757D;
+        margin-right: 10px;
+    }
+    .table{
+        display: none !important;
+    }
+    /* จัดตำแหน่งปุ่มแก้ไขและลบให้อยู่มุมขวาบนของการ์ด */
+    .button_small {
+        position: absolute;
+        top: 15px;
+        right: 15px;
     }
 }
 

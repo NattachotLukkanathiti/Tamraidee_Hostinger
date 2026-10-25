@@ -64,6 +64,7 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
   constructor(private router: Router, private ngZone: NgZone) {}
 
   ngOnInit(): void {
+     this.loadUsers(); 
        window.scrollTo({ top: 0, behavior: 'smooth' });
     // เพิ่มการเชื่อมต่อ Realtime สำหรับตาราง history
     this.supabase
@@ -245,13 +246,36 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
     );
   }
   detail(order: any) {
-    this.product1 = false;  // ซ่อน Product 1
-    this.product2 = true;  // ซ่อน Product 2
-    this.product3 = false; // แสดง Product 3 (View)
+    this.isLoading = true;
     
-    this.selectedProduct = { ...order }; // เก็บข้อมูลของแถวที่กด
-    this.outimport = false; // รีเซ็ตแอนิเมชันตอนปิด
-}
+    // เรียกข้อมูลจาก request_history โดยใช้ SKU และ Status เพื่อหาข้อมูลที่ตรงกัน
+    this.todoService.getRequestHistory().subscribe({
+      next: (list) => {
+        this.isLoading = false;
+        
+        // ค้นหาข้อมูลจาก request_history ที่ตรงกับ SKU ของแถวที่กด
+        const found = list.find((item: any) => item.sku === order.sku);
+        
+        if (found) {
+          // ถ้าเจอ ให้ใช้ข้อมูลจาก request_history
+          this.selectedProduct = { ...found };
+        } else {
+          // ถ้าไม่เจอ ให้ใช้ข้อมูลเดิม (fallback)
+          this.selectedProduct = { ...order };
+        }
+        
+        this.product1 = false;  // ซ่อน Product 1
+        this.product2 = true;   // ซ่อน Product 2
+        this.product3 = false;  // แสดง Product 3 (View)
+        this.outimport = false; // รีเซ็ตแอนิเมชัน
+      },
+      error: (err) => {
+        this.isLoading = false;
+        console.error('Error fetching request history detail:', err);
+        this.openpopupnoti("ไม่สามารถดึงข้อมูลจาก Request History ได้");
+      }
+    });
+  }
   logout() {
     const now = new Date();
     const auditData = {
@@ -591,5 +615,24 @@ filterHistory() {
   // อัปเดต Pagination หลังจากกรองข้อมูลเสร็จ
   this.currentPage = 1;
   this.updatePagination();
+}
+
+// เพิ่มตัวแปรเก็บข้อมูลผู้ใช้ทั้งหมด (ถ้ายังไม่มี)
+usersList: any[] = [];
+
+// ใน ngOnInit หรือ loadHistory ให้ดึงข้อมูลผู้ใช้มาเก็บไว้
+loadUsers() {
+  this.todoService.getTodoss().subscribe({
+    next: (users) => {
+      this.usersList = users;
+    }
+  });
+}
+
+// ฟังก์ชันสำหรับดึงรูปภาพตามชื่อ
+getUserProfileImage(username: string): string {
+  if (!username) return 'image/user_avatar.svg';
+  const user = this.usersList.find((u: any) => u.username === username);
+  return user && user.profile ? user.profile : 'image/user_avatar.svg';
 }
 }

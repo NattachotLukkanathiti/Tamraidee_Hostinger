@@ -116,15 +116,14 @@
 <div class="con_ber" [class.ber]="ber" [class.closing]="isClosing">
 <div class="con_text">
 
-<div class="h"  (click)="Animationa_out1()">Dashboard</div>
-<div  class="h"(click)="Animationa_out()">Inventory</div>
-<div class="h" (click)="Animation_out2()">Sales Orders</div>
-<div class="h" (click)="Animation_out3()">Stock History</div>
-<div class="h" (click)="Animation_out4()">Employee</div>
-<div class="h" (click)="Animation_out6()">Audit Log</div>
-<div class="h" (click)="Animation_out5()">Suppliers</div>
-<div class="h" (click)="Animation_out5()">Help</div>
-<div class="h" (click)="Animation_out5()">Setting</div>
+<div class="h" *ngIf="userRole === 'admin'" (click)="Animationa_out1()">Dashboard</div>
+<div  class="h"  *ngIf="userRole === 'admin' || userRole === 'backend'"(click)="Animationa_out()">Inventory</div>
+<div class="h"  *ngIf="userRole === 'admin' || userRole === 'pos'" (click)="Animation_out2()">Sales Orders</div>
+<div class="h"  *ngIf="userRole === 'admin' || userRole === 'backend'"(click)="Animation_out3()">Stock History</div>
+<div class="h"  *ngIf="userRole === 'admin' "(click)="Animation_out4()">Employee</div>
+<div class="h"  *ngIf="userRole === 'admin'"(click)="Animation_out6()">Audit Log</div>
+<div class="h"  *ngIf="userRole === 'admin'" (click)="Animation_out5()">Suppliers</div>
+
 </div>
     </div>
 

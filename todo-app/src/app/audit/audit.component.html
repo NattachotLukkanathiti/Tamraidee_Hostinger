@@ -165,27 +165,23 @@
 
                     </ng-container>
     <!-- Data Rows -->
-   <ng-template #realData>
-     <div class="table_detail2" *ngFor="let order of paginatedAuditLogs; let i = index" [style.animation-delay]="i * 0.15 + 's'">
+  <ng-template #realData>
+  <div class="table_detail2" *ngFor="let order of paginatedAuditLogs; let i = index" [style.animation-delay]="i * 0.15 + 's'">
     <div class="table_detail">
-        <div class="sku2">{{ order.date }},{{ order.time }}</div>
-        <div class="sku2">
-    <div class="connn">
-        <img class="profile_employee" [src]="order.picture || 'image/profileee.svg' " alt="">{{ order.username }}, {{ order.role }}
-    </div>
-</div>
-    <!--     <div class="sku2">{{ order.time }}</div> -->
-
-<div class="sku2">{{ order.email }}</div>
-<div class="sku2">{{ order.activity }}</div>
-<!-- <div class="sku2">{{ order.username }}</div> -->
-<div class="sku2">{{ order.product }}</div>
-
-
+      <div class="sku2" data-label="Date & Time">{{ order.date }}, {{ order.time }}</div>
+      <div class="sku2" data-label="User">
+        <div class="connn">
+          <img class="profile_employee" [src]="order.picture || 'image/profileee.svg'" alt="">
+          {{ order.username }}, {{ order.role }}
+        </div>
+      </div>
+      <div class="sku2" data-label="Email">{{ order.email }}</div>
+      <div class="sku2" data-label="Activity">{{ order.activity }}</div>
+      <div class="sku2" data-label="Product">{{ order.product }}</div>
     </div>
     <div class="line"></div>
-</div>
-   </ng-template>
+  </div>
+</ng-template>
 </div>
    <div class="con_tainer_page">
   <div class="pagination">

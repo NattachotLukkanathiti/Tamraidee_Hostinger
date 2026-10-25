@@ -1772,3 +1772,343 @@ input::placeholder{
   color: #DC1818;
 }
 
+
+
+
+@media (max-width:768px) {
+    .detail_con{
+    }
+    .con_3btn{
+       
+        
+    }
+    .con_am{
+        margin-top: 60px;
+        position: absolute;
+    }
+    .tab{
+        margin-top: 60px;
+    }
+    .header_Inventory{
+        font-size: 50px !important;
+        transform: translateY(10px) !important;
+        
+    }
+    .headercompany {
+        display: flex;
+        margin-left: -6px;
+        flex-direction: column;
+        color: #6FAB23;
+        font-weight: 800;
+        align-items: flex-start;
+        font-family: 'Nicomoji', sans-serif;
+        /* ใช้งานฟอนต์เฉพาะตรงนี้ */
+    }
+
+    .headersum {
+        margin-top: 30px;
+        margin-bottom: 30px;
+    }
+
+    .hamburger {
+        border: 0.5px solid #00000031;
+        border-radius: 8px;
+        background-color: white;
+        margin-left: auto;
+        margin-right: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        width: 40px;
+        flex-direction: row-reverse;
+        height: 40px;
+    }
+
+    .search {
+        display: none;
+    }
+
+    .navbaar {
+        padding: 15px;
+
+    }
+
+    .sidebar {
+        width: 280px;
+        padding: 20px;
+        overflow: hidden;
+        background: #F4F5FC;
+        transition: all .3s ease;
+        flex-shrink: 0;
+    }
+
+    .profile {
+        display: none;
+    }
+
+    .conT {
+        margin-left: 30px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 30px;
+    }
+
+    .conT {
+        margin-left: 30px;
+        margin-right: 30px;
+        display: flex;
+        gap: 10px;
+        margin-bottom: 30px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(40%, 2fr));
+        /* ปรับ 200px ตามขนาดที่ต้องการ */
+        gap: 10px;
+    }
+
+    .T {
+        height: 70px;
+        max-width: 100%;
+        width: 40vw;
+        /* เพิ่มความกว้าง */
+        background-color: #FFF;
+        /* เปลี่ยนเป็นสีดำเพื่อทดสอบ */
+        border-radius: 10px;
+        box-shadow: 0px 2px 6px 0px #00000013;
+
+    }
+
+    .container {
+        flex: 1;
+        width: 100%;
+        /* เปลี่ยนจาก max-width เป็น width */
+        box-sizing: border-box;
+        min-width: 0;
+        padding: 0;
+  
+        margin-right: 0;
+    }
+
+    .bar {
+        width: 5vw;
+        background-color: #84D46E;
+        border-radius: 10px;
+
+    }
+
+    .con {
+        margin-right: 40px;
+        gap: 0;
+    }
+
+    .bar-container {
+        margin-top: 70px;
+        display: inline-block;
+        margin-right: 10px;
+        width: 5%;
+        vertical-align: bottom;
+    }
+
+    .num {
+        color: #646B72;
+        font-weight: 300;
+        font-size: 12px;
+        margin-bottom: 20px;
+    }
+
+    .mon {
+        color: #646B72;
+        font-weight: 300;
+        font-size: 10px;
+    }
+
+    .line {
+        margin-top: -62px;
+    }
+
+    .overdate {
+        display: none;
+    }
+
+    .headerSale {
+        font-size: 18px;
+    }
+
+    .sidebar {
+        width: 0;
+        padding: 0;
+        overflow: hidden;
+        background: #F4F5FC;
+        transition: all .3s ease;
+        flex-shrink: 0;
+    }
+
+    .sidebar.open {
+        width: 280px;
+        padding: 20px;
+
+    }
+
+    .fix.open~.container {
+        opacity: 0;
+        transition: all 0.3s ease;
+    }
+
+    .fix {
+        position: relative;
+        width: 0;
+        padding: 0;
+        overflow: hidden;
+        background: #F4F5FC;
+        transition: all .3s ease;
+        flex-shrink: 0;
+    }
+
+
+    .fix.open {
+        width: 100%;
+        padding: 20px;
+        height: 100vh;
+    }
+
+    .iconpass {
+        position: relative;
+        display: flex;
+        width: 30px;
+        height: 30px;
+        top: 30%;
+        margin-left: 10%;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .profile {
+        display: none;
+    }
+
+    .fix2 {
+        display: none;
+    }
+
+    .Logout {
+        position: fixed;
+        bottom: 20px;
+        z-index: 1000;
+        /* เพื่อให้ปุ่มอยู่ด้านบนสุดเสมอ */
+    }
+
+    .container_bar {
+        display: flex;
+        gap: 10px;
+        margin-left: 20px;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        width: 450px;
+        height: 50px;
+    }
+
+    .lin {}
+
+    .iconsetting1 {
+        display: none;
+    }
+
+    .time {
+        position: relative;
+        width: 10px;
+        overflow: hidden;
+        white-space: nowrap;
+        cursor: pointer;
+        justify-content: center;
+
+        transition: width 0.2s ease-in-out;
+    }
+
+    .Y {
+        display: none;
+    }
+
+    .time.active {
+        width: 70px;
+    }
+
+    .time.active .Y {
+        display: block;
+    }
+
+    .num-container {
+        margin-top: 60px;
+    }
+
+    .popupcontainer {
+        width: 60% !important;
+
+    }
+
+    .headerpop {
+        font-size: 20px !important;
+    }
+
+    .iconsuccess {
+        width: 60px !important;
+        height: 60px !important;
+    }
+}
+
+@media (max-width: 768px) {
+    /* ซ่อนส่วนหัวของตารางในมือถือ */
+    .over{
+        
+    }
+    .table {
+        display: none;
+    }
+
+    .table_detail {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        background: #fff;
+        margin-bottom: 10px;
+        padding: 15px;
+        margin-left: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        position: relative;
+        margin-bottom: 70px;
+    }
+    .button_small {
+    margin-top: 200px;
+
+}
+    /* ปรับขนาดและระยะห่างของข้อมูลแต่ละช่อง */
+    .sku2 {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        padding: 5px 0;
+        font-size: 14px;
+    }
+    .table_detail{
+        padding-bottom: 50px;
+    }
+
+    /* เพิ่มป้ายกำกับ (Label) ด้านหน้าข้อมูล */
+    .sku2::before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #6C757D;
+        margin-right: 10px;
+    }
+    .table{
+        display: none !important;
+    }
+    /* จัดตำแหน่งปุ่มแก้ไขและลบให้อยู่มุมขวาบนของการ์ด */
+    .button_small {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+    }
+}
+

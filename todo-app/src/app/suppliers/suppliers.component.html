@@ -165,25 +165,25 @@
 
                     </ng-container>
     <!-- Data Rows -->
-   <ng-template #realData>
-    <div  class="table_detail2" *ngFor="let order of suppliers; let i = index" [style.animation-delay]="i * 0.15 + 's'">
+ <ng-template #realData>
+  <div class="table_detail2" *ngFor="let order of suppliers; let i = index" [style.animation-delay]="i * 0.15 + 's'">
     <div class="table_detail">
-        <div class="sku2">
-        <img class="profile_employee" [src]="order.logo"alt="">{{ order.created_by }}
-                <div class="sku2">{{ order.supplier_name }}</div>
-    </div>
-<div class="sku2">{{ order.email }}</div>
-<div class="sku2">{{ order.phone }}</div>
-<div class="sku2">{{ order.order_history }}
-    <div class="button_small">
-            <img class="icon_small_inventory"  *ngIf="userRole === 'admin' || userRole === 'manager'" (click)="button_edits(order)" src="image/edit.svg" >
-            <img class="icon_small_inventory2"  *ngIf="(userRole === 'admin' || userRole === 'manager') " src="image/delete.svg" alt="">
-        </div>
-</div>
+      <div class="sku2" data-label="Created By">
+        <img class="profile_employee" [src]="order.logo" alt="">{{ order.created_by }}
+      </div>
+      <div class="sku2" data-label="Supplier Name">{{ order.supplier_name }}</div>
+      <div class="sku2" data-label="Email">{{ order.email }}</div>
+      <div class="sku2" data-label="Phone">{{ order.phone }}</div>
+      <div class="sku2" data-label="Order History">{{ order.order_history }}</div>
+      
+      <div class="button_small" data-label="Actions">
+        <img class="icon_small_inventory" *ngIf="userRole === 'admin' || userRole === 'manager'" (click)="button_edits(order)" src="image/edit.svg">
+        <img class="icon_small_inventory2" *ngIf="userRole === 'admin' || userRole === 'manager'" src="image/delete.svg" alt="">
+      </div>
     </div>
     <div class="line"></div>
-</div>
-   </ng-template>
+  </div>
+</ng-template>
 </div>
   
                 </div>

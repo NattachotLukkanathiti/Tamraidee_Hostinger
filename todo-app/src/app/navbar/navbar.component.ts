@@ -1,11 +1,12 @@
 
 import { FormsModule } from '@angular/forms';
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { TodoService } from '../services/todo.service';
 import { forkJoin,interval, Subscription } from 'rxjs';
 import { Output, EventEmitter } from '@angular/core';
+import { createClient } from '@supabase/supabase-js'; 
 
 type HeaderPanel = 'account' | null;
 @Component({
@@ -17,7 +18,12 @@ type HeaderPanel = 'account' | null;
 export class NavbarComponent implements OnInit {
 
   private todoService = inject(TodoService);
-    private changeDetector = inject(ChangeDetectorRef); // <-- เพิ่มบรรทัดนี้
+    private changeDetector = inject(ChangeDetectorRef);
+    private ngZone = inject(NgZone); 
+
+      private supabaseUrl = 'https://iemqkiftkhyoalyqpjzj.supabase.co'; 
+  private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImllbXFraWZ0a2h5b2FseXFwanpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyNjExODMsImV4cCI6MjEwNzgzNzE4M30.zk_zlo7QSHuNlM943ikEfwS6eWWbRjTYlWEN94kxn7o';
+  private supabase = createClient(this.supabaseUrl, this.supabaseKey);
   search = '';
   items: string[] = ['รายการที่ 1', 'รายการที่ 2', 'รายการที่ 3'];
   filteredItems: string[] = [...this.items];
@@ -86,18 +92,19 @@ ber = false;
     this.loadSummary(); 
   }
      if (this.username) {
-      interval(3000).subscribe(() => {
+ /*      interval(3000).subscribe(() => {
         if (!document.hidden) {
           this.loadTodos();
         }
-      });
+      }); */
       
       this.loadProfileData(); 
       this.loadNotifications();
       this.loadChatMessages(); 
+       this.setupRealtime();
       
       // 2. ตั้งให้เช็คแจ้งเตือนใหม่ทุกๆ 30 วินาที (30000 มิลลิวินาที)
-      this.notiSubscription = interval(3000).subscribe(() => {
+     /*  this.notiSubscription = interval(3000).subscribe(() => {
         if (!document.hidden) {
           this.loadNotifications();
         }
@@ -113,7 +120,7 @@ ber = false;
         if (!document.hidden) {
           this.loadChatMessages(); // ดึงข้อมูลแชทใหม่ทุก 3 วินาที
         }
-      });
+      }); */
     }
   // เข้ามาจาก Login
   else if (state.stan === true) {
@@ -132,11 +139,29 @@ ber = false;
     return;
   }
     this.loadChartData();
-    this.timeSubscription = interval(3000).subscribe(() => {
+    this.timeSubscription = interval(1000).subscribe(() => {
       this.currentTime = new Date();
-    });
-  
+    })
   }
+  setupRealtime() {
+    this.supabase
+      .channel('navbar-realtime')
+      // 1. แก้จาก 'todos' เป็น 'todos' (ตรงกันแล้ว)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'todos' }, (payload: any) => {
+        this.ngZone.run(() => { this.loadTodos(); this.loadProfileData(); });
+      })
+      // 2. แก้จาก 'notifications' เป็น 'notification' (ตัด s ออก)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'notification' }, (payload: any) => {
+        this.ngZone.run(() => { this.loadNotifications(); });
+      })
+      // 3. แก้จาก 'chat_messages' เป็น 'chat'
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'chat' }, (payload: any) => {
+        this.ngZone.run(() => { this.loadChatMessages(); });
+      })
+      .subscribe();
+  }
+
+  
 
   loadSummary() {
     this.todoService.getSummary().subscribe({
@@ -593,10 +618,17 @@ get hasProfileUpdate(): boolean {
 
 private isInitialLoad = true; // ป้องกันเสียงดังตอนรีเฟรช
   
-  // ฟังก์ชันเล่นเสียง
   playNotificationSound() {
-    const audio = new Audio('assets/sounds/notification.mp3');
-    audio.play().catch(err => console.error('ไม่สามารถเล่นเสียงได้:', err));
+    if (!this.isSoundEnabled) return;
+
+    // รีเซ็ตเสียงให้กลับไปจุดเริ่มต้น เพื่อให้เล่นซ้ำได้ทันทีแม้เสียงเก่ายังไม่จบ
+    this.notificationAudio.pause();
+    this.notificationAudio.currentTime = 0;
+
+    // สั่งเล่นเสียง
+    this.notificationAudio.play().catch(err => {
+      console.warn('ไม่สามารถเล่นเสียงได้ (อาจต้องรอ User แตะหน้าจอก่อน):', err);
+    });
   }
   // ค่าเริ่มต้นเป็น true (เปิดเสียง) โดยดึงจาก localStorage ถ้ามี
   isSoundEnabled: boolean = localStorage.getItem('soundEnabled') !== 'false';
@@ -612,4 +644,9 @@ get isActive(): boolean {
   if (!this.status) return false; // ถ้าไม่มีค่า status ให้ซ่อนไว้ก่อน
   return this.status.toLowerCase() === 'active'; // ถ้าเป็น active (ตัวเล็กหรือใหญ่ก็ได้) ให้แสดงผล
 }
+
+
+  private notificationAudio = new Audio('assets/sounds/notification.mp3');
+
+  
 }

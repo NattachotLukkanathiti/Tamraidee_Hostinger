@@ -162,22 +162,27 @@
 
                     </ng-container>
     <!-- Data Rows -->
-   <ng-template #realData>
-     <div  class="table_detail2" *ngFor="let order of filteredEmployeeList; let i = index" [style.animation-delay]="i * 0.15 + 's'">
+ <ng-template #realData>
+  <div class="table_detail2" *ngFor="let order of filteredEmployeeList; let i = index" [style.animation-delay]="i * 0.15 + 's'">
     <div class="table_detail">
-       <div class="sku2">{{ order.role === 'pos' ? 'Frontend' : (order.role || 'Guest') }}</div>
-<div class="sku2"><div class="connn"><img class="iconsetting4" [src]="order.profile || 'image/profileee.svg' " alt="">{{ order.username }}</div></div>
-<div class="sku2">{{ order.title }}</div>
-<div class="sku2">{{ order.phone }}</div>
-<div class="sku2">{{ order.status }}</div>
-<div class="button_small">
-            <img class="icon_small_inventory"  *ngIf="userRole === 'admin' || userRole === 'manager'" src="image/edit.svg" (click)="button_edit_account2(order)">
-            <img class="icon_small_inventory2"  *ngIf="(userRole === 'admin' || userRole === 'manager') && isGuest(order.role)" src="image/delete.svg" alt="">
+      <div class="sku2" data-label="Role">{{ order.role === 'pos' ? 'Frontend' : (order.role || 'Guest') }}</div>
+      <div class="sku2" data-label="Username">
+        <div class="connn">
+          <img class="iconsetting4" [src]="order.profile || 'image/profileee.svg'" alt="">
+          {{ order.username }}
         </div>
+      </div>
+      <div class="sku2" data-label="Name">{{ order.title }}</div>
+      <div class="sku2" data-label="Phone">{{ order.phone }}</div>
+      <div class="sku2" data-label="Status">{{ order.status }}</div>
+      <div class="button_small" data-label="Actions">
+        <img class="icon_small_inventory" *ngIf="userRole === 'admin' || userRole === 'manager'" src="image/edit.svg" (click)="button_edit_account2(order)">
+        <img class="icon_small_inventory2" *ngIf="(userRole === 'admin' || userRole === 'manager') && isGuest(order.role)" src="image/delete.svg" alt="">
+      </div>
     </div>
     <div class="line"></div>
-</div>
-   </ng-template>
+  </div>
+</ng-template>
 </div>
     <div class="con_tainer_page">
   <div class="pagination">

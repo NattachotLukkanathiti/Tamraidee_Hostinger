@@ -173,19 +173,19 @@
   <!-- เปลี่ยนจาก saleOrders เป็น paginatedSaleOrders -->
   <div class="table_detail2" *ngFor="let order of paginatedSaleOrders; let i = index" [style.animation-delay]="i * 0.15 + 's'">
     <div class="table_detail" (click)="opendetail(order)">
-        <div class="sku2"  >{{ order.order_code }}</div>
-        <div class="sku2">{{ order.created_at | date:'dd/MM/yyyy HH:mm' }}</div>
+        <div class="sku2" data-label="Order Code">{{ order.order_code }}</div>
+        <div class="sku2" data-label="Date">{{ order.created_at | date:'dd/MM/yyyy HH:mm' }}</div>
         <!-- แสดงผลยอดรวมที่บวกกันแล้ว -->
-        <div class="sku2">{{ order.amount || '-' }}</div>
-        <div class="sku2">
+        <div class="sku2" data-label="Amount">{{ order.amount || '-' }}</div>
+        <div class="sku2" data-label="Create By">
             <div class="connn">
                 <img class="iconsetting4" [src]="order.picture || 'image/profile.svg'" alt="">
                 {{ order.create_by }} 
             </div>
         </div>
-        <div class="status" [ngClass]="{'text-green': order.status === 'Completed', 'text-red': order.status === 'Canceled', 'text-blue': order.status === 'Pending'}">
+        <div class="status" data-label="Status" [ngClass]="{'text-green': order.status === 'Completed', 'text-red': order.status === 'Canceled', 'text-blue': order.status === 'Pending'}">
             {{ order.status }}
-              <img class="icon" (click)="opencancel(order);$event.stopPropagation()" src="image/cancelss.svg">
+            <img class="icon" (click)="opencancel(order); $event.stopPropagation()" src="image/cancelss.svg">
         </div>
     </div>
     <div class="line"></div>
