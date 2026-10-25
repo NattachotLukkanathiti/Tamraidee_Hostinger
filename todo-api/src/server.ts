@@ -999,18 +999,11 @@ app.get('/api/summary', async (req, res) => {
   try {
     const query = `
       SELECT 
-        -- นับจำนวน Order ของวันนี้
         COALESCE((SELECT COUNT(*) FROM sale_order WHERE date = CURRENT_DATE), 0) AS todays_sale,
-        
-        -- นับจำนวน Order ทั้งหมดในปีนี้
         COALESCE((SELECT COUNT(*) FROM sale_order WHERE EXTRACT(YEAR FROM date) = EXTRACT(YEAR FROM CURRENT_DATE)), 0) AS yearly_total_sales,
-        
-        -- นับจำนวน Order ที่มีสถานะ Completed
         COALESCE((SELECT COUNT(*) FROM sale_order WHERE status = 'Completed'), 0) AS net_income,
-        
-        -- นับจำนวนสินค้าใน Inventory
         COALESCE((SELECT COUNT(*) FROM inventory), 0) AS products
-    `;
+    `; // <-- ลบ semicolon ใน query ออก
 
     const result = await pool.query(query);
     res.json(result.rows);
