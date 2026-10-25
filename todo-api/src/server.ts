@@ -999,11 +999,18 @@ app.get('/api/summary', async (req, res) => {
   try {
     const query = `
       SELECT 
-        COALESCE((SELECT COUNT(*) FROM sale_order WHERE date = CURRENT_DATE), 0) AS todays_sale,
-        COALESCE((SELECT COUNT(*) FROM sale_order WHERE EXTRACT(YEAR FROM date) = EXTRACT(YEAR FROM CURRENT_DATE)), 0) AS yearly_total_sales,
-        COALESCE((SELECT COUNT(*) FROM sale_order WHERE status = 'Completed'), 0) AS net_income,
+        -- รวมยอดขายเฉพาะของวันนี้
+        COALESCE((SELECT SUM(amount) FROM sale_order WHERE DATE(created_at) = CURRENT_DATE AND status = 'Completed'), 0) AS todays_sale,
+        
+        -- รวมยอดขายทั้งหมดของปีนี้
+        COALESCE((SELECT SUM(amount) FROM sale_order WHERE EXTRACT(YEAR FROM created_at) = EXTRACT(YEAR FROM CURRENT_DATE) AND status = 'Completed'), 0) AS yearly_total_sales,
+        
+        -- รวมยอดขายทั้งหมดที่สถานะ Completed (หรือจะปรับเป็นกำไรสุทธิหากมีฟิลด์ต้นทุน)
+        COALESCE((SELECT SUM(amount) FROM sale_order WHERE status = 'Completed'), 0) AS net_income,
+        
+        -- นับจำนวนสินค้าทั้งหมดในคลัง
         COALESCE((SELECT COUNT(*) FROM inventory), 0) AS products
-    `; // <-- ลบ semicolon ใน query ออก
+    `;
 
     const result = await pool.query(query);
     res.json(result.rows);
