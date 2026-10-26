@@ -118,9 +118,10 @@
         <div class="header_Inventory">Dashboard</div>
     </div>
      <div class="in_bt">
-                            <div class="pdf">
-                                <img src="image/pdf.svg" alt="">
-                            </div>
+                          <!-- แก้ไขตรงนี้ -->
+<div class="pdf" (click)="printPage()">
+    <img src="image/pdf.svg" alt="">
+</div>
                           <!--   <div class="xs">
                                     <img src="image/XS.svg" alt="">
                                 </div> -->
@@ -281,9 +282,10 @@
     <div class="consale" [class.fade-out]="Animation_out" [class.fade-out2]="Animation_outsale"
         [class.Return]="play_Return" [class.Boom]="stan">
          <div class="in_bt2">
-                            <div class="pdf">
-                                <img src="image/pdf.svg" alt="">
-                            </div>
+                         <!-- แก้ไขตรงนี้ -->
+<div class="pdf" (click)="printPage()">
+    <img src="image/pdf.svg" alt="">
+</div>
                       <!--       <div class="xs">
                                     <img src="image/XS.svg" alt="">
                                 </div> -->
@@ -303,7 +305,7 @@
         </div>
     </div>
     
-    <!-- หัวตารางใหม่ -->
+
     <div class="con_header_colum">
         <div class="CH">Order Code</div>
         <div class="CH">Product Name</div>
@@ -312,18 +314,30 @@
         <div class="CH">Status</div>
     </div>
 
-    <!-- ส่วนแสดงข้อมูล -->
-    @for (order of saleOrders; track order.id) {
+
+    @for (order of paginatedSaleOrders; track order.id) {
         <div class="con_data_row">
             <div class="CHs">{{ order.order_code }}</div>
             <div class="CHs">{{ order.product_name }}</div>
-            <div class="CHs">{{ order.created_at }}</div>
+            <div class="CHs">{{ order.created_at | date:'yyyy-MM-dd'}}</div>
             <div class="CHs">{{ order.quantity }}</div>
             <div class="CHs">{{ order.status }}</div>
         </div>
     } @empty {
         <div class="no-data">No sale orders found.</div>
     }
+
+    <div class="pagination-controls" style="display: flex; justify-content: center; gap: 10px; margin-top: 20px;">
+        <button class="btn-page" [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">
+            <img src="image/leftt.svg" alt="">
+        </button>
+        
+        <span style="align-self: center;">Page {{ currentPage }} of {{ totalPages }}</span>
+        
+        <button class="btn-page" [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)">
+             <img src="image/right.svg" alt="">
+        </button>
+    </div>
 </div>
 
 

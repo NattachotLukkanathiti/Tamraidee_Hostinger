@@ -45,13 +45,7 @@
     </div>
 
 </div>
-<div class="pos-shell" [class.Return]="play_Return">
-  <div class="container_all"  [class.fade-out-right]="Animation_out" >
-
-    @if (openPanel === 'account') { <button class="nav-backdrop nav-backdrop--clear" type="button" aria-label="Close account menu" (click)="closePanel()"></button> }
-    @if (isNavOpen) { <button class="nav-backdrop" type="button" aria-label="Close navigation" (click)="toggleNav()"></button> }
-
-    @if (openPanel === 'account') {
+ @if (openPanel === 'account') {
   <!-- ฉากหลังสำหรับกดปิด -->
   <div class="sidebar-backdrop" (click)="closePanel()"></div>
 
@@ -85,6 +79,13 @@
   </div>
     </div>
 }
+<div class="pos-shell" [class.Return]="play_Return">
+  <div class="container_all"  [class.fade-out-right]="Animation_out" >
+
+    @if (openPanel === 'account') { <button class="nav-backdrop nav-backdrop--clear" type="button" aria-label="Close account menu" (click)="closePanel()"></button> }
+    @if (isNavOpen) { <button class="nav-backdrop" type="button" aria-label="Close navigation" (click)="toggleNav()"></button> }
+
+   
 
     <main class="pos-main" [class.pos-main--without-right]="!isRightPanelOpen">
       <div class="left-side">
@@ -202,12 +203,12 @@
                   <img src="image/down.svg" alt="" />
                 </div>
               </label>
-              <label>Product insurance
+       <!--        <label>Product insurance
                 <div class="select-field">
                   <select [(ngModel)]="selectedInsurance">@for (option of insuranceOptions; track option) {<option [value]="option">{{ option }}</option>}</select>
                   <img src="image/down.svg" alt="" />
                 </div>
-              </label>
+              </label> -->
               <label>Discount
                 <div class="discount-control">
                   <div class="discount-control__unit">

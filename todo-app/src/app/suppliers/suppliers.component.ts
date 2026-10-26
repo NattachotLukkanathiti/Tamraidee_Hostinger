@@ -188,6 +188,21 @@ loadSuppliers() {
   this.todoService.addSupplier(this.newSupplier).subscribe({
     next: (res) => {
       console.log('Supplier saved successfully:', res);
+          const now = new Date();
+        const auditData = {
+          date: now.toISOString().split('T')[0],
+          time: now.toTimeString().split(' ')[0],
+          username: this.username,
+          email: this.email,
+          activity: `Add Supplier: ${this.newSupplier.supplier_name}`,
+          role: this.userRole,
+          picture: this.profile
+        };
+        
+        this.todoService.logAudit(auditData).subscribe({
+          next: () => console.log('Add supplier audit saved'),
+          error: (err) => console.error('Failed to save audit', err)
+        });
       this.loadSuppliers(); // โหลดข้อมูลในตารางใหม่
       this.button_cancels(); // ปิดหน้าต่างฟอร์ม
       this.isLoading = false; // ปิด Loading
@@ -302,8 +317,23 @@ loadSuppliers() {
     this.todoService.updateSupplier(this.supplierToCancel.id, updatedData).subscribe({
       next: (res) => {
         console.log('Supplier canceled successfully');
-        this.supplierToCancel.status = 'Canceled'; // Update UI
+        this.supplierToCancel.status = 'Canceled'; 
                 this.filterSuppliers();
+                const now = new Date();
+        const auditData = {
+          date: now.toISOString().split('T')[0],
+          time: now.toTimeString().split(' ')[0],
+          username: this.username,
+          email: this.email,
+          activity: `Cancel Supplier: ${this.supplierToCancel.supplier_name}`,
+          role: this.userRole,
+          picture: this.profile
+        };
+
+        this.todoService.logAudit(auditData).subscribe({
+          next: () => console.log('Cancel supplier audit saved'),
+          error: (err) => console.error('Failed to save audit', err)
+        });
         this.isLoading = false;
         this.closeCancelPopup();
       },

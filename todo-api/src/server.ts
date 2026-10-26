@@ -1187,6 +1187,54 @@ app.get('/api/suppliers', async (req, res) => {
         res.status(500).json({ message: 'Server Error' });
     }
 });
+
+
+
+app.get('/api/settings', async (req, res) => {
+  try {
+
+    const result = await pool.query('SELECT * FROM settings LIMIT 1');
+    
+    if (result.rows.length === 0) {
+      return res.json(null);
+    }
+    
+    res.json(result.rows[0]);
+  } catch (error) {
+    console.error('Error fetching settings:', error);
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+});
+
+app.post('/api/settings', async (req, res) => {
+  try {
+    const { id, email, phone, address, language, time_zone, currency, date_format } = req.body;
+
+    let result;
+    
+    if (id) {
+
+      result = await pool.query(
+        `UPDATE settings 
+         SET email = $1, phone = $2, address = $3, language = $4, time_zone = $5, currency = $6, date_format = $7 
+         WHERE id = $8 RETURNING *`,
+        [email, phone, address, language, time_zone, currency, date_format, id]
+      );
+    } else {
+   
+      result = await pool.query(
+        `INSERT INTO settings (email, phone, address, language, time_zone, currency, date_format) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+        [email, phone, address, language, time_zone, currency, date_format]
+      );
+    }
+
+    res.status(201).json({ success: true, data: result.rows[0] });
+  } catch (error) {
+    console.error('Error saving settings:', error);
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+});
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

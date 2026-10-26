@@ -14,12 +14,11 @@ type HeaderPanel = 'account' | null;
   styleUrl: './dashboard.component.css'
 })
 export class DashboardComponent implements OnInit {
-  
-  readonly suppliers = input<{ name: string; early: number; onTime: number; late: number }[]>([]);
-// เปลี่ยนจาก quantity เป็น count
+
+
 private productsList: { name: string; count: number; image?: string }[] = [];
   private todoService = inject(TodoService);
-    private changeDetector = inject(ChangeDetectorRef); // <-- เพิ่มบรรทัดนี้
+    private changeDetector = inject(ChangeDetectorRef); 
     
   search = '';
   items: string[] = ['รายการที่ 1', 'รายการที่ 2', 'รายการที่ 3'];
@@ -67,6 +66,7 @@ summary: any = {
   constructor(private router: Router) {}
 
   ngOnInit(): void {
+       this.loadSuppliers();
         this.loadSummary(); 
        window.scrollTo({ top: 0, behavior: 'smooth' });
         this.loadTopProducts(); 
@@ -114,7 +114,7 @@ this.loadTopProducts();
       next: (res) => {
         if (res && res.length > 0) {
           const data = res[0];
-          // แปลงค่าเป็น Number เพื่อให้ Pipe ของ Angular ทำงานได้ถูกต้อง
+     
           this.summary = {
             todays_sale: Number(data.todays_sale) || 0,
             yearly_total_sales: Number(data.yearly_total_sales) || 0,
@@ -189,9 +189,9 @@ this.loadTopProducts();
   }
   onFilterChange(event: any) {
     const filterValue = event.target.value;
-    // เรียกใช้ Service โดยส่ง filterValue ไปดึงข้อมูลชุดใหม่
+
     console.log('Selected filter:', filterValue);
-    // this.todoService.getSaleOrdersByFilter(filterValue).subscribe(...);
+   
 }
   openpopupnoti(message:string){
     this.showpopupnoti = true;
@@ -208,10 +208,10 @@ this.loadTopProducts();
   ngOnDestroy() {
     this.timeSubscription?.unsubscribe();
   }
-  // ปรับชื่อและค่า scale ให้เหมาะกับความสูงของกราฟ
+
   calculateHeight(valueInBaht: number): number {
-    const maxHeight = 300; // ความสูงสูงสุดที่ยอมรับได้ (px)
-    const scale = 0.004;    // อัตราส่วนย่อขยาย (ปรับตามความเหมาะสมของข้อมูล)
+    const maxHeight = 300; 
+    const scale = 0.004;    
     
     return Math.min(valueInBaht * scale, maxHeight);
   }
@@ -221,11 +221,11 @@ this.loadTopProducts();
     next: (res) => {
       console.log("Todos Data:", res);
       
-      // สมมติว่าคุณมีตัวแปร currentState ที่เก็บข้อมูล state ที่ส่งมา
+    
       const currentEmail = this.navigationState?.state?.email;
 
       if (currentEmail) {
-        // กรองให้เหลือเฉพาะ todo ที่ email ตรงกับ state
+    
         this.todos = res.filter(todo => todo.email === currentEmail);
       } else {
         this.todos = res;
@@ -239,9 +239,9 @@ loadSaleOrders() {
     next: (res) => {
             this.saleOrders = res.filter(order => order.status?.toLowerCase() === 'completed');
             this.processWeeklySales(this.saleOrders); 
-      // เรียกใช้ฟังก์ชันประมวลผลข้อมูลสำหรับกราฟ
+
       this.processSaleOrdersForChart(this.saleOrders);
-      // กรองเอาเฉพาะสถานะ Completed (หรือเอา filter ออกถ้าต้องการแสดงทั้งหมด)
+ 
       this.saleOrders = res.filter(order => {
         const status = order.status ? order.status.toLowerCase() : '';
         return status === 'completed'; 
@@ -251,17 +251,17 @@ loadSaleOrders() {
   });
 }
   loadChartData() {
-    this.loader = true; // Set to true before fetching data
+    this.loader = true; 
     this.todoService.getMonth().subscribe({
       next: (res) => {
         this.data = res;
         this.months = res.map(item => item.month);
-        this.loader = false; // Set to false once data is ready
+        this.loader = false; 
                 this.loadSaleOrders(); 
       },
       error: (err) => {
         console.error(err);
-        this.loader = false; // Also set to false on error
+        this.loader = false; 
       }
     });
   }
@@ -326,7 +326,7 @@ loadSaleOrders() {
   }
 
   openHelp() {
-    // ปิด Sidebar หากอยู่ที่หน้า Help อยู่แล้ว หรือจะสั่ง reload ก็ได้
+
     this.closePanel();
   }
 
@@ -343,13 +343,13 @@ products() {
   return this.productsList;
 }
 loadTopProducts() {
-  // 1. ดึงข้อมูลทั้ง History และ Inventory พร้อมกัน
+
   this.todoService.getHistory().subscribe({
     next: (history) => {
       this.todoService.getInventory().subscribe({
         next: (inventory) => {
           
-          // 2. สร้าง Map สำหรับค้นหารูปภาพจาก Inventory โดยใช้ชื่อสินค้าเป็น Key
+      
           const inventoryMap: { [key: string]: string } = {};
           inventory.forEach(item => {
             if (item.product_name && item.picture) {
@@ -366,7 +366,7 @@ loadTopProducts() {
               if (productCount[name]) {
                 productCount[name].count += 1;
               } else {
-                // 3. ดึงรูปภาพจาก Inventory ถ้าไม่มีให้ใช้รูปจาก History (ถ้ามี)
+          
                 const imageUrl = inventoryMap[name] || item.picture;
                 productCount[name] = { name: name, count: 1, image: imageUrl };
               }
@@ -386,21 +386,21 @@ processSaleOrdersForChart(orders: any[]) {
   const salesByMonth: { [key: string]: number } = {};
 
   orders.forEach(order => {
-    // ตรวจสอบสถานะ Completed และต้องมี created_at
+  
     if (order.status && order.status.toLowerCase() === 'completed' && order.created_at) {
       
-      // ใช้ created_at ในการดึงเดือน
+  
       const dateToUse = new Date(order.created_at);
       const monthName = dateToUse.toLocaleString('en-US', { month: 'short' }); 
       
-      // ใช้คอลัมน์ amount
+
       const amount = Number(order.amount) || 0;
       
       salesByMonth[monthName] = (salesByMonth[monthName] || 0) + amount;
     }
   });
 
-  // อัปเดตข้อมูลลงในกราฟ
+
   if (this.data && this.data.length > 0) {
     this.data = this.data.map(item => {
       const newTotal = salesByMonth[item.month] || 0;
@@ -408,10 +408,9 @@ processSaleOrdersForChart(orders: any[]) {
     });
   }
 }
-// เพิ่มตัวแปรเก็บข้อมูล Heatmap
+
   weeklySalesData: { [key: string]: number } = {};
-  
-  // ฟังก์ชันจัดกลุ่มข้อมูลยอดขายตาม วัน และ ชั่วโมง
+
   processWeeklySales(orders: any[]) {
     this.weeklySalesData = {};
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -422,7 +421,7 @@ processSaleOrdersForChart(orders: any[]) {
         const dayName = days[date.getDay()];
         const hour = date.getHours();
         
-        // จัดกลุ่มเวลาให้อยู่ในช่วง 10:00 - 17:00
+  
         if (hour >= 10 && hour <= 17) {
           const key = `${dayName}-${hour}`;
           const amount = Number(order.amount) || 0;
@@ -432,9 +431,9 @@ processSaleOrdersForChart(orders: any[]) {
     });
   }
 
-  // ฟังก์ชันคืนค่า Class สีตามยอดขาย
+
   getHeatmapClass(day: string, slotIndex: number): string {
-    const hour = 10 + slotIndex; // เริ่มที่ 10:00
+    const hour = 10 + slotIndex;
     const key = `${day}-${hour}`;
     const total = this.weeklySalesData[key] || 0;
 
@@ -442,5 +441,86 @@ processSaleOrdersForChart(orders: any[]) {
     if (total > 30000) return 'heatmap__cell--2';
     if (total > 10000) return 'heatmap__cell--1';
     return 'heatmap__cell--0';
+  }
+
+
+
+    printPage() {
+    window.print();
+  }
+
+  private suppliersList: { name: string; early: number; onTime: number; late: number }[] = [];
+
+  suppliers() {
+    return this.suppliersList;
+  }
+  loadSuppliers() {
+  this.todoService.getSaleOrders().subscribe({
+    next: (orders) => {
+      this.todoService.getInventory().subscribe({
+        next: (inventory) => {
+          const brandSales: { [key: string]: number } = {};
+
+          orders.forEach((order: any) => {
+            // เช็คสถานะแบบไม่สนใจตัวพิมพ์เล็ก-ใหญ่
+            if (order.status?.toLowerCase() === 'completed') {
+              
+              // ค้นหา Brand จาก Inventory โดยใช้ชื่อสินค้า
+              const invItem = inventory.find((inv: any) => inv.product_name === order.product_name);
+              const brand = invItem?.brand || order.brand;
+
+              if (brand && brand !== '-' && brand.toLowerCase() !== 'n/a') {
+                const qty = Number(order.quantity) || 0;
+                brandSales[brand] = (brandSales[brand] || 0) + qty;
+              }
+            }
+          });
+
+          let topBrands = Object.keys(brandSales)
+            .map(brand => ({ name: brand, totalQty: brandSales[brand] }))
+            .sort((a, b) => b.totalQty - a.totalQty)
+            .slice(0, 5);
+
+          const maxQty = topBrands.length > 0 ? topBrands[0].totalQty : 1;
+
+          this.suppliersList = topBrands.map(brand => {
+            const percentage = Math.round((brand.totalQty / maxQty) * 100);
+            return {
+              name: brand.name,
+              early: percentage,
+              onTime: 0,
+              late: 0
+            };
+          });
+
+          console.log("Final Suppliers List:", this.suppliersList);
+        }
+      });
+    },
+    error: (err) => console.error('Error:', err)
+  });
+}
+
+
+// 1. เพิ่มตัวแปรสำหรับ Pagination
+  currentPage: number = 1;
+  itemsPerPage: number = 5;
+
+  // 2. เพิ่มฟังก์ชันดึงข้อมูลเฉพาะหน้าปัจจุบัน
+  get paginatedSaleOrders() {
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    return this.saleOrders.slice(startIndex, startIndex + this.itemsPerPage);
+  }
+
+  // 3. เพิ่มฟังก์ชันคำนวณหน้าทั้งหมด
+  get totalPages() {
+    return Math.ceil(this.saleOrders.length / this.itemsPerPage);
+  }
+
+  // 4. ฟังก์ชันเปลี่ยนหน้า
+  changePage(page: number) {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+    }
   }
 }

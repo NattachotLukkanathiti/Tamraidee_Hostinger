@@ -178,7 +178,7 @@
       
       <div class="button_small" data-label="Actions">
         <img class="icon_small_inventory" *ngIf="userRole === 'admin' || userRole === 'manager'" (click)="button_edits(order)" src="image/edit.svg">
-        <img class="icon_small_inventory2" *ngIf="userRole === 'admin' || userRole === 'manager'" (click)="openCancelPopup(order)" src="image/delete.svg" alt="">
+        <img class="icon_small_inventory2" *ngIf="(userRole === 'admin' || userRole === 'manager') && order.status !== 'Canceled'" (click)="openCancelPopup(order)" src="image/delete.svg" alt="">
       </div>
     </div>
     <div class="line"></div>

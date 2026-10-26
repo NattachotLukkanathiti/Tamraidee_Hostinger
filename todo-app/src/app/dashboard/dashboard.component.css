@@ -1984,7 +1984,7 @@ box-sizing: border-box;
     font-size: 13px;
 }
 
-/* ให้ช่องแรก (Channel/ชื่อสินค้า) ชิดซ้าย */
+
 .CH:first-child {
     text-align: left;
 }
@@ -1993,7 +1993,73 @@ box-sizing: border-box;
 }
 
 
-/* Hover effect เพื่อให้ดูสวยงามขึ้น */
+
 .con_data_row:hover {
     background-color: #f9f9f9;
+}
+
+.btn-page{
+    border: none;
+    padding: 20px;
+    border-radius: 100px;
+    height: 20px;
+    width: 20px;
+    background-color: #84d46e;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+      display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.btn-page:hover {
+    background-color: #6fab23; 
+    transform: scale(1.05); 
+}
+
+.btn-page:active {
+    background-color: #4f7f42; 
+    transform: scale(0.95); 
+}
+
+
+@media print {
+
+  .navbaar, 
+  .tab_con, 
+  .sidebar, 
+  .fix, 
+  .fix2, 
+  .in_bt, 
+  .in_bt2,
+  .account-sidebar {
+    display: none !important;
+  }
+
+  .container2 {
+    padding: 20px !important; 
+    width: 100% !important;
+    box-sizing: border-box;
+    background-color: #fff !important;
+  }
+
+
+  .static, 
+  .con_sale_order, 
+  .contall {
+    page-break-inside: avoid !important;
+    box-shadow: none !important; 
+    border: 1px solid #E6EAED !important;
+  }
+
+
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+
+  .reload, .pdf, .xs {
+    display: none !important;
+  }
 }

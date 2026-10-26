@@ -267,6 +267,12 @@ export class TodoService {
   // ลบคำว่า /api ออก เพราะในตัวแปร this.apiUrl มักจะมี /api อยู่แล้ว
   return this.http.delete(`${this.apiUrl}/employee/${id}`);
 }
+  getSettings(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/settings`, { headers: this.headers });
+  }
 
+  saveSettings(settingsData: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/settings`, settingsData, { headers: this.headers });
+  }
 
 }

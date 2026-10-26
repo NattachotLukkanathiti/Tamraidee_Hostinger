@@ -56,17 +56,17 @@ export class HistoryComponent {
 private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImllbXFraWZ0a2h5b2FseXFwanpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyNjExODMsImV4cCI6MjEwNzgzNzE4M30.zk_zlo7QSHuNlM943ikEfwS6eWWbRjTYlWEN94kxn7o';
   private supabase = createClient(this.supabaseUrl, this.supabaseKey);
 
-  // ... (ตัวแปรอื่นๆ ของคุณ)
+
 
   private timeSubscription!: Subscription;
   
-  // เพิ่ม NgZone ใน constructor
+
   constructor(private router: Router, private ngZone: NgZone) {}
 
   ngOnInit(): void {
      this.loadUsers(); 
        window.scrollTo({ top: 0, behavior: 'smooth' });
-    // เพิ่มการเชื่อมต่อ Realtime สำหรับตาราง history
+
     this.supabase
       .channel('realtime-history')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'history' }, (payload) => {
@@ -211,7 +211,7 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
               };
             });
             
-            // ---> เพิ่ม 2 บรรทัดนี้ <---
+ 
             this.filteredHistory = [...this.history];
             this.updatePagination();
 
@@ -247,32 +247,31 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
   }
   detail(order: any) {
     this.isLoading = true;
-    
-    // เรียกข้อมูลจาก request_history โดยใช้ SKU และ Status เพื่อหาข้อมูลที่ตรงกัน
+   
     this.todoService.getRequestHistory().subscribe({
       next: (list) => {
         this.isLoading = false;
         
-        // ค้นหาข้อมูลจาก request_history ที่ตรงกับ SKU ของแถวที่กด
+     
         const found = list.find((item: any) => item.sku === order.sku);
         
         if (found) {
-          // ถ้าเจอ ให้ใช้ข้อมูลจาก request_history
+
           this.selectedProduct = { ...found };
         } else {
-          // ถ้าไม่เจอ ให้ใช้ข้อมูลเดิม (fallback)
+
           this.selectedProduct = { ...order };
         }
         
-        this.product1 = false;  // ซ่อน Product 1
-        this.product2 = true;   // ซ่อน Product 2
-        this.product3 = false;  // แสดง Product 3 (View)
-        this.outimport = false; // รีเซ็ตแอนิเมชัน
+        this.product1 = false; 
+        this.product2 = true;   
+        this.product3 = false;  
+        this.outimport = false; 
       },
       error: (err) => {
         this.isLoading = false;
         console.error('Error fetching request history detail:', err);
-        this.openpopupnoti("ไม่สามารถดึงข้อมูลจาก Request History ได้");
+        this.openpopupnoti("Unable to  Request History");
       }
     });
   }
@@ -310,35 +309,35 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
   }
   requestFromHistory(order: any) {
     this.isLoading = true;
-  // ดึงข้อมูล request_history ทั้งหมดมา
+
   this.todoService.getRequestHistory().subscribe({
     next: (list) => {
       this.isLoading = false;
-      // ค้นหาคำขอที่ตรงกับ SKU นี้ และมีสถานะเป็น Pending
+      
       const found = list.find((item: any) => item.sku === order.sku && item.status === 'Pending');
       
       if (found) {
-        this.selectedProduct = found; // นำข้อมูลที่เจอมาแสดง
+        this.selectedProduct = found; 
       } else {
-        // ถ้าไม่เจอ ให้เอาข้อมูลจากตาราง history มาแสดงแทน
+
         this.selectedProduct = { ...order, id: null }; 
       }
-      this.product1 = false;  // ซ่อน Product 1
-    this.product2 = true;  // ซ่อน Product 2
-    this.product3 = true; // แสดง Product 3 (View)
+      this.product1 = false;  
+    this.product2 = true;
+    this.product3 = true; 
       this.outimport = false;
       this.loader = false;
     },
     error: (err) => {
       console.error('Error fetching request detail:', err);
-      this.openpopupnoti("ไม่สามารถดึงข้อมูลได้");
+      this.openpopupnoti("Unable to retrieve data.");
       this.loader = false;
     }
   });
 }
   request2(order: any) {
-    this.product2 = false; // แสดง
-    this.selectedProduct = { ...order }; // นำข้อมูลที่รับมาใส่ใน selectedProduct
+    this.product2 = false; 
+    this.selectedProduct = { ...order }; 
     this.outimport = false;
   }
   button_cancels(){
@@ -353,7 +352,7 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
   confirmAdjustment() {
     this.isLoading = true;
     if (!this.selectedProduct.requested_quantity) {
-      this.openpopupnoti("กรุณาระบุ Requested Quantity");
+      this.openpopupnoti("Please select an Adjustment Status.");
       return;
     }
 
@@ -374,7 +373,7 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
       next: (response) => {
         this.todoService.updateHistoryStatusBySku(this.selectedProduct.sku, 'Pending').subscribe({
           next: () => {
-            // --- การแจ้งเตือนเดิมของคุณ ---
+
             this.todoService.addNotification(
               `Stock Adjustment : Pending Approvals`, 
               `${this.selectedProduct.sku} ${this.selectedProduct.product_name || ''}`, 
@@ -382,18 +381,18 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
               'Just now'
             ).subscribe();
 
-            // --- เพิ่มการแจ้งเตือนที่สอง (ระบุชื่อผู้ส่ง) ---
+          
             this.todoService.addNotification(
               `Pending Approvals: ${this.username} submitted a stock adjustment`, 
               `${this.selectedProduct.sku} ${this.selectedProduct.product_name || ''}`, 
               'info', 
               'Just now'
             ).subscribe();
-            // --------------------------------------
+       
 
             this.loader = false;
             this.isLoading = false;
-            this.openpopup("บันทึกข้อมูลสำเร็จ: Pending");
+            this.openpopup("Data saved successfully: Pending");
             this.button_cancels(); 
             this.loadHistory();
           },
@@ -405,7 +404,7 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
       },
       error: (error) => {
         this.loader = false;
-        this.openpopupnoti("การบันทึกล้มเหลว: Canceled");
+        this.openpopupnoti("Save failed: Canceled");
         this.button_cancels();
       }
     });
@@ -444,11 +443,11 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
   const requestedQuantity = this.selectedProduct.requested_quantity;
 
   if (!selectedStatus) {
-    this.openpopupnoti("กรุณาเลือก Adjustment Status");
+    this.openpopupnoti("Please select an Adjustment Status.");
     return;
   }
   if (!inputPassword) {
-    this.openpopupnoti("กรุณากรอก Confirm Password");
+    this.openpopupnoti("Please enter your Confirm Password.");
     return;
   }
 
@@ -462,7 +461,7 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
       if (!currentUser || currentUser.password !== inputPassword) {
         this.loader = false;
         this.isLoading = false;
-        this.openpopupnoti("รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่");
+        this.openpopupnoti("Incorrect password. Please try again.");
         return;
       }
 
@@ -473,41 +472,40 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
       }).subscribe({
         next: () => {
           
-          // 4. ตรวจสอบว่าถ้าเป็น Approved ให้ไปอัปเดต Inventory
+    
           if (selectedStatus === 'Approved') {
-            
-            // ดึงข้อมูลสินค้าเดิมจาก Inventory เพื่อป้องกันข้อมูลอื่น (เช่น รูปภาพ) หาย
+
             this.todoService.getInventory().subscribe({
               next: (inventory) => {
                 const currentProduct = inventory.find((item: any) => item.sku === currentSku);
                 
                 if (currentProduct) {
-                  // รวมข้อมูลเดิม กับ Quantity ใหม่
+           
                   const updateData = { 
                     ...currentProduct, 
                     quantity: requestedQuantity 
                   };
                   
-                  // ส่งข้อมูลทั้งหมดกลับไปอัปเดต
+            
                   this.todoService.updateInventory(currentSku, updateData).subscribe({
                     next: () => { this.finalizeAdjustment(currentSku, selectedStatus); },
                     error: (err) => {
                       this.loader = false;
                       this.isLoading = false;
                       console.error("Error updating inventory:", err);
-                      this.openpopupnoti("อัปเดตสถานะสำเร็จ แต่ไม่สามารถอัปเดต Inventory ได้");
+                      this.openpopupnoti("Status updated, but failed to update Inventory.");
                     }
                   });
                 } else {
                   this.loader = false;
                   this.isLoading = false;
-                  this.openpopupnoti("ไม่พบข้อมูลสินค้าในระบบ Inventory");
+                  this.openpopupnoti("Product not found in Inventory.");
                 }
               }
             });
 
           } else {
-            // ถ้าไม่ใช่ Approved (เช่น Rejected) ข้ามไปอัปเดต History ได้เลย
+        
             this.finalizeAdjustment(currentSku, selectedStatus);
           }
 
@@ -515,7 +513,7 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
         error: (err) => {
           this.loader = false;
           console.error("Error updating status:", err);
-          this.openpopupnoti("เกิดข้อผิดพลาดในการอัปเดตสถานะ");
+          this.openpopupnoti("An error occurred while updating status.");
         }
       });
     }
@@ -525,7 +523,6 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
  private finalizeAdjustment(sku: string, status: string) {
     this.todoService.updateHistoryStatusBySku(sku, status).subscribe(() => {
       
-      // --- เพิ่มการส่ง Notification ---
       let notiType = 'info';
       let notiTitle = '';
       let notiMessage = '';
@@ -544,22 +541,21 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
         notiType, 
         'Just now'
       ).subscribe();
-      // --------------------------------------
+
 
       this.loader = false;
-      this.openpopup(`ทำรายการสำเร็จ: ${status}`);
+      this.openpopup(`Transaction successful: ${status}`);
       this.button_cancels();
       this.loadHistory();
     });
 }
-// --- เพิ่มตัวแปรสำหรับ Pagination ---
+
   itemsPerPage: number = 10; 
   currentPage: number = 1;
   totalPages: number = 1;
   pagesArray: number[] = [];
   filteredHistory: any[] = [];
 
-  // --- เพิ่มฟังก์ชัน Pagination ---
   changePage(page: number) {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPage = page;
@@ -594,24 +590,24 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
   }
 
 
-  // 1. เพิ่มตัวแปรเหล่านี้ใน Class
+
 selectedStatus: string = 'all';
 selectedDateRange: string = 'all';
 
-// 2. เพิ่มฟังก์ชัน filterHistory()
+
 filterHistory() {
   const now = new Date();
   
   this.filteredHistory = this.history.filter(item => {
-    // กรองตามสถานะ (Status)
+
     const matchStatus = this.selectedStatus === 'all' || item.status === this.selectedStatus;
 
-    // กรองตามวันที่ (Date)
+
     let matchDate = true;
     if (this.selectedDateRange !== 'all') {
-      const itemDate = new Date(item.date); // ตรวจสอบให้แน่ใจว่า item.date เป็นรูปแบบ YYYY-MM-DD
+      const itemDate = new Date(item.date); 
       const diffTime = now.getTime() - itemDate.getTime();
-      const diffDays = diffTime / (1000 * 60 * 60 * 24); // แปลงมิลลิวินาทีเป็นวัน
+      const diffDays = diffTime / (1000 * 60 * 60 * 24);
       
       if (this.selectedDateRange === '7' && diffDays > 7) matchDate = false;
       if (this.selectedDateRange === '30' && diffDays > 30) matchDate = false;
@@ -620,15 +616,13 @@ filterHistory() {
     return matchStatus && matchDate;
   });
 
-  // อัปเดต Pagination หลังจากกรองข้อมูลเสร็จ
+
   this.currentPage = 1;
   this.updatePagination();
 }
 
-// เพิ่มตัวแปรเก็บข้อมูลผู้ใช้ทั้งหมด (ถ้ายังไม่มี)
 usersList: any[] = [];
 
-// ใน ngOnInit หรือ loadHistory ให้ดึงข้อมูลผู้ใช้มาเก็บไว้
 loadUsers() {
   this.todoService.getTodoss().subscribe({
     next: (users) => {
@@ -637,7 +631,6 @@ loadUsers() {
   });
 }
 
-// ฟังก์ชันสำหรับดึงรูปภาพตามชื่อ
 getUserProfileImage(username: string): string {
   if (!username) return 'image/user_avatar.svg';
   const user = this.usersList.find((u: any) => u.username === username);

@@ -1,16 +1,18 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { CommonModule, Location } from '@angular/common'; // 1. Import Location
+import { CommonModule, Location } from '@angular/common';
+import { TodoService } from '../services/todo.service';
 
 interface StoreSettings {
+  id?: number;
   email: string;
   phone: string;
   address: string;
   language: string;
-  timeZone: string;
+  time_zone: string;
   currency: string;
-  dateFormat: string;
+  date_format: string;
 }
 
 @Component({
@@ -21,31 +23,28 @@ interface StoreSettings {
   styleUrl: './setting.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SettingsPageComponent implements OnInit { // 2. เพิ่ม implements OnInit
+export class SettingsPageComponent implements OnInit {
   private readonly router = inject(Router);
-  private readonly location = inject(Location); // 3. Inject Location
+  private readonly location = inject(Location);
+  private readonly todoService = inject(TodoService);
 
   readonly languageOptions = ['English', 'ไทย'];
   readonly timeZoneOptions = ['Asia/Bangkok (UTC+7)', 'UTC'];
   readonly currencyOptions = ['THB', 'USD', 'EUR'];
   readonly dateFormatOptions = ['DD/MM/YYYY', 'MM/DD/YYYY', 'YYYY-MM-DD'];
   
-  userRole = '';
-  username = '';
-  email = '';
-  profile = '';
+  userRole = ''; username = ''; email = ''; profile = '';
 
   form: StoreSettings = {
-    email: '',
-    phone: '',
-    address: '',
+    email: '', phone: '', address: '',
     language: this.languageOptions[0],
-    timeZone: this.timeZoneOptions[0],
+    time_zone: this.timeZoneOptions[0],
     currency: this.currencyOptions[0],
-    dateFormat: this.dateFormatOptions[0]
+    date_format: this.dateFormatOptions[0]
   };
 
   ngOnInit(): void {
+    this.loadSettings();
     const state = history.state;
     this.userRole = state.role || '';
     this.username = state.username || '';
@@ -53,7 +52,6 @@ export class SettingsPageComponent implements OnInit { // 2. เพิ่ม imp
     this.profile = state.profile || '';
   }
 
-  // 4. อัปเดตให้ส่งข้อมูลผู้ใช้ไปด้วย
   navigateTo(route: string, extraState: any = {}) {
     this.router.navigate([route], {
       state: { 
@@ -78,6 +76,21 @@ export class SettingsPageComponent implements OnInit { // 2. เพิ่ม imp
   Animationa_out(){ setTimeout(() =>{ this.navigateTo('/dashboard', { Move_return: true }); } ,300); }
 
   save(): void {
-    this.router.navigate(['/pos']);
+    this.todoService.saveSettings(this.form).subscribe({
+      next: (response) => {
+        if (response.success) {
+          alert('บันทึกการตั้งค่าสำเร็จ');
+          this.router.navigate(['/pos']);
+        }
+      },
+      error: (err) => console.error('Error saving settings', err)
+    });
+  }
+
+  loadSettings(): void {
+    this.todoService.getSettings().subscribe({
+      next: (data) => { if (data) this.form = data; },
+      error: (err) => console.error('Error loading settings', err)
+    });
   }
 }
