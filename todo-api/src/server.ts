@@ -1208,24 +1208,22 @@ app.get('/api/settings', async (req, res) => {
 
 app.post('/api/settings', async (req, res) => {
   try {
-    const { id, email, phone, address, language, time_zone, currency, date_format } = req.body;
+    const { id, email, phone, address } = req.body; // เอาตัวที่ไม่มีออก
 
     let result;
     
     if (id) {
-
       result = await pool.query(
         `UPDATE settings 
-         SET email = $1, phone = $2, address = $3, language = $4, time_zone = $5, currency = $6, date_format = $7 
-         WHERE id = $8 RETURNING *`,
-        [email, phone, address, language, time_zone, currency, date_format, id]
+         SET email = $1, phone = $2, address = $3, updated_at = NOW() 
+         WHERE id = $4 RETURNING *`,
+        [email, phone, address, id]
       );
     } else {
-   
       result = await pool.query(
-        `INSERT INTO settings (email, phone, address, language, time_zone, currency, date_format) 
-         VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-        [email, phone, address, language, time_zone, currency, date_format]
+        `INSERT INTO settings (email, phone, address) 
+         VALUES ($1, $2, $3) RETURNING *`,
+        [email, phone, address]
       );
     }
 
