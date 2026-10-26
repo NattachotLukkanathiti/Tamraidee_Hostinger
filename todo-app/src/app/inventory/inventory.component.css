@@ -1087,6 +1087,7 @@ flex-direction: column; /* ใส่หรือไม่ใส่ก็ได�
     border-radius: 8px;
     padding: 10px;
     width: 15vw;
+      padding-left: 35px !important;
     height: 20px;
     font-size: 15px;
     font-weight: 100;

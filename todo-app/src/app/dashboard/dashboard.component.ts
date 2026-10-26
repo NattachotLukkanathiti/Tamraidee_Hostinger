@@ -238,7 +238,7 @@ loadSaleOrders() {
   this.todoService.getSaleOrders().subscribe({
     next: (res) => {
             this.saleOrders = res.filter(order => order.status?.toLowerCase() === 'completed');
-      
+            this.processWeeklySales(this.saleOrders); 
       // เรียกใช้ฟังก์ชันประมวลผลข้อมูลสำหรับกราฟ
       this.processSaleOrdersForChart(this.saleOrders);
       // กรองเอาเฉพาะสถานะ Completed (หรือเอา filter ออกถ้าต้องการแสดงทั้งหมด)
@@ -408,5 +408,39 @@ processSaleOrdersForChart(orders: any[]) {
     });
   }
 }
+// เพิ่มตัวแปรเก็บข้อมูล Heatmap
+  weeklySalesData: { [key: string]: number } = {};
+  
+  // ฟังก์ชันจัดกลุ่มข้อมูลยอดขายตาม วัน และ ชั่วโมง
+  processWeeklySales(orders: any[]) {
+    this.weeklySalesData = {};
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
+    orders.forEach(order => {
+      if (order.status?.toLowerCase() === 'completed' && order.created_at) {
+        const date = new Date(order.created_at);
+        const dayName = days[date.getDay()];
+        const hour = date.getHours();
+        
+        // จัดกลุ่มเวลาให้อยู่ในช่วง 10:00 - 17:00
+        if (hour >= 10 && hour <= 17) {
+          const key = `${dayName}-${hour}`;
+          const amount = Number(order.amount) || 0;
+          this.weeklySalesData[key] = (this.weeklySalesData[key] || 0) + amount;
+        }
+      }
+    });
+  }
+
+  // ฟังก์ชันคืนค่า Class สีตามยอดขาย
+  getHeatmapClass(day: string, slotIndex: number): string {
+    const hour = 10 + slotIndex; // เริ่มที่ 10:00
+    const key = `${day}-${hour}`;
+    const total = this.weeklySalesData[key] || 0;
+
+    if (total > 50000) return 'heatmap__cell--3';
+    if (total > 30000) return 'heatmap__cell--2';
+    if (total > 10000) return 'heatmap__cell--1';
+    return 'heatmap__cell--0';
+  }
 }

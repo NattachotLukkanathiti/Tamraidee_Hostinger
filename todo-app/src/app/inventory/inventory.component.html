@@ -12,9 +12,10 @@
        <div class="con_nav">
        <!--   <img class="iconweb" src="image/logo.svg" alt=""> -->
 <!--         <img class="apple" src="image/apple.png" alt=""> -->
+          <div class="he" *ngIf="userRole === 'pos' || userRole === 'backend'"(click)="Animationa_out1()" >Pos</div>
                     <div class="he"  *ngIf="userRole === 'admin' || userRole === 'manager'"  (click)="Animationa_out()">Dashboard</div>
 <div  class="he"  *ngIf="userRole === 'admin' || userRole === 'backend'" >Inventory</div>
-<div class="he" *ngIf="userRole === 'admin' || userRole === 'pos'"  (click)="Animationa_out2()">Sales Orders</div>
+<div class="he"   (click)="Animationa_out2()">Sales Orders</div>
 <div class="he" (click)="Animationa_out3()">Stock History</div>
 <div class="he" *ngIf="userRole === 'admin' || userRole === 'manager'"(click)="Animationa_out4()">Employee</div>
 <div class="he"*ngIf="userRole === 'admin' || userRole === 'manager'"  (click)="Animationa_out6()">Audit Log</div>

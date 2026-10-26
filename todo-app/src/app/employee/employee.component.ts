@@ -368,4 +368,18 @@ logout() {
       }
     });
   }
+  deleteAccount(username: string) {
+    if (confirm('คุณต้องการลบผู้ใช้งาน ' + username + ' หรือไม่?')) {
+      this.todoService.deleteEmployee(username).subscribe({
+        next: (res) => {
+          this.openpopup("ลบผู้ใช้งานสำเร็จ");
+          this.loadTodos(); // โหลดข้อมูลใหม่
+        },
+        error: (err) => {
+          console.error('Error deleting account:', err);
+          this.openpopupnoti("ไม่สามารถลบผู้ใช้งานได้");
+        }
+      });
+    }
+  }
 }

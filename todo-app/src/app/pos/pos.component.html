@@ -10,11 +10,11 @@
        <div class="con_nav">
        <!--   <img class="iconweb" src="image/logo.svg" alt=""> -->
 <!--         <img class="apple" src="image/apple.png" alt=""> -->
-              <div class="he" *ngIf="userRole === 'pos' || userRole === 'pos'" (click)="Animationa_out1()">Pos</div>
+              <div class="he" *ngIf="userRole === 'pos' || userRole === 'backend'" (click)="Animationa_out1()">Pos</div>
                     <div class="he"  *ngIf="userRole === 'admin' || userRole === 'manager'"  (click)="Animationa_out()">Dashboard</div>
-<div  class="he" *ngIf="userRole === 'admin' || userRole === 'manager'" (click)="Animationa_out()">Inventory</div>
+<div  class="he" *ngIf="userRole === 'admin' || userRole === 'backend'" (click)="Animationa_out()">Inventory</div>
 <div class="he" (click)="Animation_out2()">Sales Orders</div>
-<div class="he"  *ngIf="userRole === 'admin' || userRole === 'manager'"  (click)="Animation_out3()">Stock History</div>
+<div class="he"  *ngIf="userRole === 'admin' || userRole === 'backend'"  (click)="Animation_out3()">Stock History</div>
 <div class="he" *ngIf="userRole === 'admin' || userRole === 'manager'" (click)="Animation_out4()">Employee</div>
 <div class="he"  *ngIf="userRole === 'admin' || userRole === 'manager'" (click)="Animation_out6()">Audit Log</div>
 <div class="he"  *ngIf="userRole === 'admin' || userRole === 'manager'" (click)="Animation_out5()">Suppliers</div>
@@ -45,8 +45,8 @@
     </div>
 
 </div>
-<div class="pos-shell" >
-  <div class="container_all">
+<div class="pos-shell" [class.Return]="play_Return">
+  <div class="container_all"  [class.fade-out-right]="Animation_out" >
 
     @if (openPanel === 'account') { <button class="nav-backdrop nav-backdrop--clear" type="button" aria-label="Close account menu" (click)="closePanel()"></button> }
     @if (isNavOpen) { <button class="nav-backdrop" type="button" aria-label="Close navigation" (click)="toggleNav()"></button> }
@@ -252,3 +252,44 @@
   </div>
 </div>
 
+<!-- Cash Payment Modal -->
+<div class="qr-modal-backdrop" *ngIf="showCashModal" (click)="closeCashModal()">
+  <div class="qr-modal-content" [class.out_comimport]="outimport" (click)="$event.stopPropagation()">
+    <div class="qr-modal-header">
+      <div class="headerr">Cash Payment</div>
+      <span class="pom2">Total: {{ formatCurrency(total) }}</span>
+    </div>
+    
+    <div class="qr-modal-body" style="text-align: left; padding: 0 20px;">
+      <!-- รายการสินค้า -->
+      <div class="con_cash">
+        <div *ngFor="let item of cartItems" style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+          <span>{{ item.name }} (x{{ item.quantity }})</span>
+          <span>{{ formatCurrency(item.price * item.quantity) }}</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+        <label style="display: flex; justify-content: space-between; align-items: center; font-weight: bold;">
+          Cash Received:
+          <input type="number" [(ngModel)]="cashReceived" (input)="calculateChange()" 
+                 placeholder="0.00" style="padding: 8px; border: 1px solid #ccc; border-radius: 20px; width: 150px; text-align: right;">
+        </label>
+        
+        <label style="display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 18px; color: #28a745;">
+          Change:
+          <span>{{ formatCurrency(changeAmount) }}</span>
+        </label>
+      </div>
+      </div>
+
+  
+    </div>
+
+    <div class="qr-modal-footer">
+      <button class="btn-cancel" (click)="closeCashModal()">Cancel</button>
+      <!-- ปิดการใช้งานปุ่มถ้าเงินที่รับมาน้อยกว่ายอดรวม -->
+      <button class="btn-confirm" [disabled]="cashReceived < total" (click)="confirmCashPayment()">
+        Confirm Payment
+      </button>
+    </div>
+  </div>
+</div>

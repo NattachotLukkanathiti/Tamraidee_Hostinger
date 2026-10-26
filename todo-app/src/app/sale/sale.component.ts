@@ -183,6 +183,7 @@ groupedSaleOrders: any[] = [];
     } ,300)
   }
     Animationa_out1(){
+            this.Animation_outdash = true;
 
     setTimeout(() =>{
       this.router.navigate(['/pos'],{

@@ -12,7 +12,7 @@
        <div class="con_nav">
        <!--   <img class="iconweb" src="image/logo.svg" alt=""> -->
 <!--         <img class="apple" src="image/apple.png" alt=""> -->
-         <div class="he" *ngIf="userRole === 'pos' || userRole === 'pos'" (click)="Animationa_out1()">Pos</div>
+         <div class="he" *ngIf="userRole === 'pos' || userRole === 'backend'" (click)="Animationa_out1()">Pos</div>
                     <div class="he" *ngIf="userRole === 'admin' || userRole === 'manager'"  (click)="Animationa_out()">Dashboard</div>
 <div  class="he"*ngIf="userRole === 'admin' || userRole === 'backend'" (click)="Animationa2_out()">Inventory</div>
 <div class="he" >Sales Orders</div>
@@ -115,7 +115,7 @@
   </select>
 </div>  
 
-<div class="custom-select">
+<!-- <div class="custom-select">
   <select [(ngModel)]="selectedBrand" (change)="filterSales()">
     <option value="all">All Brands</option>
         <option *ngFor="let brand of supplierBrands" [value]="brand">{{ brand }}</option>
@@ -128,7 +128,7 @@
     <option value="Category 1">Category 1</option>
     <option value="Category 2">Category 2</option>
   </select>
-</div>
+</div> -->
                     <div class="con_3btn">
                       
 <div class="con_reload">

@@ -6,39 +6,167 @@
   font-family: Arial, Helvetica, sans-serif;
 }
 
-* { box-sizing: border-box; }
-p { margin: 0; }
+* {
+  box-sizing: border-box;
+}
 
-.receipt-page { width: 100%; min-height: 100vh; }
-.receipt { width: min(100%, 744px); min-height: 1097px; padding: 31px 26px; margin: 0 auto; background: #fff; }
-.receipt__header { display: flex; justify-content: space-between; gap: 28px; }
-.company-details { font-size: 15px; line-height: 18px; }
-.company-details__name { margin-bottom: 5px; }
-.receipt__reference { flex: 0 0 201px; padding-top: 32px; }
-.receipt__reference app-brand-logo { display: block; width: 191px; color: #6fab23; }
-.receipt__reference-text { margin-top: 48px; font-size: 15px; line-height: 24px; }
-.receipt__reference-text strong, .receipt__received-from strong { font-weight: 700; }
+p {
+  margin: 0;
+}
 
-.receipt__received-from { margin-top: 3px; font-size: 15px; line-height: 20px; }
-.receipt__received-from > :first-child { margin-bottom: 4px; }
+.receipt-page {
+  width: 100%;
+  min-height: 100vh;
+}
 
-.receipt__table-wrap { width: 100%; margin-top: 17px; overflow-x: auto; }
-.receipt-table { width: 100%; min-width: 600px; border-collapse: collapse; table-layout: fixed; font-size: 15px; line-height: 18px; }
-.receipt-table th, .receipt-table td { border: 1px solid #dce2e6; }
-.receipt-table th { height: 51px; padding: 0 16px; color: #29323c; background: #c9edc0; font-size: 16px; font-weight: 700; text-align: center; }
-.receipt-table th:first-child, .receipt-table td:first-child { text-align: left; }
-.receipt-table td { height: 50px; padding: 0 16px; color: #252a34; text-align: center; vertical-align: middle; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.receipt-table__product { width: 53.15%; }
-.receipt-table__quantity { width: 11.2%; }
-.receipt-table__price { width: 17.55%; }
-.receipt-table__amount { width: 18.1%; }
+.receipt {
+  width: min(100%, 744px);
+  min-height: 1097px;
+  padding: 31px 26px;
+  margin: 0 auto;
+  background: #fff;
+}
 
-.receipt__totals { width: 314px; margin: 16px 31px 0 auto; font-size: 15px; font-weight: 700; line-height: 18px; }
-.receipt__totals > div { min-height: 46px; display: grid; grid-template-columns: 1fr 91px; align-items: start; }
-.receipt__totals dt, .receipt__totals dd { margin: 0; }
-.receipt__totals dd { font-weight: 400; text-align: left; }
-.receipt__totals > div:nth-child(2) { min-height: 53px; }
-.receipt__totals > .receipt__total--grand {
+.receipt__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 28px;
+}
+
+.company-details {
+  font-size: 15px;
+  line-height: 18px;
+}
+
+.company-details__name {
+  margin-bottom: 5px;
+}
+
+.receipt__reference {
+  flex: 0 0 201px;
+  padding-top: 32px;
+}
+
+.receipt__reference app-brand-logo {
+  display: block;
+  width: 191px;
+  color: #6fab23;
+}
+
+.receipt__reference-text {
+  margin-top: 48px;
+  font-size: 15px;
+  line-height: 24px;
+}
+
+.receipt__reference-text strong,
+.receipt__received-from strong {
+  font-weight: 700;
+}
+
+.receipt__received-from {
+  margin-top: 3px;
+  font-size: 15px;
+  line-height: 20px;
+}
+
+.receipt__received-from> :first-child {
+  margin-bottom: 4px;
+}
+
+.receipt__table-wrap {
+  width: 100%;
+  margin-top: 17px;
+  overflow-x: auto;
+}
+
+.receipt-table {
+  width: 100%;
+  min-width: 600px;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 15px;
+  line-height: 18px;
+}
+
+.receipt-table th,
+.receipt-table td {
+  border: 1px solid #dce2e6;
+}
+
+.receipt-table th {
+  height: 51px;
+  padding: 0 16px;
+  color: #29323c;
+  background: #c9edc0;
+  font-size: 16px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.receipt-table th:first-child,
+.receipt-table td:first-child {
+  text-align: left;
+}
+
+.receipt-table td {
+  height: 50px;
+  padding: 0 16px;
+  color: #252a34;
+  text-align: center;
+  vertical-align: middle;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.receipt-table__product {
+  width: 53.15%;
+}
+
+.receipt-table__quantity {
+  width: 11.2%;
+}
+
+.receipt-table__price {
+  width: 17.55%;
+}
+
+.receipt-table__amount {
+  width: 18.1%;
+}
+
+.receipt__totals {
+  width: 314px;
+  margin-left: 380px !important;
+  margin: 16px 31px 0 auto;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 18px;
+}
+
+.receipt__totals>div {
+  min-height: 46px;
+  display: grid;
+  grid-template-columns: 1fr 91px;
+  align-items: start;
+}
+
+.receipt__totals dt,
+.receipt__totals dd {
+  margin: 0;
+}
+
+.receipt__totals dd {
+  font-weight: 400;
+  text-align: left;
+}
+
+.receipt__totals>div:nth-child(2) {
+  min-height: 53px;
+}
+
+.receipt__totals>.receipt__total--grand {
   width: 323px;
   min-height: 37px;
   height: 37px;
@@ -50,17 +178,80 @@ p { margin: 0; }
 }
 
 @media (max-width: 640px) {
-  .receipt { min-height: 100vh; padding: 24px 18px; }
-  .receipt__header { gap: 12px; }
-  .receipt__reference { flex-basis: 42%; padding-top: 35px; }
-  .receipt__reference app-brand-logo { width: 100%; }
-  .receipt__reference-text { margin-top: 28px; font-size: 13px; line-height: 20px; }
-  .company-details, .receipt__received-from { font-size: 13px; line-height: 17px; }
-  .receipt__received-from { margin-top: 45px; }
-  .receipt__totals { width: min(314px, calc(100% - 16px)); margin-right: 0; }
+  .receipt {
+    min-height: 100vh;
+    padding: 24px 18px;
+  }
+
+  .receipt__header {
+    gap: 12px;
+  }
+
+  .receipt__reference {
+    flex-basis: 42%;
+    padding-top: 35px;
+  }
+
+  .receipt__reference app-brand-logo {
+    width: 100%;
+  }
+
+  .receipt__reference-text {
+    margin-top: 28px;
+    font-size: 13px;
+    line-height: 20px;
+  }
+
+  .company-details,
+  .receipt__received-from {
+    font-size: 13px;
+    line-height: 17px;
+  }
+
+  .receipt__received-from {
+    margin-top: 45px;
+  }
+
+  .receipt__totals {
+    width: min(314px, calc(100% - 16px));
+    margin-right: 0;
+  }
+}
+
+@media print {
+
+  :host,
+  .receipt-page {
+    min-height: 0;
+  }
+
+  .receipt {
+    width: 100%;
+    min-height: 0;
+    padding: 8mm 7mm;
+  }
 }
 
 @media print {
   :host, .receipt-page { min-height: 0; }
-  .receipt { width: 100%; min-height: 0; padding: 8mm 7mm; }
+
+  .receipt {
+  width: min(100%, 744px);
+  min-height: 1097px;
+  padding: 31px 26px;
+  margin: 0; /* เปลี่ยนจาก 0 auto เป็น 0 เพื่อให้ชิดซ้าย */
+  background: #fff;
+}
+  /* บังคับให้พิมพ์สีพื้นหลังและเส้นขอบ */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+ .receipt__totals {
+  width: 314px;
+  margin: 16px 0 0 auto; /* ดันไปชิดขวาอัตโนมัติ */
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 18px;
+}
 }

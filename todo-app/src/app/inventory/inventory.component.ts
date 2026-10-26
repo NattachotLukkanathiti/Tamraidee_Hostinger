@@ -276,6 +276,16 @@ filterByCategory() {
       })
     } ,300)
   }
+    Animationa_out1(){
+             this.Animation_out = true;      // สั่งให้เริ่มอนิเมชั่นหลัก
+    this.Animation_outdash = true;  // <-- เพิ่มบรรทัดนี้ เพื่อบังคับให้ใช้คลาสที่เลื่อนไปทางซ้าย
+    
+    setTimeout(() =>{
+      this.router.navigate(['/pos'],{
+        state:{username: this.username , email: this.email, Move_return6:true ,role:this.userRole ,profile:this.profile}
+      })
+    } ,300)
+  }
   openpopupnoti(message:string){
     this.showpopupnoti = true;
     this.popup = message;

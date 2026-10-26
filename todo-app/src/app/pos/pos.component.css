@@ -22,7 +22,41 @@
   pointer-events: none; 
   background: transparent; 
 }
+.fade-out-right {
+    animation: Move_Right 0.3s ease-in-out forwards !important;
+}
 
+@keyframes Move_Right {
+    0% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    100% {
+        transform: translateX(500px); /* เลื่อนไปทางขวา */
+        opacity: 0;
+    }
+}
+.Return {
+    animation: Move_Return 0.7s ease-in-out forwards !important;
+}
+
+@keyframes Move_Return {
+    0% {
+        transform: translateX(500px); /* เลื่อนมาจากทางขวา */
+        opacity: 0;
+    }
+    100% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+.con_cash{
+  padding: 30px;
+}
+.number{
+  border-radius: 20px;
+  padding: 20px;
+}
 /* เพิ่มส่วนนี้: เพื่อให้ปุ่มเมนูและไอคอนต่างๆ ยังคงกดได้ตามปกติ */
 .con_nav, .container_bar, .hamburger, .headercompany {
   pointer-events: none;
@@ -688,6 +722,10 @@
   height: 50px;
 }
 .pom {
+  display: flex;
+  margin-left: auto;
+}
+.pom2{
   display: flex;
   margin-left: auto;
 }

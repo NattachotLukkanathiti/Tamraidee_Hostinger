@@ -263,4 +263,7 @@ export class TodoService {
       { headers: this.headers }
     );
   }
+  deleteEmployee(username: string) {
+    return this.http.delete(`${this.apiUrl}/employee/${username}`);
+  }
 }

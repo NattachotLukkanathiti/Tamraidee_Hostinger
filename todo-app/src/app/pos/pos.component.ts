@@ -81,7 +81,8 @@ export class PosComponent implements OnInit, OnDestroy {
   currentView: MainView = 'pos';
   clock = new Date();
   notification: any[] = [];
-
+play_Return = false;
+  Animation_out = false;
   ngOnInit(): void {
      this.loadNotifications();
     const navigation = this.router.lastSuccessfulNavigation;
@@ -95,7 +96,9 @@ export class PosComponent implements OnInit, OnDestroy {
       this.username = state.username || '';
       this.userRole = state.role || '';
     }
-
+        if (state.Move_return6 === true) {
+      this.play_Return = true;
+    }
     // เริ่มการทำงานของนาฬิกา
     this.clockTimer = setInterval(() => {
       this.clock = new Date();
@@ -208,7 +211,9 @@ export class PosComponent implements OnInit, OnDestroy {
     this.changeDetector.markForCheck();
   }
    Animationa_out(){
- 
+    
+  this.Animation_out = true;
+  
     setTimeout(() =>{
       this.router.navigate(['/inventory'],{
         state:{username: this.username , email: this.email ,role:this.userRole ,profile:this.profile}
@@ -224,7 +229,7 @@ export class PosComponent implements OnInit, OnDestroy {
     } ,300)
   }
   Animation_out2(){
-        
+         this.Animation_out = true;
     setTimeout(() =>{
       this.router.navigate(['/sale'],{
         state:{username: this.username , email: this.email, Move_return3:true ,role:this.userRole ,profile:this.profile}
@@ -232,7 +237,7 @@ export class PosComponent implements OnInit, OnDestroy {
     } ,300)
   }
   Animation_out3(){
-           
+            this.Animation_out = true;
     setTimeout(() =>{
       this.router.navigate(['/history'],{
         state:{username: this.username , email: this.email, Move_returnH:true ,role:this.userRole ,profile:this.profile}
@@ -263,6 +268,7 @@ export class PosComponent implements OnInit, OnDestroy {
       })
     } ,300)
   }
+  
   
   toggleNav(): void { this.isNavOpen = !this.isNavOpen; this.openPanel = null; }
   selectNav(label: string): void { if (label !== 'Pos') return; this.selectedNav = label; this.isNavOpen = false; this.currentView = 'pos'; }
@@ -393,93 +399,9 @@ loadNotifications(): void {
   scrollRight(element: HTMLElement) {
     element.scrollBy({ left: 200, behavior: 'smooth' });
   }
-completePayment(): void {
-    this.product = false;
-  console.log('Cart Items:', this.cartItems.length);
-  console.log('Selected Payment:', this.selectedPayment);
 
-  if (!this.cartItems.length) {
-    alert('กรุณาเลือกสินค้าก่อนชำระเงิน');
-    return;
-  }
 
-  if (this.selectedPayment === 'QR') {
-    console.log('Entering QR Mode...');
-    this.orderCode = Date.now().toString().slice(-6);
-    this.generatePromptPayQR(this.total); 
-    this.showQrModal = true;
-    this.changeDetector.markForCheck(); 
-  } else if (this.selectedPayment === 'Choose') {
-    alert('กรุณาเลือกวิธีการชำระเงิน');
-  } else {
-    this.processOrder();
-  }
-}
 
-// เพิ่มฟังก์ชัน processOrder เพื่อแยกการทำงานให้เป็นระเบียบ
-processOrder(): void {
-  const orderCode = `#${this.orderCode}`;
-  const now = new Date().toISOString();
-
-  // 1. เตรียมข้อมูลสำหรับหน้าใบเสร็จ
-  const receiptData = {
-    companyName: 'Tam rai dee Company Limited (Head Office)',
-    companyAddress: ['123/45 Gayson Tower, 15th Floor,', 'Ratchadamri Road,', 'Lumpini, Pathum Wan, Bangkok 10330'],
-    taxId: '0105560000000',
-    receiptNumber: `REC-${this.orderCode}`,
-    orderCode: orderCode,
-    cashier: this.username,
-    items: this.cartItems.map(item => ({
-      skuOrName: item.name,
-      quantity: item.quantity,
-      unitPrice: this.formatCurrency(item.price),
-      amount: this.formatCurrency(item.price * item.quantity)
-    })),
-    subtotal: this.formatCurrency(this.subtotal),
-    productInsurancePremium: this.selectedInsurance,
-    discount: this.formatCurrency(this.discountAmount),
-    grandTotal: this.formatCurrency(this.total)
-  };
-
-  // 2. บันทึกข้อมูลและตัดสต็อก
-  this.cartItems.forEach(item => {
-    const itemAmount = item.price * item.quantity;
-    const salesData = {
-      order_code: orderCode,
-      product_name: item.name,
-      quantity: item.quantity,
-      amount: itemAmount,
-      picture: this.profile, 
-      create_by: this.username,
-      status: 'Completed',
-      created_at: now
-    };
-
-    this.todoService.saveSalesOrder(salesData).subscribe();
-
-    const newStock = item.stock - item.quantity;
-    const updateData = {
-      product_name: item.name,
-      picture: item.image, 
-      quantity: newStock,
-      price: item.price,
-      category: item.category,
-      brand: item.brand || 'N/A',
-      quantity_alert: item.quantity_alert || 10
-    };
-    this.todoService.updateInventoryStock(item.id, updateData).subscribe();
-  });
-
-  alert('บันทึกข้อมูลการขายและตัดสต็อกเรียบร้อยแล้วค่ะ');
-  
-  // 3. ส่งข้อมูลและเปลี่ยนหน้าไปยัง Receipt (แก้ไขตรงนี้)
-  this.router.navigate(['/receipt'], {
-    state: { receiptData: receiptData }
-  });
-
-  this.cartItems = [];
-  this.loadInventory();
-}
 // 1. เพิ่มตัวแปรควบคุมการแสดงผล
 showQrModal = false;
 
@@ -506,4 +428,147 @@ generatePromptPayQR(amount: number) {
     }
   });
 }
+
+
+// 1. เพิ่มตัวแปรควบคุม Modal เงินสด
+  showCashModal = false;
+
+  // 2. แก้ไขฟังก์ชัน completePayment
+   // แก้ไขฟังก์ชัน completePayment
+  completePayment(): void {
+    if (!this.cartItems.length) { 
+      return alert('กรุณาเลือกสินค้าก่อนชำระเงิน'); 
+    }
+      this.orderCode = String(Date.now()).slice(-6);
+    if (this.selectedPayment === 'QR') {
+      this.product = false; // สั่งให้แสดง Modal (ตามโครงสร้าง CSS เดิมของคุณ)
+      this.generatePromptPayQR(this.total); // สร้าง QR Code ตามยอดเงินรวม
+      this.changeDetector.markForCheck();
+    } else if (this.selectedPayment === 'Cash') {
+      this.cashReceived = 0;   
+      this.changeAmount = 0;  
+      this.showCashModal = true;
+      this.changeDetector.markForCheck();
+    } else {
+      alert('กรุณาเลือกวิธีการชำระเงิน');
+    }
+  }
+
+  // 3. เพิ่มฟังก์ชันปิด Cash Modal
+  closeCashModal(): void {
+    this.outimport = true;
+    setTimeout(() => {
+      this.outimport = false;
+      this.showCashModal = false;
+      this.changeDetector.markForCheck();
+    }, 300);
+  }
+
+ confirmCashPayment(): void {
+    if (this.cashReceived < this.total) {
+      return alert('จำนวนเงินที่รับมาไม่เพียงพอ');
+    }
+
+    this.processOrder(); 
+  }
+
+
+  // 1. เพิ่มตัวแปรสำหรับคำนวณเงิน
+  cashReceived: number = 0;
+  changeAmount: number = 0;
+
+  // 2. ฟังก์ชันคำนวณเงินทอน
+  calculateChange(): void {
+    if (this.cashReceived >= this.total) {
+      this.changeAmount = this.cashReceived - this.total;
+    } else {
+      this.changeAmount = 0;
+    }
+    this.changeDetector.markForCheck();
+  }
+
+
+
+
+  // เพิ่มตัวแปรสำหรับสถานะชำระเงินสำเร็จ
+  paymentSuccess = false;
+processOrder(): void {
+    const orderCode = `#${this.orderCode}`;
+    const now = new Date().toISOString();
+
+    const receiptData = {
+      companyName: 'Tam rai dee Company Limited (Head Office)',
+      companyAddress: ['123/45 Gayson Tower, 15th Floor,', 'Ratchadamri Road,', 'Lumpini, Pathum Wan, Bangkok 10330'],
+      taxId: '0105560000000',
+      receiptNumber: `REC-${this.orderCode}`,
+      orderCode: orderCode,
+      cashier: this.username || 'พนักงานขาย',
+      items: this.cartItems.map(item => ({
+        skuOrName: item.name,
+        quantity: item.quantity,
+        unitPrice: this.formatCurrency(item.price),
+        amount: this.formatCurrency(item.price * item.quantity)
+      })),
+      subtotal: this.formatCurrency(this.subtotal),
+      productInsurancePremium: this.selectedInsurance,
+      discount: this.formatCurrency(this.discountAmount),
+      grandTotal: this.formatCurrency(this.total)
+    };
+
+    this.cartItems.forEach(item => {
+      const itemAmount = item.price * item.quantity;
+      const salesData = {
+        order_code: orderCode,
+        product_name: item.name,
+        quantity: item.quantity,
+        amount: itemAmount,
+        picture: this.profile, 
+        create_by: this.username,
+        status: 'Completed',
+        created_at: now
+      };
+
+      this.todoService.saveSalesOrder(salesData).subscribe();
+
+      const newStock = item.stock - item.quantity;
+      const updateData = {
+        product_name: item.name,
+        picture: item.image, 
+        quantity: newStock,
+        price: item.price,
+        category: item.category,
+        brand: item.brand || 'N/A',
+        quantity_alert: item.quantity_alert || 10
+      };
+      this.todoService.updateInventoryStock(item.id, updateData).subscribe();
+    });
+
+    // เปลี่ยนสถานะให้แสดงข้อความ "ชำระเงินสำเร็จ"
+    this.paymentSuccess = true;
+    this.changeDetector.markForCheck();
+    
+    // ข้อมูลผู้ใช้ที่จะส่งไปหน้า Receipt และรับกลับมา
+    const userData = {
+      username: this.username,
+      email: this.email,
+      role: this.userRole,
+      profile: this.profile
+    };
+
+    // รอ 1.5 วินาที เพื่อให้พนักงานเห็นข้อความ แล้วค่อยเด้งไปหน้าใบเสร็จ
+    setTimeout(() => {
+      this.paymentSuccess = false;
+      this.showCashModal = false;
+      
+      this.router.navigate(['/receipt'], {
+        state: { 
+          receiptData: receiptData,
+          userData: userData // <--- ส่งข้อมูลผู้ใช้แนบไปด้วย
+        }
+      });
+
+      this.cartItems = [];
+      this.loadInventory();
+    }, 1500);
+  }
 }

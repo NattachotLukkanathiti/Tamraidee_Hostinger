@@ -424,6 +424,7 @@ width: 100%;
     gap: 8px;
 }
 .inputser{
+      padding-left: 35px !important;
     border-radius: 8px;
     padding: 10px;
     width: 15vw;

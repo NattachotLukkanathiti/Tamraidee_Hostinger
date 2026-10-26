@@ -1156,6 +1156,38 @@ app.get('/api/chat/typing/:username', async (req, res) => {
   );
   res.json(result.rows);
 });
+
+
+app.delete('/api/employee/:username', async (req, res) => {
+  try {
+    const { username } = req.params;
+
+    // ลบข้อมูลผู้ใช้งานจากตาราง todos โดยอ้างอิงจาก username
+    const result = await pool.query(
+      'DELETE FROM todos WHERE username = $1 RETURNING *',
+      [username]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'ไม่พบผู้ใช้งานนี้ในระบบ' 
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'ลบผู้ใช้งานเรียบร้อยแล้ว'
+    });
+
+  } catch (error) {
+    console.error('Error deleting employee:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server Error' 
+    });
+  }
+});
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
