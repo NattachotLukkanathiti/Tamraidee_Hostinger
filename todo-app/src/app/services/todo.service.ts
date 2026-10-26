@@ -264,6 +264,9 @@ export class TodoService {
     );
   }
   deleteEmployee(id: number) {
-  return this.http.delete(`${this.apiUrl}/api/employee/${id}`);
+  // ลบคำว่า /api ออก เพราะในตัวแปร this.apiUrl มักจะมี /api อยู่แล้ว
+  return this.http.delete(`${this.apiUrl}/employee/${id}`);
 }
+
+
 }

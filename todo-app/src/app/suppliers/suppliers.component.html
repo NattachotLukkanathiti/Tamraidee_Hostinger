@@ -125,9 +125,9 @@
   <a href="#" class="next">Next &gt;</a>
 </div> -->
 <div class="custom-select">
-  <select>
-    <option value="all">Active</option>
-    <option value="option1">Canceled</option>
+  <select [(ngModel)]="selectedStatus" (change)="filterSuppliers()">
+    <option value="Active">Active</option>
+    <option value="Canceled">Canceled</option>
   </select>
 </div>
 <div class="con_r">
@@ -166,7 +166,7 @@
                     </ng-container>
     <!-- Data Rows -->
  <ng-template #realData>
-  <div class="table_detail2" *ngFor="let order of suppliers; let i = index" [style.animation-delay]="i * 0.15 + 's'">
+  <div class="table_detail2" *ngFor="let order of filteredSuppliers; let i = index" ...>
     <div class="table_detail">
       <div class="sku2" data-label="Created By">
         <img class="profile_employee" [src]="order.logo" alt="">{{ order.created_by }}
@@ -178,7 +178,7 @@
       
       <div class="button_small" data-label="Actions">
         <img class="icon_small_inventory" *ngIf="userRole === 'admin' || userRole === 'manager'" (click)="button_edits(order)" src="image/edit.svg">
-        <img class="icon_small_inventory2" *ngIf="userRole === 'admin' || userRole === 'manager'" src="image/delete.svg" alt="">
+        <img class="icon_small_inventory2" *ngIf="userRole === 'admin' || userRole === 'manager'" (click)="openCancelPopup(order)" src="image/delete.svg" alt="">
       </div>
     </div>
     <div class="line"></div>
@@ -351,4 +351,25 @@
             <div class="cancel" (click)="button_cancels()" style="cursor: pointer;">Cancel</div>             
         </div>     
     </div> 
+</div>
+
+
+
+<div *ngIf="showCancelPopup" class="backpop">
+    <div class="popupcontainer">
+        <div class="popup-content">
+            <img class="iconsuccess" src="image/delete.svg" alt="">
+            <div class="line"></div>
+            <div class="headerpop">
+                Cancel Supplier?
+            </div>
+            <div class="subheadersuccess">
+                {{ popupMessage }}
+            </div>
+            <div class="container_button">
+                <button class="button_confirm" (click)="confirmCancel()">Confirm</button>
+                <button class="button_cancel" (click)="closeCancelPopup()">No</button>
+            </div>
+        </div>
+    </div>
 </div>

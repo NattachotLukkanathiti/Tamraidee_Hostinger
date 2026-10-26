@@ -735,20 +735,20 @@ app.put('/api/employee/:username', async (req, res) => {
     res.status(500).json({ success: false, message: 'Server Error' });
   }
 });
-// 📌 Route สำหรับอัปเดตสถานะ Request History (เพิ่มส่วนนี้)
 
-// --- เพิ่ม Route สำหรับอัปเดตข้อมูล Supplier ---
 app.put('/api/suppliers/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { supplier_name, email, phone, logo, created_by } = req.body;
+    // เพิ่ม status เข้ามารับค่าจาก body
+    const { supplier_name, email, phone, logo, created_by, status } = req.body;
 
+    // เพิ่ม status = $6 และเลื่อน id ไปเป็น $7
     const result = await pool.query(
       `UPDATE suppliers 
-       SET supplier_name = $1, email = $2, phone = $3, logo = $4, created_by = $5
-       WHERE id = $6 
+       SET supplier_name = $1, email = $2, phone = $3, logo = $4, created_by = $5, status = $6
+       WHERE id = $7 
        RETURNING *`,
-      [supplier_name, email, phone, logo, created_by, id]
+      [supplier_name, email, phone, logo, created_by, status, id]
     );
 
     if (result.rowCount === 0) {
@@ -766,11 +766,7 @@ app.put('/api/suppliers/:id', async (req, res) => {
     res.status(500).json({ success: false, message: 'Server Error' });
   }
 });
-// ==========================================
-// 📌 Notification Status Routes
-// ==========================================
 
-// 1. ดึงรายการแจ้งเตือนที่ User คนนั้นๆ อ่านแล้ว
 app.get('/api/notification_status/:username', async (req, res) => {
   try {
     const { username } = req.params;
@@ -1175,6 +1171,21 @@ app.delete('/api/employee/:id', async (req, res) => {
     console.error('Error deleting employee:', error);
     res.status(500).json({ success: false, message: 'Server Error' });
   }
+});
+
+
+app.get('/api/suppliers', async (req, res) => {
+    try {
+        // เพิ่ม status เข้าไปใน SELECT
+        const result = await pool.query(
+            'SELECT id, logo, supplier_name, email, phone, order_history, status FROM suppliers'
+        );
+        
+        res.json(result.rows);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server Error' });
+    }
 });
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

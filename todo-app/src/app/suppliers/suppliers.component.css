@@ -2120,3 +2120,117 @@ input::placeholder{
         right: 15px;
     }
 }
+
+
+
+/* พื้นหลังมืดเมื่อ Popup แสดง */
+.backpop {
+    background-color: rgba(0, 0, 0, 0.4);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    z-index: 9999;
+    animation: fadeIn 0.2s ease-out;
+}
+
+/* กล่อง Popup */
+.popupcontainer {
+    background-color: #FFFFFF;
+    border-radius: 12px;
+    width: 400px;
+    padding: 30px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    z-index: 10000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: scaleUp 0.3s ease-out;
+}
+
+.popup-content {
+    width: 100%;
+    text-align: center;
+}
+
+/* ไอคอน */
+.iconsuccess {
+    width: 50px;
+    height: 50px;
+    margin: 0 auto 20px;
+    display: block;
+}
+
+/* หัวข้อ */
+.headerpop {
+    font-size: 24px;
+    font-weight: 700;
+    color: #212B36;
+    margin-bottom: 10px;
+}
+
+/* ข้อความรายละเอียด */
+.subheadersuccess {
+    font-size: 15px;
+    color: #646B72;
+    margin-bottom: 30px;
+    font-weight: 400;
+    line-height: 1.4;
+}
+
+/* ปุ่ม */
+.container_button {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    width: 100%;
+}
+
+.button_confirm {
+    flex: 1;
+    padding: 12px 0;
+    font-size: 16px;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 50px;
+    background: #DC1818; /* สีแดงสำหรับ Cancel */
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.button_confirm:hover {
+    background: #B51414;
+}
+
+.button_cancel {
+    flex: 1;
+    padding: 12px 0;
+    font-size: 16px;
+    color: #48505E;
+    border: 1px solid #E6EAED;
+    border-radius: 50px;
+    background: #FFFFFF;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.button_cancel:hover {
+    background: #F4F5FC;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes scaleUp {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}

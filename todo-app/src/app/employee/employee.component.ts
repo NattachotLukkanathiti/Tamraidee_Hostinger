@@ -343,31 +343,72 @@ logout() {
     });
   }
 
-  saveAccountChanges() {
+ saveAccountChanges() {
+  let mappedRole = this.selectedaccount.role;
+  if (mappedRole === 'Frontend') mappedRole = 'pos';
+  if (mappedRole === 'Backend') mappedRole = 'backend';
+  if (mappedRole === 'Admin') mappedRole = 'admin';
 
-    let mappedRole = this.selectedaccount.role;
-    if (mappedRole === 'Frontend') mappedRole = 'pos';
-    if (mappedRole === 'Backend') mappedRole = 'backend';
-    if (mappedRole === 'Admin') mappedRole = 'admin';
+  const updatedAccount = {
+    ...this.selectedaccount,
+    role: mappedRole
+  };
 
-    const updatedAccount = {
-      ...this.selectedaccount,
-      role: mappedRole
-    };
+  // 1. ค้นหาข้อมูลเดิมจาก employeeList เพื่อใช้เปรียบเทียบ
+  const originalAccount = this.employeeList.find(emp => emp.username === updatedAccount.username);
 
+  this.todoService.updateEmployee(updatedAccount.username, updatedAccount).subscribe({
+    next: (res) => {
+      this.openpopup("Account updated successfully");
+      
+      const now = new Date();
+      const baseAuditData = {
+        date: now.toISOString().split('T')[0],
+        time: now.toTimeString().split(' ')[0],
+        username: this.username,
+        email: this.email,
+        role: this.userRole,
+        picture: this.profile
+      };
 
-    this.todoService.updateEmployee(updatedAccount.username, updatedAccount).subscribe({
-      next: (res) => {
-        this.openpopup("Account updated successfully");
-        this.loadTodos(); 
-        this.button_cancels(); 
-      },
-      error: (err) => {
-        console.error('Error updating account:', err);
-        this.openpopupnoti("Failed to update account");
+      // ถ้าพบข้อมูลเดิม ให้ทำการเช็คการเปลี่ยนแปลงทีละจุด
+      if (originalAccount) {
+        
+        // 2. ตรวจสอบและบันทึก Log เมื่อมีการเปลี่ยน Role (ตำแหน่ง)
+        if (originalAccount.role !== updatedAccount.role) {
+          const oldRole = originalAccount.role || 'Guest';
+          const newRole = updatedAccount.role || 'Guest';
+          this.todoService.logAudit({
+            ...baseAuditData,
+            activity: `Edit Role for User: ${updatedAccount.username} (from ${oldRole} to ${newRole})`
+          }).subscribe();
+        }
+
+        // 3. ตรวจสอบและบันทึก Log เมื่อมีการเปลี่ยน Status (สถานะ)
+        if (originalAccount.status !== updatedAccount.status) {
+          this.todoService.logAudit({
+            ...baseAuditData,
+            activity: `Edit Status for User: ${updatedAccount.username} (from ${originalAccount.status} to ${updatedAccount.status})`
+          }).subscribe();
+        }
+
+      } else {
+        // กรณีไม่พบข้อมูลเดิม (Fallback)
+        this.todoService.logAudit({
+          ...baseAuditData,
+          activity: `Edit Role/Status for User: ${updatedAccount.username}`
+        }).subscribe();
       }
-    });
-  }
+
+      this.loadTodos(); 
+      this.button_cancels(); 
+    },
+    error: (err) => {
+      console.error('Error updating account:', err);
+      this.openpopupnoti("Failed to update account");
+    }
+  });
+}
    showDeletePopup = false;
   userToDeleteId: number | null = null; // เปลี่ยนมาเก็บ ID
 
@@ -379,10 +420,23 @@ logout() {
 
   confirmDelete() {
     if (!this.userToDeleteId) return;
-
+        // ดึงข้อมูล username ก่อนที่จะลบ เพื่อนำไปบันทึก Log
+    const userObj = this.employeeList.find(emp => emp.id === this.userToDeleteId);
+        const deletedUsername = userObj ? userObj.username : this.userToDeleteId;
     this.todoService.deleteEmployee(this.userToDeleteId).subscribe({
       next: (res) => {
         this.openpopup("Delete Guest Completed");
+          const now = new Date();
+        const auditData = {
+          date: now.toISOString().split('T')[0],
+          time: now.toTimeString().split(' ')[0],
+          username: this.username,
+          email: this.email,
+          activity: `Delete User: ${deletedUsername}`,
+          role: this.userRole,
+          picture: this.profile
+        };
+        this.todoService.logAudit(auditData).subscribe();
         this.loadTodos(); 
         this.closeDeletePopup(); 
       },

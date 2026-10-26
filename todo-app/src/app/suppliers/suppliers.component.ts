@@ -139,7 +139,7 @@ loadSuppliers() {
           order_history: supplierOrders.length
         };
       });
-
+      this.filterSuppliers();
       this.isLoading = false; 
       this.loader = false;
     },
@@ -150,6 +150,15 @@ loadSuppliers() {
   });
 }
 
+  selectedStatus: string = 'Active';
+  filteredSuppliers: any[] = [];
+ filterSuppliers() {
+    this.filteredSuppliers = this.suppliers.filter(supplier => {
+      // Default to 'Active' if status is undefined
+      const status = supplier.status || 'Active'; 
+      return status === this.selectedStatus;
+    });
+  }
   toggleMenu() { this.out = false; this.isMenuOpen = !this.isMenuOpen; this.isMenuOpenprofile = !this.isMenuOpenprofile; }
   hambar(){ this.isMenuOpen = !this.isMenuOpen; }
   setView(view: string) { this.currentView = view; }
@@ -233,5 +242,73 @@ loadSuppliers() {
   onUrlChange(url: string) {
     this.imagePreview = (url && url.trim() !== '') ? url : null;
   }
-  // -------------------------------------------
+  toggleSupplierStatus(supplier: any) {
+    // กำหนดสถานะใหม่ (สมมติว่าเปลี่ยนเป็น 'Canceled' หรือ 'Inactive')
+    const newStatus = supplier.status === 'Active' ? 'Canceled' : 'Active';
+    
+    this.isLoading = true;
+
+    // อัปเดตข้อมูล
+    const updatedData = { ...supplier, status: newStatus };
+
+    this.todoService.updateSupplier(supplier.id, updatedData).subscribe({
+      next: (res) => {
+        console.log(`Supplier status changed to ${newStatus}`);
+        
+        // อัปเดตค่าใน UI ทันที
+        supplier.status = newStatus;
+        
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Error updating status:', err);
+        this.isLoading = false;
+        this.openpopupnoti('ไม่สามารถเปลี่ยนสถานะได้ กรุณาลองใหม่อีกครั้ง');
+      }
+    });
+  }
+
+
+
+
+
+  showCancelPopup = false;
+  supplierToCancel: any = null;
+  popupMessage = '';
+
+  // 1. Open Popup when clicking the delete button
+  openCancelPopup(supplier: any) {
+    this.supplierToCancel = supplier;
+    this.popupMessage = `Are you sure you want to cancel the supplier ${supplier.supplier_name}?`;
+    this.showCancelPopup = true;
+  }
+
+  closeCancelPopup() {
+    this.showCancelPopup = false;
+    this.supplierToCancel = null;
+  }
+
+  confirmCancel() {
+    if (!this.supplierToCancel) return;
+
+    this.isLoading = true;
+
+    const updatedData = { ...this.supplierToCancel, status: 'Canceled' };
+
+    this.todoService.updateSupplier(this.supplierToCancel.id, updatedData).subscribe({
+      next: (res) => {
+        console.log('Supplier canceled successfully');
+        this.supplierToCancel.status = 'Canceled'; // Update UI
+                this.filterSuppliers();
+        this.isLoading = false;
+        this.closeCancelPopup();
+      },
+      error: (err) => {
+        console.error('Error canceling supplier:', err);
+        this.isLoading = false;
+        this.closeCancelPopup();
+        this.openpopupnoti('Unable to cancel. Please try again.');
+      }
+    });
+  }
 }
