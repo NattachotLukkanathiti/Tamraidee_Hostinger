@@ -163,7 +163,7 @@ app.get('/api/employee', async (req, res) => {
 app.get('/api/suppliers', async (req, res) => {
     try {
         const result = await pool.query(
-            'SELECT id ,logo, supplier_name, email, phone , order_history FROM suppliers'
+            'SELECT id ,logo, supplier_name, email, phone , order_history, status FROM suppliers'
         );
         
         res.json(result.rows);

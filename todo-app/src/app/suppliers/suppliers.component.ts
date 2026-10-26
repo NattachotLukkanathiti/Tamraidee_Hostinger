@@ -153,12 +153,16 @@ loadSuppliers() {
   selectedStatus: string = 'Active';
   filteredSuppliers: any[] = [];
  filterSuppliers() {
-    this.filteredSuppliers = this.suppliers.filter(supplier => {
-      // Default to 'Active' if status is undefined
-      const status = supplier.status || 'Active'; 
-      return status === this.selectedStatus;
-    });
-  }
+  this.filteredSuppliers = this.suppliers.filter(supplier => {
+    // 1. ถ้า status เป็น null/undefined ให้ถือว่าเป็น 'Active'
+    let status = supplier.status || 'Active';
+
+    status = status.toLowerCase();
+    const selected = this.selectedStatus.toLowerCase();
+
+    return status === selected;
+  });
+}
   toggleMenu() { this.out = false; this.isMenuOpen = !this.isMenuOpen; this.isMenuOpenprofile = !this.isMenuOpenprofile; }
   hambar(){ this.isMenuOpen = !this.isMenuOpen; }
   setView(view: string) { this.currentView = view; }
