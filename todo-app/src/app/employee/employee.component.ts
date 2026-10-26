@@ -368,18 +368,35 @@ logout() {
       }
     });
   }
-  deleteAccount(username: string) {
-    if (confirm('คุณต้องการลบผู้ใช้งาน ' + username + ' หรือไม่?')) {
-      this.todoService.deleteEmployee(username).subscribe({
-        next: (res) => {
-          this.openpopup("ลบผู้ใช้งานสำเร็จ");
-          this.loadTodos(); // โหลดข้อมูลใหม่
-        },
-        error: (err) => {
-          console.error('Error deleting account:', err);
-          this.openpopupnoti("ไม่สามารถลบผู้ใช้งานได้");
-        }
-      });
-    }
+   showDeletePopup = false;
+  userToDeleteId: number | null = null; // เปลี่ยนมาเก็บ ID
+
+  deleteAccount(id: number, username: string) {
+    this.userToDeleteId = id;
+    this.popup = `Are you sure you want to delete ${username}?`;
+    this.showDeletePopup = true;
   }
-}
+
+  confirmDelete() {
+    if (!this.userToDeleteId) return;
+
+    this.todoService.deleteEmployee(this.userToDeleteId).subscribe({
+      next: (res) => {
+        this.openpopup("Delete Guest Completed");
+        this.loadTodos(); 
+        this.closeDeletePopup(); 
+      },
+      error: (err) => {
+        console.error('Error deleting account:', err);
+        this.openpopupnoti("Cannot Delete Guest");
+        this.closeDeletePopup(); 
+      }
+    });
+  }
+
+  closeDeletePopup() {
+    this.showDeletePopup = false;
+    this.userToDeleteId = null; // รีเซ็ตค่า ID
+  }
+  }
+

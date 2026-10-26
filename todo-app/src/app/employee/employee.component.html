@@ -177,7 +177,7 @@
       <div class="sku2" data-label="Status">{{ order.status }}</div>
       <div class="button_small" data-label="Actions">
         <img class="icon_small_inventory" *ngIf="userRole === 'admin' || userRole === 'manager'" src="image/edit.svg" (click)="button_edit_account2(order)">
-        <img class="icon_small_inventory2" *ngIf="(userRole === 'admin' || userRole === 'manager') && isGuest(order.role)" src="image/delete.svg"      (click)="deleteAccount(order.username)" alt="">
+        <img class="icon_small_inventory2" *ngIf="(userRole === 'admin' || userRole === 'manager') && isGuest(order.role)" src="image/delete.svg"      (click)="deleteAccount(order.id,order.username)" alt="">
       </div>
     </div>
     <div class="line"></div>
@@ -302,3 +302,27 @@
             <div class="cancel" (click)="button_cancels()" >Cancel</div>
         </div>
 </div>
+</div> 
+
+<div *ngIf="showDeletePopup" class="backpop">
+    <div class="popupcontainer">
+        <div class="popup-content">
+            <img class="iconsuccess" src="image/delete.svg" alt="">
+            <div class="line"></div>
+            <div class="headerpop">
+                Delete Guest?
+            </div>
+            <div class="subheadersuccess">
+                {{popup}}
+            </div>
+            <div class="container_button">
+                <!-- เปลี่ยนเป็นเรียก confirmDelete() -->
+                <button class="button_confirm" (click)="confirmDelete()">Confirm</button>
+                <!-- เปลี่ยนเป็นเรียก closeDeletePopup() -->
+                <button class="button_cancel" (click)="closeDeletePopup()">No</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
