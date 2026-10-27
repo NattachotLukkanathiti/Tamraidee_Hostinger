@@ -1233,6 +1233,54 @@ app.post('/api/settings', async (req, res) => {
     res.status(500).json({ success: false, message: 'Server Error' });
   }
 });
+
+
+// 1. Route สำหรับบันทึก/อัปเดตข้อมูลผู้ใช้จาก Social Login (Upsert)
+app.post('/api/users/upsert', async (req, res) => {
+  try {
+    const { username, title, password, profile, status } = req.body;
+
+    // ตรวจสอบว่ามี email (title) นี้ในระบบหรือยัง
+    const checkUser = await pool.query('SELECT * FROM todos WHERE title = $1', [title]);
+
+    if (checkUser.rows.length > 0) {
+      // ถ้ามีแล้ว -> อัปเดตข้อมูล
+      const updateResult = await pool.query(
+        `UPDATE todos SET username = $1, profile = $2, status = $3 WHERE title = $4 RETURNING *`,
+        [username, profile, status, title]
+      );
+      return res.json({ success: true, data: updateResult.rows[0] });
+    } else {
+      // ถ้ายังไม่มี -> สร้างใหม่
+      const insertResult = await pool.query(
+        `INSERT INTO todos (username, title, password, profile, status, completed) 
+         VALUES ($1, $2, $3, $4, $5, false) RETURNING *`,
+        [username, title, password, profile, status]
+      );
+      return res.status(201).json({ success: true, data: insertResult.rows[0] });
+    }
+  } catch (error) {
+    console.error('Error in upsert user:', error);
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+});
+
+// 2. Route สำหรับตรวจสอบ Role ของผู้ใช้
+app.get('/api/users/role/:email', async (req, res) => {
+  try {
+    const { email } = req.params;
+    const result = await pool.query('SELECT role FROM todos WHERE title = $1', [email]);
+
+    if (result.rows.length > 0) {
+      res.json({ success: true, role: result.rows[0].role });
+    } else {
+      res.status(404).json({ success: false, message: 'User not found' });
+    }
+  } catch (error) {
+    console.error('Error checking user role:', error);
+    res.status(500).json({ success: false, message: 'Server Error' });
+  }
+});
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

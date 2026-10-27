@@ -231,7 +231,9 @@ p {
     padding: 8mm 7mm;
   }
 }
-
+.address-container{
+  width: 300px;
+}
 @media print {
   :host, .receipt-page { min-height: 0; }
 

@@ -1,12 +1,21 @@
 <main class="receipt-page">
   <article class="receipt" aria-label="Receipt">
     <header class="receipt__header">
-      <section class="company-details" aria-label="Company details">
-        <p class="company-details__name">{{ receipt().companyName }}</p>
-        @for (line of receipt().companyAddress; track line) { <p>{{ line }}</p> }
-        <p>Tax ID: {{ receipt().taxId }}</p>
-      </section>
-
+     <section class="company-details" aria-label="Company details">
+  <p class="company-details__name">{{ receipt().companyName || 'Tam rai dee Company Limited' }}</p>
+  
+  <div class="address-container">
+    @if (receipt().companyAddress && receipt().companyAddress.length > 0 && receipt().companyAddress[0] !== 'ไม่พบข้อมูลที่อยู่') {
+      @for (line of receipt().companyAddress; track line) { 
+        <p class="address-line">{{ line }}</p> 
+      }
+    } @else {
+      <p class="text-muted">กรุณาตั้งค่าที่อยู่</p>
+    }
+  </div>
+  
+  <p>Tax ID: {{ receipt().taxId || '-' }}</p>
+</section>
       <div class="receipt__reference">
         <img src="image/logo.svg" alt="">
         <div class="receipt__reference-text">
@@ -33,12 +42,12 @@
         </tbody>
       </table>
     </div>
-
+<!-- 
     <dl class="receipt__totals">
       <div><dt>Subtotal:</dt><dd>{{ receipt().subtotal }}</dd></div>
       <div><dt>Product insurance:<br />Premium</dt><dd>{{ receipt().productInsurancePremium }}</dd></div>
       <div><dt>Discount:</dt><dd>{{ receipt().discount }}</dd></div>
       <div class="receipt__total--grand"><dt>Grand Total:</dt><dd>{{ receipt().grandTotal }}</dd></div>
-    </dl>
+    </dl> -->
   </article>
 </main>

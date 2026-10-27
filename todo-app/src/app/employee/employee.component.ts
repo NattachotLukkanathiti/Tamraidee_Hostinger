@@ -230,6 +230,7 @@ loadTodos() {
 
         this.todos = this.employeeList;
         this.filteredEmployeeList = [...this.employeeList]; 
+               this.calculateTotalPages(); 
       },
       error: (err) => {
         console.error('Error fetching employee data:', err);
@@ -286,6 +287,7 @@ filterEmployee(selected: string) {
       return emp.role === mappedRole;
     });
   }
+    this.calculateTotalPages(); 
 }
   button_cancels() {
    this.outimport = true;

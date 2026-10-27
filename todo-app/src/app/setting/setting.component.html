@@ -60,3 +60,43 @@
   </div>
   </div>
 </main>
+
+
+    <div *ngIf="showpopupnoti" class="backpop">
+        <div *ngIf="showpopupnoti" class="popupcontainer">
+            <div class="popup-content">
+                <img class="iconsuccess" src="image/cross.svg" alt="">
+                <div class="headerpop">
+                    Something went Wrong
+                </div>
+                <div class="subheadersuccess">
+                    {{popup}}
+                </div>
+                <button class="buttonnoti" (click)="closepopup()">OK</button>
+            </div>
+        </div>
+    </div>
+<div *ngIf="showpopup" class="backpop">
+  <div *ngIf="showpopup" class="popupcontainer">
+  <div class="popup-content">
+    <img class="iconsuccess" src="image/success.svg" alt="">
+    <div class="headerpop">
+      Success
+    </div>
+    <div class="subheadersuccess">
+      {{popup}}
+    </div>
+    <button class="buttonclose" (click)="closepopup()">Back to Inventory</button>
+  </div>
+</div>
+</div>
+
+    <div *ngIf="isLoading" class="loading-container">
+  <img class="logo_loading" src="/image/logoo.svg" alt="" >
+  <div class="loading">
+    <div class="loader1"></div>
+    <div class="loader2"></div>
+    <div class="loader3"></div>
+    <div class="loader4"></div>
+  </div>
+</div>

@@ -274,5 +274,12 @@ export class TodoService {
   saveSettings(settingsData: any): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/settings`, settingsData, { headers: this.headers });
   }
-
+// เพิ่มฟังก์ชันสำหรับตรวจสอบ Role ของผู้ใช้จาก Email
+  checkUserRole(email: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/users/role/${email}`, { headers: this.headers });
+  }
+registerOrUpdateUser(userData: any) {
+  // แก้ไขจาก ttp://localhost:3000... เป็นการใช้ this.apiUrl แทน
+  return this.http.post(`${this.apiUrl}/users/upsert`, userData, { headers: this.headers });
+}
 }

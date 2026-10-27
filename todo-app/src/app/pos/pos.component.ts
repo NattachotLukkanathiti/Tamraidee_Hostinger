@@ -83,8 +83,11 @@ export class PosComponent implements OnInit, OnDestroy {
   notification: any[] = [];
 play_Return = false;
   Animation_out = false;
+    
+  storePhone: string = ''; 
   ngOnInit(): void {
      this.loadNotifications();
+      this.loadStoreSettings();
     const navigation = this.router.lastSuccessfulNavigation;
     const state = history.state;
     this.username = state.username || '';
@@ -107,7 +110,20 @@ play_Return = false;
 
     this.loadInventory();
   }
-
+  loadStoreSettings(): void {
+    this.todoService.getSettings().subscribe({
+      next: (settings) => {
+        if (settings && settings.phone) {
+          // ลบขีดหรือช่องว่างออก เพื่อให้ PromptPay ใช้งานได้ถูกต้อง
+          this.storePhone = settings.phone.replace(/[-\s]/g, ''); 
+        }
+         if (settings.address) {
+            this.storeAddress = settings.address; // <-- เพิ่มการดึงข้อมูลที่อยู่ตรงนี้
+          }
+      },
+      error: (err) => console.error('Error loading store settings:', err)
+    });
+  }
   loadInventory(): void {
     // ดึงข้อมูลจาก TodoService
     this.todoService.getInventory().subscribe({
@@ -417,17 +433,22 @@ closeQrModal(): void {
 qrCodeUrl: string = '';
 
 // 2. แก้ไขฟังก์ชันให้เหลือเพียงอันเดียว
-generatePromptPayQR(amount: number) {
-  const mobileNumber = '0894999377'; // เปลี่ยนเป็นเบอร์ของคุณ (ไม่ต้องมีขีด)
-  const payload = promptpay(mobileNumber, { amount });
-  
-  QRCode.toDataURL(payload, (err, url) => {
-    if (!err) {
-      this.qrCodeUrl = url; 
-      this.changeDetector.markForCheck();
+  generatePromptPayQR(amount: number) {
+    if (!this.storePhone) {
+      alert('Not found number in Settings');
+      return;
     }
-  });
-}
+
+    const payload = promptpay(this.storePhone, { amount });
+    
+    QRCode.toDataURL(payload, (err, url) => {
+      if (!err) {
+        this.qrCodeUrl = url; 
+        this.changeDetector.markForCheck();
+      }
+    });
+  }
+
 
 
 // 1. เพิ่มตัวแปรควบคุม Modal เงินสด
@@ -466,7 +487,7 @@ generatePromptPayQR(amount: number) {
 
  confirmCashPayment(): void {
     if (this.cashReceived < this.total) {
-      return alert('จำนวนเงินที่รับมาไม่เพียงพอ');
+      return alert('No enough');
     }
 
     this.processOrder(); 
@@ -488,17 +509,22 @@ generatePromptPayQR(amount: number) {
   }
 
 
+  storeAddress: string = '';
 
 
-  // เพิ่มตัวแปรสำหรับสถานะชำระเงินสำเร็จ
   paymentSuccess = false;
 processOrder(): void {
     const orderCode = `#${this.orderCode}`;
     const now = new Date().toISOString();
 
+  const addressArray = this.storeAddress 
+      ? this.storeAddress.split(',').map(addr => addr.trim()) 
+      : ['ไม่พบข้อมูลที่อยู่'];
+
     const receiptData = {
       companyName: 'Tam rai dee Company Limited (Head Office)',
-      companyAddress: ['123/45 Gayson Tower, 15th Floor,', 'Ratchadamri Road,', 'Lumpini, Pathum Wan, Bangkok 10330'],
+         companyAddress: addressArray,
+/*       companyAddress: ['123/45 Gayson Tower, 15th Floor,', 'Ratchadamri Road,', 'Lumpini, Pathum Wan, Bangkok 10330'], */
       taxId: '0105560000000',
       receiptNumber: `REC-${this.orderCode}`,
       orderCode: orderCode,

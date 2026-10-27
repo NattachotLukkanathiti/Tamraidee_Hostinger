@@ -8,7 +8,7 @@
 
   <div class="container">
     <div class="header_Sign">
-  Sign in for faster checkout.
+  Sign in for customer Tamraidee.
 </div>
   <div class="navbar">
   <div class="header">
@@ -46,6 +46,20 @@
           <a routerLink="/forgot" class="For">Forgot Password?</a>
         </div>
         <div class="new">Don’t have an Account?  <a routerLink="/register" class="Create-account">Create an account</a></div>
+        <div class="eieii">Or you can choose to register through another platform.</div>
+          <div class="con_help">
+   <div class="internet">
+  <button class="Facebook" (click)="signInWithFacebook()">
+    <img class="icon" src="image/facebook.svg" alt="Facebook">
+  </button>
+  <button class="Google" (click)="signInWithGoogle()">
+    <img class="icon" src="image/google.svg" alt="Google">
+  </button>
+  <button class="Apple" (click)="signInWithApple()">
+    <img class="icon" src="image/apple.svg" alt="Apple">
+  </button>
+</div>
+  </div>
 </div>
 
 
@@ -61,14 +75,14 @@
 </div>
 
 <div class="line">
-  <div class="con_help">
+<!--   <div class="con_help">
     <div class="eieii">Or you can choose to register through another platform.</div>
     <div class="internet">
     <button class="Facebook"><img class="icon" src="image/facebook.svg" alt="Facebook"></button>
     <button class="Google"><img class="icon" src="image/google.svg" alt="Google"></button>
     <button class="Apple"><img class="icon" src="image/apple.svg" alt="Apple"></button>
   </div>
-  </div>
+  </div> -->
   <div class="grayy"></div>
   
 </div>
