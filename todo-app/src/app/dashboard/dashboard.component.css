@@ -184,7 +184,7 @@
 }
 
 .overdate {
-    width: 50%;
+    width: 70%;
     display: flex;
     margin-left: auto;
     flex-direction: row-reverse;
@@ -198,10 +198,9 @@
     justify-content: center;
     align-items: center;
 }
-
 .date {
     background-color: #e6eaed64;
-    width: 10%;
+    width: 5%;
     height: 10px;
     font-size: 15px;
     font-weight: 300;
@@ -212,8 +211,22 @@
     text-align: center;
     align-items: center;
     border: 0.5px solid #212b3623;
+    cursor: pointer; /* เพิ่ม cursor เพื่อให้รู้ว่าคลิกได้ */
+    transition: all 0.2s ease; /* เพิ่มความนุ่มนวลตอนเปลี่ยนสี */
 }
 
+.date:hover {
+    background-color: #84D46E;
+    color: white; /* เปลี่ยนสีตัวอักษรเมื่อ hover */
+}
+
+/* เพิ่มสไตล์สำหรับปุ่มที่ถูกเลือก */
+.date.active {
+    background-color: #84D46E; /* สีเขียวที่เข้มขึ้น */
+    color: white;
+    font-weight: 600;
+    border-color: #84D46E;
+}
 .iconsearch {
     position: absolute;
     display: flex;
@@ -840,6 +853,347 @@ box-sizing: border-box;
     }
 }
 
+@media print {
+  @page {
+    size: landscape;
+    margin: 15mm; /* เพิ่มระยะขอบกระดาษเพื่อไม่ให้เนื้อหาชิดขอบเกินไป */
+  }
+
+  /* ซ่อนส่วนที่ไม่จำเป็น */
+  .navbaar, .tab_con, .sidebar, .fix, .fix2, .in_bt, .in_bt2, .account-sidebar {
+    display: none !important;
+  }
+
+  .container2 {
+    padding: 0 !important; 
+    width: 100% !important;
+    box-sizing: border-box;
+    background-color: #fff !important;
+  }
+
+  /* ป้องกันการตัดหน้า และเพิ่มระยะห่างด้านบนเมื่อขึ้นหน้าใหม่ */
+  .static, .con_sale_order, .contall, .bigcontainergraph {
+    page-break-inside: avoid !important;
+    page-break-before: auto !important;
+    box-shadow: none !important; 
+    border: 1px solid #E6EAED !important;
+    margin-top: 20px !important; /* เพิ่มระยะห่างด้านบน */
+  }
+
+  /* --- บังคับให้กราฟแท่งแสดงผล --- */
+  .bar {
+    animation: none !important; 
+    transform: scaleY(1) !important; 
+    background-color: #84D46E !important; 
+    box-shadow: none !important; 
+    -webkit-print-color-adjust: exact !important; 
+    print-color-adjust: exact !important;
+  }
+
+  /* --- บังคับให้หัวข้อแสดงผลและไม่หลุดไปอยู่อีกหน้า --- */
+  .headerSale, .weekly__title, .header_sale {
+    color: #212B36 !important; 
+    display: block !important;
+    page-break-after: avoid !important; 
+  }
+
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .reload, .pdf, .xs {
+    display: none !important;
+  }
+}
+@media(max-width:1200px){
+     .consale{
+        width: 100%;
+    }
+    .CH{
+        font-size: 15px;
+    }
+     .container2 {
+        padding: 70px 10px 20px 10px !important;
+        width: 100% !important;
+        box-sizing: border-box;
+    }
+    .contall{
+        padding: 2px;
+    }
+    .tab{
+        margin-top: 50px;
+    }
+    .header_Inventory{
+        font-size: 50px !important;
+        transform: translateY(-50px) !important;
+        
+    }
+     .container2 {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .headercompany {
+        display: none;
+       
+    }
+    
+    .navbaar{
+        display: none;
+    }
+    .headersum {
+        margin-top: 30px;
+        margin-bottom: 30px;
+        color: #2B2F38;
+    }
+
+    .hamburger {
+        border: 0.5px solid #00000031;
+        border-radius: 8px;
+        background-color: white;
+        margin-left: auto;
+        margin-right: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        width: 40px;
+        flex-direction: row-reverse;
+        height: 40px;
+    }
+    .in_bt {
+    display: flex !important;
+    right: 0;
+    margin-top: 30px;
+    position: absolute;
+    gap: 8px;
+    align-items: center;
+}
+    .search {
+        display: none;
+    }
+    .over{
+        
+    
+    }
+    .navbaar {
+        padding: 15px;
+
+    }
+
+    .sidebar {
+        width: 280px;
+        padding: 20px;
+        overflow: hidden;
+        background: #F4F5FC;
+        transition: all .3s ease;
+        flex-shrink: 0;
+    }
+
+    .profile {
+        display: none;
+    }
+
+    .conT {
+        margin-left: 30px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 30px;
+    }
+
+    .conT {
+        margin-left: 30px;
+        margin-right: 30px;
+        display: flex;
+        gap: 10px;
+        margin-bottom: 30px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(40%, 2fr));
+        /* ปรับ 200px ตามขนาดที่ต้องการ */
+        gap: 10px;
+    }
+
+    .T {
+        height: 70px;
+        max-width: 100%;
+        width: 40vw;
+        /* เพิ่มความกว้าง */
+        background-color: #FFF;
+        /* เปลี่ยนเป็นสีดำเพื่อทดสอบ */
+        border-radius: 10px;
+        box-shadow: 0px 2px 6px 0px #00000013;
+
+    }
+    
+
+    .bar {
+        width: 5vw;
+        background-color: #84D46E;
+        border-radius: 10px;
+
+    }
+
+    .con {
+        margin-right: 40px;
+        gap: 0;
+    }
+
+    .bar-container {
+        margin-top: 70px;
+        display: inline-block;
+        margin-right: 10px;
+        width: 5%;
+        vertical-align: bottom;
+    }
+
+    .num {
+        color: #646B72;
+        font-weight: 300;
+        font-size: 12px;
+        margin-bottom: 20px;
+    }
+
+    .mon {
+        color: #646B72;
+        font-weight: 300;
+        font-size: 10px;
+    }
+
+    .line {
+        margin-top: -62px;
+    }
+
+    .overdate {
+        display: none;
+    }
+
+    .headerSale {
+        font-size: 18px;
+    }
+
+    .sidebar {
+        width: 0;
+        padding: 0;
+        overflow: hidden;
+        background: #F4F5FC;
+        transition: all .3s ease;
+        flex-shrink: 0;
+    }
+
+    .sidebar.open {
+        width: 280px;
+        padding: 20px;
+
+    }
+
+    .fix.open~.container {
+        opacity: 0;
+        transition: all 0.3s ease;
+    }
+
+    .fix {
+        position: relative;
+        width: 0;
+        padding: 0;
+        overflow: hidden;
+        background: #F4F5FC;
+        transition: all .3s ease;
+        flex-shrink: 0;
+    }
+
+
+    .fix.open {
+        width: 100%;
+        padding: 20px;
+        height: 100vh;
+    }
+
+    .iconpass {
+        position: relative;
+        display: flex;
+        width: 30px;
+        height: 30px;
+        top: 30%;
+        margin-left: 10%;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .profile {
+        display: none;
+    }
+
+    .fix2 {
+        display: none;
+    }
+
+    .Logout {
+        position: fixed;
+        bottom: 20px;
+        z-index: 1000;
+        /* เพื่อให้ปุ่มอยู่ด้านบนสุดเสมอ */
+    }
+
+    .container_bar {
+        display: flex;
+        gap: 10px;
+        margin-left: 20px;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        width: 450px;
+        height: 50px;
+    }
+
+    .lin {}
+
+    .iconsetting1 {
+        display: none;
+    }
+
+    .time {
+        position: relative;
+        width: 10px;
+        overflow: hidden;
+        white-space: nowrap;
+        cursor: pointer;
+        justify-content: center;
+
+        transition: width 0.2s ease-in-out;
+    }
+
+    .Y {
+        display: none;
+    }
+
+    .time.active {
+        width: 70px;
+    }
+
+    .time.active .Y {
+        display: block;
+    }
+
+    .num-container {
+        margin-top: 60px;
+    }
+
+    .popupcontainer {
+        width: 60% !important;
+
+    }
+
+    .headerpop {
+        font-size: 20px !important;
+    }
+
+    .iconsuccess {
+        width: 60px !important;
+        height: 60px !important;
+    }
+}
 @media (max-width:768px) {
     .consale{
         width: 100%;
@@ -1211,8 +1565,7 @@ box-sizing: border-box;
 
 .value {
     display: flex;
-    font-size: 13px;
-    font-size: 20px;
+    font-size: 15px;
     font-weight: 400;
     justify-content: flex-end;
     margin-right: 20px;
@@ -2062,4 +2415,20 @@ box-sizing: border-box;
   .reload, .pdf, .xs {
     display: none !important;
   }
+}
+
+.fade-out-left {
+    animation: Move_Left 1s ease-in-out forwards !important;
+}
+
+@keyframes Move_Left {
+    0% {
+        transform: translateX(0px);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateX(-2000px); /* เลื่อนไปทางซ้าย */
+        opacity: 0;
+    }
 }

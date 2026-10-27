@@ -8,10 +8,10 @@
  -->
     <!-- เมนูตรงกลาง Navbar -->
     <div class="con_nav">
-        <div class="he" *ngIf="userRole === 'pos' || userRole === 'pos'" (click)="Animationa_out1()">Pos</div>
+        <div class="he" (click)="Animationa_out1()">Pos</div>
         <div class="he" *ngIf="userRole === 'admin' || userRole === 'manager'" (click)="Animationa_out()">Dashboard</div>
         <div class="he" *ngIf="userRole === 'admin' || userRole === 'backend'" (click)="inventory()">Inventory</div> <!-- แก้ไขให้แยกฟังก์ชัน -->
-        <div class="he" *ngIf="userRole === 'admin' || userRole === 'pos'" (click)="Animation_out2()">Sales Orders</div>
+        <div class="he"  (click)="Animation_out2()">Sales Orders</div>
         <div class="he"  *ngIf="userRole === 'admin' || userRole === 'backend'" (click)="Animation_out3()">Stock History</div>
         <div class="he" *ngIf="userRole === 'admin' || userRole === 'admin'"(click)="Animation_out4()">Employee</div>
         <div class="he" *ngIf="userRole === 'admin' || userRole === 'manager'"(click)="Animation_out6()">Audit Log</div>
@@ -121,8 +121,13 @@
         </div>
         
        <div class="sku3">
+          <span class="view" *ngIf="item.title.includes('Pending Approvals')|| item.title.includes('Stock Adjustment')|| item.title.includes('Accepted') || item.title.includes('Rejected')  " 
+          (click)="goToHistory(item); $event.stopPropagation()" 
+        >
+        View Details
+    </span>
     <span>{{ getTimeAgo(item.created_at) }}</span>
-    <!-- ซ่อนจุดสีฟ้าเมื่อ is_read เป็น true -->
+
     <div class="blue_noti" *ngIf="!item.is_read"></div>
 </div>
     </div>
@@ -130,7 +135,7 @@
 </div>
 </div>
 </main>
-            <!-- จบส่วนของ Notification -->
+       
 
         </div>
     </div>

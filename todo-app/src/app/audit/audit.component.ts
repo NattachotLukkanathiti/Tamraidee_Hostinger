@@ -201,6 +201,15 @@ export class AuditComponent {
       })
     } ,300)
   }
+  Animationa_out1(){
+            this.Animation_outdash = true;
+
+    setTimeout(() =>{
+      this.router.navigate(['/pos'],{
+        state:{username: this.username , email: this.email, Move_return6:true ,role:this.userRole ,profile:this.profile}
+      })
+    } ,300)
+  }
   openpopupnoti(message:string){
     this.showpopupnoti = true;
     this.popup = message;

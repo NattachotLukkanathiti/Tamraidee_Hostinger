@@ -230,8 +230,18 @@ loadNotifications() {
         item.is_read = false; 
       }
     });
+     if (item.title && item.title.includes('Pending Approvals')) {
+      this.Animation_out3(); // ฟังก์ชันสำหรับไปหน้า Stock History
+    }
   }
-  // เช็คว่ามีอันที่ยังไม่ได้อ่านเหลืออยู่ไหม
+  
+ goToHistory(item: any) {
+    // 1. ทำการบันทึกว่าอ่านแล้ว
+    this.markAsRead(item);
+    
+    // 2. นำทางไปหน้า Stock History
+    this.Animation_out3();
+}
   get hasUnreadNotifications(): boolean {
     return this.notifications.some(item => !item.is_read);
   }

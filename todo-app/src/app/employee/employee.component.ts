@@ -111,7 +111,7 @@ selectedaccount: any = { role: '' };
 
 
     Animationa_out1(){
-
+  this.Animation_outdash = true;
     setTimeout(() =>{
       this.router.navigate(['/pos'],{
         state:{username: this.username , email: this.email, Move_return6:true ,role:this.userRole ,profile:this.profile}

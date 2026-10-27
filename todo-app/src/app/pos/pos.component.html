@@ -10,8 +10,8 @@
        <div class="con_nav">
        <!--   <img class="iconweb" src="image/logo.svg" alt=""> -->
 <!--         <img class="apple" src="image/apple.png" alt=""> -->
-              <div class="he" *ngIf="userRole === 'pos' || userRole === 'backend'" (click)="Animationa_out1()">Pos</div>
-                    <div class="he"  *ngIf="userRole === 'admin' || userRole === 'manager'"  (click)="Animationa_out()">Dashboard</div>
+              <div class="he" (click)="Animationa_out1()">Pos</div>
+                    <div class="he"  *ngIf="userRole === 'admin' || userRole === 'manager'"  (click)="Animation_out66()">Dashboard</div>
 <div  class="he" *ngIf="userRole === 'admin' || userRole === 'backend'" (click)="Animationa_out()">Inventory</div>
 <div class="he" (click)="Animation_out2()">Sales Orders</div>
 <div class="he"  *ngIf="userRole === 'admin' || userRole === 'backend'"  (click)="Animation_out3()">Stock History</div>
@@ -31,17 +31,35 @@
         <div class="lin"></div>
         <img class="iconsetting1" src="image/Maximize Icon.svg" (click)="toggleFullScreen()"  alt="">
         <!-- <img class="iconsetting2" src="image/Song.svg" alt=""> -->
-        <div class="red_noti">
-  <!-- จุดสีแดงจะแสดง ก็ต่อเมื่อมีข้อมูลในตาราง notifications เท่านั้น -->
-  <div class="red_notification" *ngIf="notification && notification.length > 0"></div>
-  
-  <button class="header-icon" type="button" aria-label="Notifications" (click)="openNotifications()">
+     <div class="red_noti">
+  <div
+    class="red_notification"
+    *ngIf="hasUnreadNotifications">
+  </div>
+
+  <button
+    class="header-icon"
+    type="button"
+    aria-label="Notifications"
+    (click)="openNotifications()">
     <img src="image/Chart.svg" alt="" />
   </button>
-      
 </div>
-        <button class="avatar-button" type="button" aria-label="Open account menu" [attr.aria-expanded]="openPanel === 'account'" (click)="toggleAccountMenu()"><img [src]="profile || 'image/profileee.svg'" /></button>
-        
+
+<div class="red_noti">
+  <!-- จุดสีแดง (แสดงเมื่อมีเงื่อนไขที่คุณกำหนด) -->
+  <div class="red_notification" *ngIf="hasProfileUpdate"></div>
+
+  <!-- ปุ่มโปรไฟล์ที่รวมแล้ว -->
+  <button 
+    class="avatar-button" 
+    type="button" 
+    aria-label="Open account menu" 
+    [attr.aria-expanded]="openPanel === 'account'" 
+    (click)="toggleAccountMenu()">
+    <img [src]="profile || 'image/profileee.svg'" alt="Profile" />
+  </button>
+</div>
     </div>
 
 </div>

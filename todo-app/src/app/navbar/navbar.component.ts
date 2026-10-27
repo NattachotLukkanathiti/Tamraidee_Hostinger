@@ -180,6 +180,23 @@ ber = false;
       error: (err) => console.error('Error loading summary:', err)
     });
   }
+
+  Animationa_out11(){
+     this.isClosing = true;
+    this.outs = false;
+        this.out = true;
+    this.play_Return = false;
+    this.Animation_out = true;
+    
+    setTimeout(() =>{
+      this.router.navigate(['/pos'],{
+        state:{username: this.username , email: this.email ,role:this.userRole ,profile:this.profile}
+        
+      })
+        this.ber = false;
+        this.isClosing = false;
+    } ,300)
+  }
   Animationa_out1(){
      this.isClosing = true;
     this.outs = false;

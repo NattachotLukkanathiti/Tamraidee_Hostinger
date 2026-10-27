@@ -10,7 +10,10 @@
 * { 
     box-sizing: border-box; 
 }
-
+.view{
+    margin-right: 50px;
+    cursor: pointer;
+}
 .navbaar {
     display: flex;
     align-items: center; 

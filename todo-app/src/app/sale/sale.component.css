@@ -288,7 +288,6 @@ input::placeholder{
   padding: 12px 16px;
   color: #48505E;
   font-weight: 100;
-  background-color: #ffffff;
   border: 1px solid #E5E7EB;
   border-radius: 8px;
   appearance: none;
@@ -1667,13 +1666,26 @@ width: 100%;
     align-items: center;
     width: 100%;
     gap: 10px;
-    background-color: #F4F5FC;
+
     box-sizing: border-box;
     padding: 10px 20px; 
     border-radius: 8px; 
     font-weight: bold;
 }
+/* เพิ่มคลาสนี้เข้าไปใน CSS ของคุณ */
+select.sku_input {
+    cursor: pointer;
+    height: auto !important;      /* ให้ความสูงขยายตามเนื้อหา */
+    padding: 10px 17px !important; /* ลด padding บน-ล่าง */
+    line-height: normal !important; /* จัดตำแหน่งตัวหนังสือให้อยู่ตรงกลาง */
+    box-sizing: border-box !important;
+}
 
+/* ปรับให้ตัวเลือก (option) มีสีที่มองเห็นได้ชัดเจน */
+.sku_input option {
+    color: #48505E !important;
+    background-color: white !important;
+}
 .sku_pro {
     flex: 1; 
     text-align: left; /* เปลี่ยนเป็น left เพื่อให้ข้อความชิดซ้าย */
@@ -1831,8 +1843,8 @@ width: 100%;
 }
 .sku_pro3{
     font-size: 13px;
-    position: relative;
-    margin-right:75px; /* ดันไปชิดขวา */
+    position: absolute;
+        margin-top: 70px; 
 }
 .connnn {
     display: flex;

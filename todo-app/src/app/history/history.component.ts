@@ -115,10 +115,10 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
       this.currentTime = new Date();
     });
   }
-  reloads() {
-    this.history
+ reloads() {
     this.isLoading = true; 
-}   
+    this.loadHistory();    
+}
   Animationa2_out(){
     this.Animation_outdash = true;
 
@@ -197,7 +197,7 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 
 
  loadHistory() {
-    this.loader = true;
+    this.isLoading = false;
     this.todoService.getTodoss().subscribe({
       next: (users) => {
         this.todoService.getHistory().subscribe({

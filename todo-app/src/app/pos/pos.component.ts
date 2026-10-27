@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { TodoService } from '../services/todo.service'; // นำเข้า TodoService
 import promptpay from 'promptpay-qr';
+import { forkJoin } from 'rxjs'; 
 import * as QRCode from 'qrcode';
 interface Category {
   label: string;
@@ -86,6 +87,7 @@ play_Return = false;
     
   storePhone: string = ''; 
   ngOnInit(): void {
+    
      this.loadNotifications();
       this.loadStoreSettings();
     const navigation = this.router.lastSuccessfulNavigation;
@@ -179,7 +181,9 @@ play_Return = false;
       const categoryMatches = this.selectedCategory === 'All Categories' || product.category === this.selectedCategory;
       const queryMatches = !query || `${product.name} ${product.category}`.toLowerCase().includes(query);
       return categoryMatches && queryMatches;
-    });
+    })
+    
+      
   }
 
   get filteredInventory() {
@@ -261,7 +265,7 @@ play_Return = false;
     } ,300)
   }
   Animation_out4(){
-        
+            this.Animation_out = true;
     setTimeout(() =>{
       this.router.navigate(['/employee'],{
         state:{username: this.username , email: this.email, Move_return4:true ,role:this.userRole ,profile:this.profile }
@@ -269,7 +273,7 @@ play_Return = false;
     } ,300)
   }
   Animation_out5(){
-            
+                this.Animation_out = true;
     setTimeout(() =>{
       this.router.navigate(['/suppliers'],{
         state:{username: this.username , email: this.email, Move_return5:true ,Dont_animation:true ,role:this.userRole ,profile:this.profile}
@@ -277,15 +281,54 @@ play_Return = false;
     } ,300)
   }
   Animation_out6(){
-          
+              this.Animation_out = true;
     setTimeout(() =>{
       this.router.navigate(['/audit'],{
         state:{username: this.username , email: this.email, Move_return6:true ,Dont_animation:true ,role:this.userRole ,profile:this.profile}
       })
     } ,300)
   }
-  
-  
+    Animation_out66(){
+              this.Animation_out = true;
+    setTimeout(() =>{
+      this.router.navigate(['/dashboard'],{
+        state:{username: this.username , email: this.email, Move_return6:true ,Dont_animation:true ,role:this.userRole ,profile:this.profile}
+      })
+    } ,300)
+  }
+ get hasUnreadNotifications(): boolean {
+    if (!this.notification || this.notification.length === 0) return false;
+    if (!this.notification_status) return true;
+
+    const readIds = new Set(this.notification_status.map((s: any) => String(s.notification_id)));
+
+    const unreadVisibleItems = this.notification.filter((item: any) => {
+      if (readIds.has(String(item.id))) return false;
+
+      const title = item.title || '';
+      const role = this.userRole;
+
+      const isHiddenForAdmin = title.includes('submitted') && role !== 'admin';
+      const isHiddenForBackendPos = !title.includes('submitted') && title.includes('Pending Approvals') && role !== 'backend' && role !== 'pos';
+      const isHiddenForStatus = (title.includes('Accepted') || title.includes('Rejected')) && role !== 'backend' && role !== 'pos';
+
+      if (isHiddenForAdmin || isHiddenForBackendPos || isHiddenForStatus) return false;
+
+      return true;
+    });
+
+    return unreadVisibleItems.length > 0;
+  }
+  notification_status: any[] = [];
+  chatMessages: any[] = [];
+  status: string = 'active';
+  // ปรับปรุง hasProfileUpdate ให้เช็คข้อความที่ยังไม่ได้อ่าน
+  get hasProfileUpdate(): boolean {
+    if (this.status.toLowerCase() === 'inactive') return false; 
+    if (!this.chatMessages || this.chatMessages.length === 0) return false;
+    
+    return this.chatMessages.some(m => !m.is_read && m.sender !== this.username);
+  }
   toggleNav(): void { this.isNavOpen = !this.isNavOpen; this.openPanel = null; }
   selectNav(label: string): void { if (label !== 'Pos') return; this.selectedNav = label; this.isNavOpen = false; this.currentView = 'pos'; }
   toggleAccountMenu(): void { this.openPanel = this.openPanel === 'account' ? null : 'account'; this.isNavOpen = false; }
@@ -395,11 +438,17 @@ play_Return = false;
     this.isClosing = false;
     this.openPanel = 'account';
   }
-loadNotifications(): void {
-    this.todoService.getNotifications().subscribe({
+ loadNotifications(): void {
+    if (!this.username) return;
+
+    forkJoin({
+      notifications: this.todoService.getNotifications(),
+      status: this.todoService.getNotificationStatus(this.username)
+    }).subscribe({
       next: (res: any) => {
-        this.notification = Array.isArray(res) ? res : (res.data || []);
-        this.changeDetector.markForCheck(); // สั่งให้ Angular อัปเดต UI
+        this.notification = Array.isArray(res.notifications) ? res.notifications : (res.notifications?.data || []);
+        this.notification_status = Array.isArray(res.status) ? res.status : (res.status?.data || []);
+        this.changeDetector.markForCheck(); 
       },
       error: (err) => console.error('Error loading notifications:', err)
     });

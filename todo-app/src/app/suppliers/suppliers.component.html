@@ -8,7 +8,7 @@
        <div class="con_nav">
        <!--   <img class="iconweb" src="image/logo.svg" alt=""> -->
 <!--         <img class="apple" src="image/apple.png" alt=""> -->
-              <div class="he" *ngIf="userRole === 'pos' || userRole === 'pos'" (click)="Animationa_out1()">Pos</div>
+              <div class="he"  (click)="Animationa_out1()">Pos</div>
                     <div class="he"  *ngIf="userRole === 'admin' || userRole === 'manager'"  (click)="Animationa_out()">Dashboard</div>
 <div  class="he" *ngIf="userRole === 'admin' || userRole === 'manager'" (click)="Animationa2_out()">Inventory</div>
 <div class="he" (click)="Animationa3_out()">Sales Orders</div>
@@ -81,9 +81,12 @@
         <div class="container" [class.fade-out]="Animation_out" [class.fade-out2]="Animation_outdash" [class.Return]="play_Return" [class.Boom]="stan">
             <div class="static">
                 <div class="header_in">
-                    <div class="header_Inventory">Suppliers</div>
+                    <div class="back-button" *ngIf="isViewingBrand" (click)="backToSuppliers()">
+                 <img src="image/back.svg" alt="">
+            </div>
+                    <div class="header_Inventory">{{ isViewingBrand ? selectedSupplierName : 'Suppliers' }}</div>
                         <div class="in_bt">
-                           
+                            
                                 
                           
                         </div>
@@ -137,7 +140,7 @@
     <div class="add_supplier" (click)="button_imports()"><img src="image/plus.svg" alt="">Add  Supplier</div>
 </div>
                     </div>
-                <div class="detail_con">
+                <div class="detail_con"  *ngIf="!isViewingBrand">
                  <div class="table-container">
                     
     <!-- Header -->
@@ -166,7 +169,7 @@
                     </ng-container>
     <!-- Data Rows -->
  <ng-template #realData>
-  <div class="table_detail2" *ngFor="let order of filteredSuppliers; let i = index" ...>
+  <div class="table_detail2"  (click)="viewSupplierOrders(order)" *ngFor="let order of filteredSuppliers; let i = index" ...>
     <div class="table_detail">
       <div class="sku2" data-label="Created By">
         <img class="profile_employee" [src]="order.logo" alt="">{{ order.created_by }}
@@ -183,10 +186,43 @@
     </div>
     <div class="line"></div>
   </div>
+
+
 </ng-template>
 </div>
   
                 </div>
+                <!-- 2. ตารางรายการสินค้าของแบรนด์ (แสดงเมื่อ isViewingBrand เป็น true) -->
+<div class="detail_con" *ngIf="isViewingBrand">
+    <div class="table-container">
+        <div class="table">
+            <div class="sku">Product Name</div>
+            <div class="sku">Quantity</div>
+            <div class="sku">Amount</div>
+            <div class="sku">Date</div>
+        </div>
+        
+        <div class="table_detail2" *ngFor="let order of supplierOrders">
+            <div class="table_detail">
+                <!-- เพิ่มการแสดงรูปภาพสินค้า -->
+                <div class="sku2">
+                    <div class="connn">
+                        <img class="profile_employee" [src]="order.picture || 'image/default-product.svg'" alt="">
+                        {{ order.product_name }}
+                    </div>
+                </div>
+                <div class="sku2">{{ order.quantity }}</div>
+                <div class="sku2">{{ order.amount }}</div>
+                <div class="sku2">{{ order.created_at | date:'dd/MM/yyyy' }}</div>
+            </div>
+            <div class="line"></div>
+        </div>
+
+        <div *ngIf="supplierOrders.length === 0" style="text-align: center; padding: 20px; color: #888;">
+            No completed orders found for this brand.
+        </div>
+    </div>
+</div>
                 
             </div>
 
@@ -373,3 +409,5 @@
         </div>
     </div>
 </div>
+
+

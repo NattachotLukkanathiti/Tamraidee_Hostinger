@@ -425,7 +425,7 @@ filterByCategory() {
   if (file) {
     this.selectedFile = file;
     
-    // เคลียร์ค่า URL เดิมออก เพื่อให้ระบบรู้ว่ากำลังใช้ไฟล์ใหม่
+
     if (this.selectedProduct) {
       this.selectedProduct.picture = ''; 
     }
@@ -441,14 +441,14 @@ filterByCategory() {
 
   async saveToStock() {
     this.isLoading = true;
-     // 1. ดึงค่า Prefix จาก SKU ที่ผู้ใช้กรอก หรือจาก Category
+
     let prefix = '';
     
     if (this.newProduct.sku && this.newProduct.sku.trim() !== '') {
-      // ถ้าผู้ใช้กรอก SKU มา (เช่น ELEC) ให้ใช้คำนั้นเป็น Prefix
+     
       prefix = this.newProduct.sku.trim().toUpperCase();
     } else if (this.newProduct.category) {
-      // ถ้าไม่ได้กรอก SKU ให้ใช้ Category แทน
+   
       prefix = this.newProduct.category.trim().toUpperCase();
     } else {
       this.openpopupnoti('Please enter SKU or Category');
@@ -456,11 +456,11 @@ filterByCategory() {
       return;
     }
 
-    // 2. สร้าง SKU ใหม่ (ถ้าผู้ใช้กรอกแค่ Prefix หรือไม่ได้กรอกเลย)
+    
     if (!this.newProduct.sku || !this.newProduct.sku.includes('-')) {
       let maxNumber = 0;
 
-      // หาตัวเลขสูงสุดของ Prefix นั้นๆ
+
       this.Inventory.forEach(item => {
         if (item.sku && item.sku.startsWith(prefix + '-')) {
           const parts = item.sku.split('-');
@@ -473,12 +473,12 @@ filterByCategory() {
         }
       });
 
-      // เติม -001 ต่อท้าย
+
       const nextNumber = (maxNumber + 1).toString().padStart(3, '0');
       this.newProduct.sku = `${prefix}-${nextNumber}`;
     }
 
-    // 3. ตรวจสอบการซ้ำของ SKU
+
     const isDuplicate = this.Inventory.some(item => item.sku === this.newProduct.sku);
 
     if (isDuplicate) {
@@ -487,11 +487,11 @@ filterByCategory() {
       return; 
     }
 
-    // ใช้ค่า URL ที่ผู้ใช้กรอกเข้ามาโดยตรง
+
   let pictureUrl = this.newProduct.picture || '';
 
   try {
-    // 2. เพิ่มโค้ดส่วนนี้: ถ้าผู้ใช้เลือกไฟล์จากเครื่อง ให้อัปโหลดขึ้น Supabase ก่อน
+   
     if (this.selectedFile) {
       const fileExt = this.selectedFile.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
@@ -507,11 +507,11 @@ filterByCategory() {
         .from('Photo')
         .getPublicUrl(filePath);
               
-      pictureUrl = publicUrlData.publicUrl; // นำ URL ที่ได้ไปใช้บันทึก
+      pictureUrl = publicUrlData.publicUrl; 
     }
 
     
-      // เพิ่ม pictureUrl เข้าไปใน object ข้อมูล
+   
       const productData = {
         ...this.newProduct,
         picture: pictureUrl,
@@ -522,7 +522,7 @@ filterByCategory() {
         next: (res) => {
           this.openpopup('New product created successfully. View changes in Stock History');
           this.loadInventory();
-          this.resetForm();
+      
           const now = new Date();
          const historyData = {
   date: now.toISOString().split('T')[0],
@@ -556,19 +556,20 @@ filterByCategory() {
             error: (err) => console.error('Failed to save audit', err)
           });
 
-          // 2. บันทึก Notification
+    
           const productName = this.newProduct.product_name || this.newProduct.sku;
           const importQty = this.newProduct.import_quantity || 0;
              this.todoService.addNotification(
-            `Stock Update : ${productName}`, // title
-            `Import Product: ${productName} (+${importQty})`, // description (เพิ่มชื่อสินค้าและจำนวน)
-            'success',                       // type
-            'Just now'                       // time_ago
+            `Stock Update : ${productName}`, 
+            `Import Product: ${productName} (+${importQty})`, 
+            'success',                      
+            'Just now'         
+                          
           ).subscribe({
             next: () => console.log('Notification saved'),
             error: (err) => console.error('Failed to save notification', err)
           });
-
+    this.resetForm();
           this.isLoading = false;
         },
         error: (err) => {
@@ -1043,5 +1044,22 @@ onInvoiceFileSelected(event: any) {
 }
 triggerInvoiceUploadAdd() {
   document.getElementById('invoiceUploadAdd')?.click();
+}
+
+showInvoicePopup: boolean = false;
+selectedUpload: string = ''; 
+selectedInvoiceSku: string = '';
+
+showInvoice(item: any) {
+    this.selectedInvoiceSku = item.sku;
+    
+    // ดึงค่า upload จาก item ของ inventory โดยตรง
+    this.selectedUpload = item.upload || ''; 
+    
+    this.showInvoicePopup = true;
+}
+
+closeInvoicePopup() {
+    this.showInvoicePopup = false;
 }
 }

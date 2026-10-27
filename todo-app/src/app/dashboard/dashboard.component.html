@@ -12,6 +12,7 @@
        <div class="con_nav">
        <!--   <img class="iconweb" src="image/logo.svg" alt=""> -->
 <!--         <img class="apple" src="image/apple.png" alt=""> -->
+               <div class="he" (click)="Animationa_out1()" >Pos</div>
                     <div class="he"  (click)="Animationa_out()">Dashboard</div>
 <div  class="he"(click)="Animationa_out()">Inventory</div>
 <div class="he" (click)="Animation_out2()">Sales Orders</div>
@@ -111,7 +112,7 @@
     </div>
 
    <div class="container2">
-     <div class="container" [class.fade-out]="Animation_out" [class.fade-out2]="Animation_outsale"
+     <div class="container" [class.fade-out-left]="Animation_outLeft"  [class.fade-out]="Animation_out" [class.fade-out2]="Animation_outsale"
         [class.Return]="play_Return" [class.Boom]="stan">
     <div class="hea">
         <div class="con_header">
@@ -146,7 +147,7 @@
         <img class="iconpass" src="image/shop2.svg" alt="">
         <div class="con_sub2">
             <div class="value">{{ summary.yearly_total_sales | number:'1.2-2' }}</div>
-            <div class="sub">Yearly Total Sales</div>
+            <div class="sub">Yearly Sales</div>
         </div>
     </div>
     <div class="T">
@@ -172,14 +173,14 @@
                 <div class="headerSale">
                     Sales & Purchase
                 </div>
-                <div class="overdate">
-                    <div class="date">1Y</div>
-                    <div class="date">6M</div>
-                    <div class="date">3M</div>
-                    <div class="date">1M</div>
-                    <div class="date">1W</div>
-                    <div class="date">1D</div>
-                </div>
+               <div class="overdate">
+    <div class="date" 
+         *ngFor="let range of dateRanges" 
+         [class.active]="selectedRange === range"
+         (click)="selectRange(range)">
+        {{ range }}
+    </div>
+</div>
             </div>
             <div class="line-header"></div>
             <div class="box-total">
@@ -279,7 +280,7 @@
 
 
     </div>
-    <div class="consale" [class.fade-out]="Animation_out" [class.fade-out2]="Animation_outsale"
+    <div class="consale" [class.fade-out-left]="Animation_outLeft" [class.fade-out]="Animation_out" [class.fade-out2]="Animation_outsale"
         [class.Return]="play_Return" [class.Boom]="stan">
          <div class="in_bt2">
                          <!-- แก้ไขตรงนี้ -->

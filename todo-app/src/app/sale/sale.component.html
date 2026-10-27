@@ -12,7 +12,7 @@
        <div class="con_nav">
        <!--   <img class="iconweb" src="image/logo.svg" alt=""> -->
 <!--         <img class="apple" src="image/apple.png" alt=""> -->
-         <div class="he" *ngIf="userRole === 'pos' || userRole === 'backend'" (click)="Animationa_out1()">Pos</div>
+         <div class="he" (click)="Animationa_out1()">Pos</div>
                     <div class="he" *ngIf="userRole === 'admin' || userRole === 'manager'"  (click)="Animationa_out()">Dashboard</div>
 <div  class="he"*ngIf="userRole === 'admin' || userRole === 'backend'" (click)="Animationa2_out()">Inventory</div>
 <div class="he" >Sales Orders</div>
@@ -275,13 +275,13 @@
 
         <!-- Row 1: Adjustment No. & Quantity -->
         <div class="con_sku_pro">
-         <div class="sku_pro full-width">
+         <div class="sku_pro">
     <label class="label_import" for="">Cancellation Reason</label>
     <div class="custom-select-wrapper">
-        <select class="sku_input custom-dropdown" [(ngModel)]="selectedProduct.cancel_reason">
-            <option value="" disabled selected>Select a reason</option>
-            <option value="Customer Request">Canceled</option>
-            <option value="Incorrect Information">Incorrect Information (ข้อมูลไม่ถูกต้อง)</option>
+        <select class="sku_input" [(ngModel)]="selectedProduct.cancel_reason">
+            <option value="" disabled selected class="op">Select a reason</option>
+            <option value="Customer Request" class="op">Canceled</option>
+            <option value="Incorrect Information" class="op">Incorrect Information</option>
         </select>
     </div>
 </div>
@@ -293,7 +293,7 @@
           <label class="label_import">Created By</label>
         <div class="con_sku_pro" style="align-items: center; margin-top: 20px;">
             <div class="sku_pro" style="display: flex; align-items: center;">
-                <!-- แก้ไขการแสดงผลรูปภาพและชื่อผู้สร้าง -->
+           
                 <img class="profile_employee" [src]="selectedProduct.picture || 'image/user_avatar.svg'" alt="" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 10px;">
                <span>{{ selectedProduct.create_by || username }}</span>
             </div>
@@ -350,7 +350,14 @@
             <div class="sku_pro" >{{ item.brand || '-' }}</div>
             <div class="sku_pro" >{{ item.quantity }}</div>
             <div class="sku_pro" >{{ item.price | number }}</div>
-            <div class="sku_pro" >{{ (item.price * item.quantity) | number }}</div>
+            <div class="sku_pro" >{{ (item.price * item.quantity) | number }}
+                    <div class="sku_pro3" style="text-align: right;">
+        <div>{{ selectedProduct.subtotal || (selectedProduct.amount) | number }}</div>
+        <div>{{ selectedProduct.insurance || '0' | number }}</div>
+        <div>{{ selectedProduct.discount  || 'None' }}</div>
+        <div style="font-weight: bold; margin-top: 10px;">{{ selectedProduct.amount | number }}</div>
+    </div>
+            </div>
         </div>
 
         <!-- Grand Total & Summary -->
@@ -369,12 +376,7 @@
     </div>
 
     <!-- ฝั่งขวา: ตัวเลข -->
-    <div class="sku_pro3" style="text-align: right;">
-        <div>{{ selectedProduct.subtotal || (selectedProduct.amount) | number }}</div>
-        <div>{{ selectedProduct.insurance || '0' | number }}</div>
-        <div>{{ selectedProduct.discount  || 'None' }}</div>
-        <div style="font-weight: bold; margin-top: 10px;">{{ selectedProduct.amount | number }}</div>
-    </div>
+
     </div>
 </div>
         </div>

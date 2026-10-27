@@ -237,10 +237,15 @@ this.loadTopProducts();
 loadSaleOrders() {
   this.todoService.getSaleOrders().subscribe({
     next: (res) => {
-            this.saleOrders = res.filter(order => order.status?.toLowerCase() === 'completed');
+         /*    this.saleOrders = res.filter(order => order.status?.toLowerCase() === 'completed');
             this.processWeeklySales(this.saleOrders); 
+            
 
-      this.processSaleOrdersForChart(this.saleOrders);
+      this.processSaleOrdersForChart(this.saleOrders); */
+         this.allSaleOrders = res.filter(order => order.status?.toLowerCase() === 'completed');
+      
+      // เรียกใช้การกรองตามค่าเริ่มต้น (เช่น 1Y)
+      this.filterDataByRange(this.selectedRange); 
  
       this.saleOrders = res.filter(order => {
         const status = order.status ? order.status.toLowerCase() : '';
@@ -343,13 +348,14 @@ products() {
   return this.productsList;
 }
 loadTopProducts() {
-
-  this.todoService.getHistory().subscribe({
-    next: (history) => {
+  // 1. ดึงข้อมูล Sale Orders
+  this.todoService.getSaleOrders().subscribe({
+    next: (orders) => {
+      // 2. ดึงข้อมูล Inventory เพื่อหารูปภาพ
       this.todoService.getInventory().subscribe({
         next: (inventory) => {
           
-      
+          // สร้าง Map สำหรับจับคู่ชื่อสินค้ากับรูปภาพ
           const inventoryMap: { [key: string]: string } = {};
           inventory.forEach(item => {
             if (item.product_name && item.picture) {
@@ -359,27 +365,29 @@ loadTopProducts() {
 
           const productCount: { [key: string]: { name: string; count: number; image?: string } } = {};
 
-          history.forEach(item => {
-            const name = item.product_name; 
+          // 3. วนลูปนับจำนวนสินค้าจาก Sale Orders ที่มีสถานะ completed
+          orders.forEach(order => {
+            if (order.status?.toLowerCase() === 'completed' && order.product_name) {
+              const name = order.product_name;
+              const quantity = Number(order.quantity) || 1; // ถ้าไม่มี quantity ให้ใช้ค่าเริ่มต้นเป็น 1
 
-            if (name) {
               if (productCount[name]) {
-                productCount[name].count += 1;
+                productCount[name].count += quantity;
               } else {
-          
-                const imageUrl = inventoryMap[name] || item.picture;
-                productCount[name] = { name: name, count: 1, image: imageUrl };
+                const imageUrl = inventoryMap[name] || order.picture;
+                productCount[name] = { name: name, count: quantity, image: imageUrl };
               }
             }
           });
 
+          // 4. เรียงลำดับจากมากไปน้อย และตัดเอาแค่ 5 อันดับแรก
           this.productsList = Object.values(productCount)
             .sort((a, b) => b.count - a.count)
             .slice(0, 5);
         }
       });
     },
-    error: (err) => console.error('Error loading top products:', err)
+    error: (err) => console.error('Error loading top products from sale orders:', err)
   });
 }
 processSaleOrdersForChart(orders: any[]) {
@@ -500,9 +508,50 @@ processSaleOrdersForChart(orders: any[]) {
     error: (err) => console.error('Error:', err)
   });
 }
+ Animation_outdash = false; 
+ Animation_outLeft = false;
+  Animationa_out1(){
+    this.Animation_out = true;      // สั่งให้เริ่มอนิเมชั่นหลัก
+     this.Animation_outLeft = true;
+    
+    setTimeout(() =>{
+      this.router.navigate(['/pos'],{
+        state:{username: this.username , email: this.email, Move_return6:true ,role:this.userRole ,profile:this.profile}
+      })
+    } ,300)
+  }
+ dateRanges: string[] = ['1D', '1W', '1M', '3M', '6M', '1Y'];
+  selectedRange: string = '1Y'; // ค่าเริ่มต้น
 
+ selectRange(range: string) {
+    this.selectedRange = range;
+    this.filterDataByRange(range);
+  }
+   allSaleOrders: any[] = [];
+filterDataByRange(range: string) {
+    const now = new Date();
+    let filtered = [...this.allSaleOrders];
 
-// 1. เพิ่มตัวแปรสำหรับ Pagination
+    filtered = this.allSaleOrders.filter(order => {
+      if (!order.created_at) return false;
+      const orderDate = new Date(order.created_at);
+      const diffTime = now.getTime() - orderDate.getTime();
+      const diffDays = diffTime / (1000 * 60 * 60 * 24);
+
+      switch (range) {
+        case '1D': return diffDays <= 1;
+        case '1W': return diffDays <= 7;
+        case '1M': return diffDays <= 30;
+        case '3M': return diffDays <= 90;
+        case '6M': return diffDays <= 180;
+        case '1Y': return diffDays <= 365;
+        default: return true;
+      }
+    });
+
+    // อัปเดตข้อมูลกราฟด้วยชุดข้อมูลที่กรองแล้ว
+    this.processSaleOrdersForChart(filtered);
+  }
   currentPage: number = 1;
   itemsPerPage: number = 5;
 
@@ -523,4 +572,7 @@ processSaleOrdersForChart(orders: any[]) {
       this.currentPage = page;
     }
   }
+
+
+  
 }

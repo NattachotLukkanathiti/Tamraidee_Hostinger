@@ -12,7 +12,7 @@
        <div class="con_nav">
        <!--   <img class="iconweb" src="image/logo.svg" alt=""> -->
 <!--         <img class="apple" src="image/apple.png" alt=""> -->
-          <div class="he" *ngIf="userRole === 'pos' || userRole === 'backend'"(click)="Animationa_out1()" >Pos</div>
+          <div class="he" (click)="Animationa_out1()" >Pos</div>
                     <div class="he"  *ngIf="userRole === 'admin' || userRole === 'manager'"  (click)="Animationa_out()">Dashboard</div>
 <div  class="he"  *ngIf="userRole === 'admin' || userRole === 'backend'" >Inventory</div>
 <div class="he"   (click)="Animationa_out2()">Sales Orders</div>
@@ -191,7 +191,7 @@
     <ng-template #realData>
         <div class="table_detail2" *ngFor="let item of  paginatedInventory; let i = index" 
      [style.animation-delay]="i * 0.15 + 's'">
-    <div class="table_detail">
+    <div class="table_detail"  (click)="showInvoice(item)" >
     <div class="sku2" data-label="SKU">{{ item.sku }}</div>
     <div class="sku2" data-label="Product Name">
         <div class="connn">
@@ -630,13 +630,13 @@
   </div>
 </div>
 </div>
-<div *ngIf="isLoading" class="import_product2" >
+<!-- <div *ngIf="isLoading" class="import_product2" >
     <div class="con_import_product3">
       <span class="loader"></span>
     </div>
-</div>
+</div> -->
 
-<!-- <div *ngIf="isLoading" class="loading-container">
+<div *ngIf="isLoading" class="loading-container">
     <img class="logo_loading" src="/image/logoo.svg" alt="" >
   <div class="loading">
     <div class="loader1"></div>
@@ -644,5 +644,25 @@
     <div class="loader3"></div>
     <div class="loader4"></div>
   </div>
-</div> -->
+</div>
 <div class="back"></div>
+
+
+<div *ngIf="showInvoicePopup" class="backpop" (click)="closeInvoicePopup()">
+    <div class="popupcontainer" style="width: auto; max-width: 500px; height: auto;" (click)="$event.stopPropagation()">
+        <div class="popup-content">
+            <div class="headerpop">Invoice Image</div>
+            <div class="subheadersuccess">SKU: {{ selectedInvoiceSku }}</div>
+            
+            <!-- แสดงรูปภาพ -->
+            <img *ngIf="selectedUpload" [src]="selectedUpload" alt="Invoice" style="width: 100%; border-radius: 8px; margin-bottom: 15px;">
+            
+            <!-- แสดงข้อความถ้าไม่มีรูป -->
+            <div *ngIf="!selectedUpload" style="text-align: center; margin-bottom: 15px; color: #888;">
+                No invoice image uploaded.
+            </div>
+
+            <button class="buttonclose" (click)="closeInvoicePopup()">Close</button>
+        </div>
+    </div>
+</div>

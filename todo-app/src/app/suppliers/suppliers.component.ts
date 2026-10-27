@@ -103,7 +103,7 @@ export class SuppliersComponent {
   Animationa4_out(){ this.out = false; this.Animation_outdash = true; this.inhere = true; this.play_Return = false; setTimeout(() =>{ this.router.navigate(['/history'],{ state:{username: this.username , email: this.email, Move_return4:true ,role:this.userRole ,profile:this.profile} }) } ,300) }
   Animationa5_out(){ this.out = false; this.Animation_outdash = true; this.inhere = true; this.play_Return = false; setTimeout(() =>{ this.router.navigate(['/employee'],{ state:{username: this.username , email: this.email, Move_returnout:true ,role:this.userRole ,profile:this.profile} }) } ,300) }
   Animationa6_out(){ this.out = false; this.Animation_outdash = true; this.inhere = true; this.play_Return = false; setTimeout(() =>{ this.router.navigate(['/audit'],{ state:{username: this.username , email: this.email, Move_return4:true ,role:this.userRole ,profile:this.profile} }) } ,300) }
-  Animationa_out1(){ setTimeout(() =>{ this.router.navigate(['/pos'],{ state:{username: this.username , email: this.email, Move_return6:true ,role:this.userRole ,profile:this.profile} }) } ,300) }
+  Animationa_out1(){   this.Animation_outdash = true; setTimeout(() =>{ this.router.navigate(['/pos'],{ state:{username: this.username , email: this.email, Move_return6:true ,role:this.userRole ,profile:this.profile} }) } ,300) }
   Animationa_out(){ this.Animation_outdash = true; setTimeout(() =>{ this.router.navigate(['/dashboard'],{ state:{username: this.username , email: this.email, Move_return:true ,Dont_animation: true ,role:this.userRole ,profile:this.profile} }) } ,300) }
   
   openpopupnoti(message:string){ this.showpopupnoti = true; this.popup = message; }
@@ -345,4 +345,54 @@ loadSuppliers() {
       }
     });
   }
+
+
+
+  isViewingBrand: boolean = false;
+supplierOrders: any[] = [];
+selectedSupplierName: string = '';
+
+viewSupplierOrders(supplier: any) {
+   window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.selectedSupplierName = supplier.supplier_name;
+    this.isLoading = true;
+
+    forkJoin({
+        inventory: this.todoService.getInventory(),
+        orders: this.todoService.getSaleOrders()
+    }).subscribe({
+        next: (res: any) => {
+            const allOrders = Array.isArray(res.orders) ? res.orders : (res.orders.data || []);
+            
+            this.supplierOrders = allOrders.filter((order: any) => {
+    if (order.status !== 'Completed') return false;
+
+    const invItem = res.inventory.find((inv: any) => inv.product_name === order.product_name);
+    const brandName = invItem?.brand || order.brand;
+
+    if (!brandName) return false;
+
+    if (String(brandName).toLowerCase() === String(supplier.supplier_name).toLowerCase()) {
+        // แนบรูปภาพจาก Inventory เข้าไปใน Object ของ Order
+        order.picture = invItem ? invItem.picture : null; 
+        return true;
+    }
+    return false;
+});
+
+            this.isLoading = false;
+            this.isViewingBrand = true; // สั่งให้เปลี่ยนไปแสดงตารางสินค้า
+        },
+        error: (err) => {
+            console.error('Error fetching supplier orders:', err);
+            this.isLoading = false;
+        }
+    });
+}
+
+// ฟังก์ชันสำหรับกดย้อนกลับไปหน้า Suppliers
+backToSuppliers() {
+    this.isViewingBrand = false;
+    this.supplierOrders = [];
+}
 }
