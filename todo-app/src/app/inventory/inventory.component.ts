@@ -861,17 +861,18 @@ logout() {
 
     this.isLoading = true;
 
-    const importPayload = {
-      ...this.selectedProduct,
-      ...this.importData,
-      quantity: Number(this.selectedProduct.quantity || 0) + Number(this.importData.importQuantity || 0)
-    };
+     const importPayload = {
+    sku: this.selectedProduct.sku,
+    product_name: this.selectedProduct.product_name,
+    brand: this.selectedProduct.brand,
+    price: this.selectedProduct.price,
+    supplier: this.importData.supplier,
+    invoiceNo: this.importData.invoiceNo,
+    importQuantity: Number(this.importData.importQuantity),
+    invoiceFile: this.importData.upload || '', // ส่ง Base64 หรือส่งเป็นค่าว่างถ้าไม่มี
+    quantity: Number(this.selectedProduct.quantity || 0) + Number(this.importData.importQuantity || 0)
+  };
 
-    // --- เพิ่ม Console.log เพื่อเช็คข้อมูลก่อนส่ง ---
-    console.log('====================================');
-    console.log('1. ข้อมูลที่จะส่งไปอัปเดต Inventory (importPayload):', importPayload);
-    console.log('-> เช็คค่า created_by:', importPayload.created_by);
-    console.log('====================================');
 
     this.todoService.updateInventory(importPayload.sku, importPayload).subscribe({
       next: (res) => {
@@ -1004,7 +1005,7 @@ filterByStockStatus() {
 triggerInvoiceUpload() {
   document.getElementById('invoiceUpload')?.click();
 }
-  onInvoiceFileSelected(event: any) {
+onInvoiceFileSelected(event: any) {
   const file = event.target.files[0];
   if (file) {
     const reader = new FileReader();
@@ -1014,27 +1015,25 @@ triggerInvoiceUpload() {
       img.src = e.target.result;
       
       img.onload = () => {
-        // สร้าง Canvas เพื่อลดขนาดรูปภาพ
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         
-        // กำหนดขนาดความกว้างสูงสุดที่ต้องการ (เช่น 800px)
-        const maxWidth = 800;
+        // ลดขนาดความกว้างสูงสุดเหลือ 500px (ช่วยลดขนาด Base64 ลงได้มาก)
+        const maxWidth = 500; 
         const scaleSize = maxWidth / img.width;
         
-        // คำนวณความสูงใหม่ตามสัดส่วน
         canvas.width = maxWidth;
         canvas.height = img.height * scaleSize;
         
         if (ctx) {
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
           
-          // แปลงเป็น Base64 พร้อมกำหนดคุณภาพ (0.7 คือลดขนาดลงแต่ยังคมชัด)
-          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+          // ลดคุณภาพลงเหลือ 0.5 (50%)
+          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.5);
           
-            this.importData.upload = compressedBase64;
+          this.importData.upload = compressedBase64;
           this.importData.invoiceFile = 'File Selected';
-          console.log('Compressed Base64:', compressedBase64);
+          console.log('Compressed Base64 Length:', compressedBase64.length);
         }
       };
     };
@@ -1042,5 +1041,7 @@ triggerInvoiceUpload() {
     reader.readAsDataURL(file);
   }
 }
-
+triggerInvoiceUploadAdd() {
+  document.getElementById('invoiceUploadAdd')?.click();
+}
 }

@@ -869,16 +869,17 @@ app.put('/api/inventory/:sku', async (req, res) => {
     const { sku } = req.params;
     const { 
       product_name, category, brand, price, 
-      quantity, quantity_alert, supplier, invoice_no, picture,upload
+      quantity, quantity_alert, supplier, invoice_no, picture
     } = req.body;
 
+    // แก้ไข SQL ให้ตรงกับจำนวนตัวแปร (ตัด upload ออก)
     const result = await pool.query(
       `UPDATE inventory 
        SET product_name = $1, category = $2, brand = $3, price = $4, 
            quantity = $5, quantity_alert = $6, supplier = $7, invoice_no = $8, picture = $9
        WHERE sku = $10 
        RETURNING *`,
-      [product_name, category, brand, price, quantity, quantity_alert, supplier, invoice_no, picture, upload,sku]
+      [product_name, category, brand, price, quantity, quantity_alert, supplier, invoice_no, picture, sku]
     );
 
     if (result.rowCount === 0) {
