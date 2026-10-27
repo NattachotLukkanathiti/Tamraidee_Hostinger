@@ -123,7 +123,7 @@ app.get('/api/history', async (req, res) => {
     try {
         // เพิ่ม picture เข้าไปในคำสั่ง SELECT
         const result = await pool.query(
-            'SELECT * FROM history ORDER BY id DESC'
+            'SELECT * FROM history ORDER BY id ASC'
         );
         
         const formattedRows = result.rows.map(row => {
