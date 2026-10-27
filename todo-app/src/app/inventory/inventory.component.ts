@@ -358,7 +358,7 @@ filterByCategory() {
   loadInventory() {
   this.todoService.getInventory().subscribe({
     next: (res) => {
-      this.Inventory = res;
+   this.Inventory = res.reverse();
            this.updatePagination();
       this.Inventory = res.sort((a, b) => {
         // เรียงจากมากไปน้อย (ล่าสุดขึ้นก่อน)

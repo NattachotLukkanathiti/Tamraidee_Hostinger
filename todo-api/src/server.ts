@@ -412,14 +412,20 @@ app.post('/api/inventory', async (req, res) => {
     }
 
     // เพิ่ม upload เข้าไปเป็น $13
-    const result = await pool.query(
+      const result = await pool.query(
       `INSERT INTO inventory 
        (sku, product_name, category, brand, price, quantity, quantity_alert, supplier, invoice_no, import_quantity, picture, status, upload) 
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) 
        RETURNING *`,
-      [sku, product_name, category, brand, price, import_quantity, quantity_alert, supplier, invoice_no, import_quantity, picture, status, upload]
+      [
+        sku, product_name, category, brand, price, 
+        import_quantity, quantity_alert, supplier, invoice_no, 
+        import_quantity, // $10 คือ import_quantity
+        picture,         // $11 คือ picture (ตรวจสอบให้แน่ใจว่าตรงนี้ส่งค่า picture)
+        status,          // $12 คือ status
+        upload           // $13 คือ upload
+      ]
     );
-
     res.status(201).json({
       success: true,
       message: 'บันทึกข้อมูลสินค้าสำเร็จ',
