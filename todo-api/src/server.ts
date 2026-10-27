@@ -397,12 +397,11 @@ app.post('/api/suppliers', async (req, res) => {
   }
 });
 
-// (โค้ดส่วนล่างของคุณยังคงเดิมทั้งหมด)
 app.post('/api/inventory', async (req, res) => {
   try {
     const { 
       sku, product_name, category, brand, price, 
-      quantity_alert, supplier, invoice_no, import_quantity, picture ,status
+      quantity_alert, supplier, invoice_no, import_quantity, picture, status, upload
     } = req.body;
 
     if (!sku || !category || !brand || price === undefined) {
@@ -412,13 +411,13 @@ app.post('/api/inventory', async (req, res) => {
       });
     }
 
-    // เพิ่ม quantity และ $11 โดยใช้ค่าเดียวกับ import_quantity
+    // เพิ่ม upload เข้าไปเป็น $13
     const result = await pool.query(
       `INSERT INTO inventory 
-       (sku, product_name, category, brand, price, quantity, quantity_alert, supplier, invoice_no, import_quantity, picture,status) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11 ,$12) 
+       (sku, product_name, category, brand, price, quantity, quantity_alert, supplier, invoice_no, import_quantity, picture, status, upload) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) 
        RETURNING *`,
-      [sku, product_name, category, brand, price, import_quantity, quantity_alert, supplier, invoice_no, import_quantity, picture,status]
+      [sku, product_name, category, brand, price, import_quantity, quantity_alert, supplier, invoice_no, import_quantity, picture, status, upload]
     );
 
     res.status(201).json({
@@ -869,17 +868,17 @@ app.put('/api/inventory/:sku', async (req, res) => {
     const { sku } = req.params;
     const { 
       product_name, category, brand, price, 
-      quantity, quantity_alert, supplier, invoice_no, picture
+      quantity, quantity_alert, supplier, invoice_no, picture, upload
     } = req.body;
 
-    // แก้ไข SQL ให้ตรงกับจำนวนตัวแปร (ตัด upload ออก)
+    // เพิ่ม upload = $10 เข้าไปในคำสั่ง SQL และเลื่อน sku เป็น $11
     const result = await pool.query(
       `UPDATE inventory 
        SET product_name = $1, category = $2, brand = $3, price = $4, 
-           quantity = $5, quantity_alert = $6, supplier = $7, invoice_no = $8, picture = $9
-       WHERE sku = $10 
+           quantity = $5, quantity_alert = $6, supplier = $7, invoice_no = $8, picture = $9, upload = $10
+       WHERE sku = $11 
        RETURNING *`,
-      [product_name, category, brand, price, quantity, quantity_alert, supplier, invoice_no, picture, sku]
+      [product_name, category, brand, price, quantity, quantity_alert, supplier, invoice_no, picture, upload, sku]
     );
 
     if (result.rowCount === 0) {
