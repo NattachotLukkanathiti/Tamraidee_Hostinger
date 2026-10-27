@@ -404,7 +404,12 @@
             </div>         
             <div class="sku_pro">             
                 <label class="label_import" for="">Upload Invoice <span class="important">*</span></label>             
-                <input type="text" placeholder="Upload Invoice Image / PDF" class="sku_input">         
+                 <input type="file" id="invoiceUploadAdd" (change)="onInvoiceFileSelected($event)" accept="image/*" style="display: none;">
+    
+    <!-- แก้ไข input text เดิมให้เรียกใช้ฟังก์ชัน -->
+    <input type="text" placeholder="Click to Upload Invoice" class="sku_input" 
+           [value]="importData.invoiceFile ? 'File Selected' : ''" 
+           (click)="triggerInvoiceUploadAdd()" readonly style="cursor: pointer;">
             </div>         
         </div>           
 
