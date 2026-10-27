@@ -41,7 +41,7 @@
 </div>
 
 <div class="tab_con">
-    <div class="tab">Introducing Tamraidee Upgrade. Lease a new product with low monthly payments for 12 or 24 months and upgrade at the end of your term. <span class="lern">Lern more</span></div>
+    <div class="tab">Introducing Tamraidee. The best products from top-tier suppliers, available 24/7. Whatever you need, whenever you need it.<span class="lern">Lern more</span></div>
 </div>
 
 <div class="over">
@@ -404,7 +404,7 @@
             </div>         
             <div class="sku_pro">             
                 <label class="label_import" for="">Upload Invoice <span class="important">*</span></label>             
-                <input type="text" placeholder="Upload Invoice Image / PDF" class="sku_input">         
+                <input type="file" id="invoiceUpload" (change)="onInvoiceFileSelected($event)" accept="image/*" style="display: none;">
             </div>         
         </div>           
 

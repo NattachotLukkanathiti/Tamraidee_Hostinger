@@ -869,7 +869,7 @@ app.put('/api/inventory/:sku', async (req, res) => {
     const { sku } = req.params;
     const { 
       product_name, category, brand, price, 
-      quantity, quantity_alert, supplier, invoice_no, picture 
+      quantity, quantity_alert, supplier, invoice_no, picture,upload
     } = req.body;
 
     const result = await pool.query(
@@ -878,7 +878,7 @@ app.put('/api/inventory/:sku', async (req, res) => {
            quantity = $5, quantity_alert = $6, supplier = $7, invoice_no = $8, picture = $9
        WHERE sku = $10 
        RETURNING *`,
-      [product_name, category, brand, price, quantity, quantity_alert, supplier, invoice_no, picture, sku]
+      [product_name, category, brand, price, quantity, quantity_alert, supplier, invoice_no, picture, upload,sku]
     );
 
     if (result.rowCount === 0) {

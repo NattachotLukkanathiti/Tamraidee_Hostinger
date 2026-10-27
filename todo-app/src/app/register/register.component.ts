@@ -5,7 +5,21 @@ import { TodoService } from '../services/todo.service';
 import { Subscription, interval } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { initializeApp } from 'firebase/app';
+import { getAuth, signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, OAuthProvider } from 'firebase/auth';
 
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDX97-QwdseS6C9vYZ8PQTUFsLTn-3oxQU",
+  authDomain: "tamraidee.firebaseapp.com",
+  projectId: "tamraidee",
+  storageBucket: "tamraidee.firebasestorage.app",
+  messagingSenderId: "393168837647",
+  appId: "1:393168837647:web:35588c991e76a38b2ed77a",
+  measurementId: "G-VHEHJMBK45"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app); 
 @Component({
   selector: 'app-register',
   standalone: true,
@@ -178,5 +192,96 @@ export class RegisterComponent implements OnInit { // Added implements OnInit
     });
   }
   
+
+
+
+
+
+  
+     signInWithGoogle() {
+      const provider = new GoogleAuthProvider();
+      this.handleSocialLogin(provider);
+    }
+  
+    // ฟังก์ชันล็อกอินด้วย Facebook
+    signInWithFacebook() {
+      const provider = new FacebookAuthProvider();
+      this.handleSocialLogin(provider);
+    }
+  // ฟังก์ชันล็อกอินด้วย GitHub
+    signInWithGitHub() {
+      const provider = new OAuthProvider('github.com');
+      this.handleSocialLogin(provider);
+    }
+  private handleSocialLogin(provider: any) {
+    this.isLoading = true;
+    signInWithPopup(auth, provider)
+      .then((result) => {
+        const user = result.user;
+        const email = user.email || '';
+        const username = user.displayName || user.email?.split('@')[0] || 'User';
+        const profile = user.photoURL || '';
+  
+        const userData = { username, title: email, password: user.uid, profile, status: 'Active' };
+  
+        // 1. บันทึกหรืออัปเดตข้อมูลลง Supabase
+        this.todoService.registerOrUpdateUser(userData).subscribe({
+          next: () => {
+            
+            // 2. ตรวจสอบ Role จาก Supabase ว่าผู้ใช้คนนี้มีสิทธิ์อะไร
+            this.todoService.checkUserRole(email).subscribe({
+              next: (res) => {
+                // ถ้ามี Role อยู่แล้ว ให้ส่ง Role นั้นไป
+                this.proceedAfterLogin(user, email, username, res.role);
+              },
+              error: () => {
+                // ถ้าไม่พบข้อมูล (ผู้ใช้ใหม่) ให้ส่งค่าว่าง (Guest)
+                this.proceedAfterLogin(user, email, username, '');
+              }
+            });
+  
+          },
+          error: (err) => {
+            console.error('Error saving to Supabase:', err);
+            this.proceedAfterLogin(user, email, username, '');
+          }
+        });
+      })
+      .catch((error) => {
+        this.isLoading = false;
+        console.error(error);
+        this.openpopupnoti("การล็อกอินล้มเหลว กรุณาลองใหม่อีกครั้ง");
+      });
+  }private proceedAfterLogin(user: any, email: string, username: string, role: string) {
+    const profile = user.photoURL || '';
+  
+    const now = new Date();
+    const auditData = {
+      date: now.toISOString().split('T')[0],
+      time: now.toTimeString().split(' ')[0],
+      username: username,
+      email: email,
+      activity: 'Social Login',
+      role: role || 'Guest',
+      picture: profile
+    };
+  
+    this.todoService.logAudit(auditData).subscribe();
+    this.isLoading = false;
+  
+    const navigationState = { state: { username, email, profile, role, stan: true } };
+  
+    // ตรวจสอบ Role เพื่อส่งไปหน้าที่ถูกต้อง
+    if (!role) {
+      this.router.navigate(['/confirmemployee'], navigationState);
+    } else {
+      switch (role.toLowerCase()) {
+        case 'admin': this.router.navigate(['/dashboard'], navigationState); break;
+        case 'pos': this.router.navigate(['/pos'], navigationState); break;
+        case 'backend': this.router.navigate(['/inventory'], navigationState); break;
+        default: this.router.navigate(['/dashboard'], navigationState);
+      }
+    }
+  }
 }
 

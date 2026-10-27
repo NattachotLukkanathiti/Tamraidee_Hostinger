@@ -168,10 +168,9 @@ export class LoginComponent {
     const provider = new FacebookAuthProvider();
     this.handleSocialLogin(provider);
   }
-
-  // ฟังก์ชันล็อกอินด้วย Apple
-  signInWithApple() {
-    const provider = new OAuthProvider('apple.com');
+// ฟังก์ชันล็อกอินด้วย GitHub
+  signInWithGitHub() {
+    const provider = new OAuthProvider('github.com');
     this.handleSocialLogin(provider);
   }
 private handleSocialLogin(provider: any) {

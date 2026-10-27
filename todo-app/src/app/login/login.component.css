@@ -58,7 +58,7 @@
 }
 .back {
     background-color: #FFFFFF;
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
@@ -85,6 +85,7 @@
 
 }
 .eieii {
+    font-weight: 600 !important;
     font-size: 16px;
     z-index: 8;
     font-weight: 200;
@@ -410,7 +411,11 @@ body {
     height: 18;
     cursor: pointer;
 }
+.icon{
 
+    width: 30px;
+    height: 30px;
+}
 .checkbox-group {
     width: 100%;
     display: flex;
@@ -466,31 +471,52 @@ body {
 }
 
 .Facebook {
-    width: 65px;
+    width: 145px;
     height: 65px;
     border-radius: 20px;
     border: 0px;
     background: #155EEF;
+    cursor: pointer;
+}
+.Facebook:hover{
+    background: #206aff;
 }
 
+.Facebook:active{
+    background: #154cba;
+}
 .Google {
-    width: 65px;
+    cursor: pointer;
+    width: 145px;
     height: 65px;
     border-radius: 20px;
     border: 1px solid #E6EAED;
     background: #FFFFFF;
 
 }
+.Google:hover {
+    background: #F9FAFB; /* สีเทาอ่อนมาก */
+    border-color: #D0D5DD;
+}
+.Google:active {
+    background: #F2F4F7; /* สีเทาเข้มขึ้นมาเล็กน้อย */
+}
 
 .Apple {
-    width: 65px;
+    cursor: pointer;
+    width: 145px;
     height: 65px;
     border-radius: 20px;
     border: 0px;
     background: #1B2850;
 }
 
-
+.Apple:hover {
+    background: #26376e; /* สีน้ำเงินเข้มที่สว่างขึ้น */
+}
+.Apple:active {
+    background: #111933; /* สีน้ำเงินเข้มที่มืดลง */
+}
 h1 {
     text-align: center;
 }

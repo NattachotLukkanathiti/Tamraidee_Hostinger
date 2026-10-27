@@ -741,11 +741,22 @@
 }
 .table_detail {
     padding: 20px;
-    align-items: center;
+    position: relative;
     width: 100%;
     gap: 1%;
     display: flex;
-    box-sizing: border-box; /* เพิ่มบรรทัดนี้ */
+    align-items: center;
+    box-sizing: border-box;
+    transition: 0.3s ease-in-out;
+    /* เพิ่มบรรทัดนี้ */
+}
+.table_detail:hover{
+    background-color: #F3FBF1;
+    transform: scale(1.1);
+    cursor: pointer;
+}
+.table_detail:active{
+        background-color: #EDF9E9;
 }
 .connn{
     display: flex;
@@ -1151,13 +1162,7 @@
     margin-top: 20px;
     margin-bottom: 20px;
 }
-.table_detail:hover{background-color: #F3FBF1;
 
-    cursor: pointer;
-}
-.table_detail:active{
-        background-color: #EDF9E9;
-}
 .num-container {
     position: absolute;
     margin-left: -50px;

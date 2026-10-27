@@ -109,7 +109,8 @@ selectedProduct: any = {
     supplier: '',
     invoiceNo: '',
     importQuantity: null,
-    invoiceFile: ''
+    invoiceFile: '',
+      upload: ''
   };
   selectedCategory: string = 'all';
 categories: string[] = [];
@@ -957,7 +958,7 @@ logout() {
 
   // 4. ฟังก์ชันล้างค่าฟอร์มนำเข้า
   resetImportForm() {
-    this.importData = { supplier: '', invoiceNo: '', importQuantity: null, invoiceFile: '' };
+    this.importData = { supplier: '', invoiceNo: '', importQuantity: null, invoiceFile: '', upload: '' };
     this.selectedProduct = {};
     this.imagePreview = null;
   }
@@ -997,4 +998,49 @@ filterByStockStatus() {
     }
     return pages;
   }
+
+
+
+triggerInvoiceUpload() {
+  document.getElementById('invoiceUpload')?.click();
+}
+  onInvoiceFileSelected(event: any) {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    
+    reader.onload = (e: any) => {
+      const img = new Image();
+      img.src = e.target.result;
+      
+      img.onload = () => {
+        // สร้าง Canvas เพื่อลดขนาดรูปภาพ
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // กำหนดขนาดความกว้างสูงสุดที่ต้องการ (เช่น 800px)
+        const maxWidth = 800;
+        const scaleSize = maxWidth / img.width;
+        
+        // คำนวณความสูงใหม่ตามสัดส่วน
+        canvas.width = maxWidth;
+        canvas.height = img.height * scaleSize;
+        
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          
+          // แปลงเป็น Base64 พร้อมกำหนดคุณภาพ (0.7 คือลดขนาดลงแต่ยังคมชัด)
+          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+          
+            this.importData.upload = compressedBase64;
+          this.importData.invoiceFile = 'File Selected';
+          console.log('Compressed Base64:', compressedBase64);
+        }
+      };
+    };
+    
+    reader.readAsDataURL(file);
+  }
+}
+
 }

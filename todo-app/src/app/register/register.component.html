@@ -60,6 +60,21 @@
   <div class="sihg">
        <button class="button" (click)="addTodo()" [disabled]="loading">Continue</button>
   </div>
+   <div class="or">OR</div> 
+    <div class="con_help">
+      
+   <div class="internet">
+  <button class="Facebook" (click)="signInWithFacebook()">
+    <img class="icon" src="image/facebook.svg" alt="Facebook">
+  </button>
+  <button class="Google" (click)="signInWithGoogle()">
+    <img class="icon" src="image/google.svg" alt="Google">
+  </button>
+  <button class="Apple"  (click)="signInWithGitHub()">
+    <img class="icon" src="image/github.png" alt="Apple">
+  </button>
+</div>
+  </div>
 <!--   <div class="new">New on our platform?  <a href="#" class="Create-account">Sign In Instead</a></div> -->
 <!--   <div class="or">OR</div> -->
 
@@ -87,18 +102,18 @@
 <div class="ferni3"></div>
 <div class="ferniback"></div>
 
-<div class="line">
-  <div class="con_help">
+<!-- <div class="line"> -->
+ <!--  <div class="con_help">
     <div class="eieii">Or you can choose to register through another platform.</div>
     <div class="internet">
     <button class="Facebook"><img class="icon" src="image/facebook.svg" alt="Facebook"></button>
     <button class="Google"><img class="icon" src="image/google.svg" alt="Google"></button>
     <button class="Apple"><img class="icon" src="image/apple.svg" alt="Apple"></button>
   </div>
-  </div>
-  <div class="grayy"></div>
+  </div> -->
+<!--   <div class="grayy"></div> -->
   
-</div>
+<!-- </div> -->
   
 <div *ngIf="showpopup" class="backpop">
   <div *ngIf="showpopup" class="popupcontainer">
