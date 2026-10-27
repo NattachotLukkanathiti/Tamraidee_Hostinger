@@ -142,13 +142,13 @@ export class TodoService {
     return this.http.get<any[]>(`${this.apiUrl}/notification`, { headers: this.headers });
   }
 
-  addNotification(title: string, description: string, type: string, timeAgo: string): Observable<any> {
-    return this.http.post<any>(
-      `${this.apiUrl}/notification`,
-      { title, description, type, time_ago: timeAgo },
-      { headers: this.headers }
-    );
-  }
+  addNotification(title: string, description: string, type: string, timeStamp: string): Observable<any> {
+  return this.http.post<any>(
+    `${this.apiUrl}/notification`,
+    { title, description, type, created_at: timeStamp }, // <-- เปลี่ยนให้ตรงกับชื่อคอลัมน์ใน DB
+    { headers: this.headers }
+  );
+}
 
   updateProfile(id: number, profileData: any): Observable<any> {
     return this.http.put<any>(`${this.apiUrl}/todos/${id}`, profileData, { headers: this.headers });

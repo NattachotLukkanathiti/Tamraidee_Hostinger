@@ -378,7 +378,7 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
               `Stock Adjustment : Pending Approvals`, 
               `${this.selectedProduct.sku} ${this.selectedProduct.product_name || ''}`, 
               'info', 
-              'Just now'
+              'Just now',
             ).subscribe();
 
           

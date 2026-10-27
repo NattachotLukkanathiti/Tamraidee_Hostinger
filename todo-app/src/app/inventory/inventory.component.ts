@@ -425,7 +425,7 @@ filterByCategory() {
   if (file) {
     this.selectedFile = file;
     
-    // เคลียร์ค่า URL เดิมออก เพื่อให้ระบบรู้ว่ากำลังใช้ไฟล์ใหม่
+
     if (this.selectedProduct) {
       this.selectedProduct.picture = ''; 
     }
@@ -441,26 +441,26 @@ filterByCategory() {
 
   async saveToStock() {
     this.isLoading = true;
-     // 1. ดึงค่า Prefix จาก SKU ที่ผู้ใช้กรอก หรือจาก Category
+
     let prefix = '';
     
     if (this.newProduct.sku && this.newProduct.sku.trim() !== '') {
-      // ถ้าผู้ใช้กรอก SKU มา (เช่น ELEC) ให้ใช้คำนั้นเป็น Prefix
+     
       prefix = this.newProduct.sku.trim().toUpperCase();
     } else if (this.newProduct.category) {
-      // ถ้าไม่ได้กรอก SKU ให้ใช้ Category แทน
+   
       prefix = this.newProduct.category.trim().toUpperCase();
     } else {
-      this.openpopupnoti('กรุณากรอก SKU หรือ Category');
+      this.openpopupnoti('Please enter SKU or Category');
       this.isLoading = false;
       return;
     }
 
-    // 2. สร้าง SKU ใหม่ (ถ้าผู้ใช้กรอกแค่ Prefix หรือไม่ได้กรอกเลย)
+    
     if (!this.newProduct.sku || !this.newProduct.sku.includes('-')) {
       let maxNumber = 0;
 
-      // หาตัวเลขสูงสุดของ Prefix นั้นๆ
+
       this.Inventory.forEach(item => {
         if (item.sku && item.sku.startsWith(prefix + '-')) {
           const parts = item.sku.split('-');
@@ -473,25 +473,25 @@ filterByCategory() {
         }
       });
 
-      // เติม -001 ต่อท้าย
+
       const nextNumber = (maxNumber + 1).toString().padStart(3, '0');
       this.newProduct.sku = `${prefix}-${nextNumber}`;
     }
 
-    // 3. ตรวจสอบการซ้ำของ SKU
+
     const isDuplicate = this.Inventory.some(item => item.sku === this.newProduct.sku);
 
     if (isDuplicate) {
-      this.openpopupnoti('Error: SKU นี้มีอยู่ในระบบแล้ว');
+      this.openpopupnoti('Error: This SKU already exists in the system');
       this.isLoading = false;
       return; 
     }
 
-    // ใช้ค่า URL ที่ผู้ใช้กรอกเข้ามาโดยตรง
+
   let pictureUrl = this.newProduct.picture || '';
 
   try {
-    // 2. เพิ่มโค้ดส่วนนี้: ถ้าผู้ใช้เลือกไฟล์จากเครื่อง ให้อัปโหลดขึ้น Supabase ก่อน
+   
     if (this.selectedFile) {
       const fileExt = this.selectedFile.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
@@ -507,17 +507,18 @@ filterByCategory() {
         .from('Photo')
         .getPublicUrl(filePath);
               
-      pictureUrl = publicUrlData.publicUrl; // นำ URL ที่ได้ไปใช้บันทึก
+      pictureUrl = publicUrlData.publicUrl; 
     }
 
     
-      // เพิ่ม pictureUrl เข้าไปใน object ข้อมูล
+   
       const productData = {
         ...this.newProduct,
         picture: pictureUrl,
          status: 'Approved',
         upload: this.importData.upload || '' 
       };
+      
  this.todoService.addInventory(productData).subscribe({
         next: (res) => {
           this.openpopup('New product created successfully. View changes in Stock History');
@@ -556,13 +557,16 @@ filterByCategory() {
             error: (err) => console.error('Failed to save audit', err)
           });
 
-          // 2. บันทึก Notification
+    
           const productName = this.newProduct.product_name || this.newProduct.sku;
-          this.todoService.addNotification(
-            `Stock Update : ${productName}`, // title
-            'import Product',                   // description
-            'success',                       // type
-            'Just now'                       // time_ago
+          const importQty = this.newProduct.import_quantity || 0;
+          
+             this.todoService.addNotification(
+            `Stock Update : ${productName}`, 
+            `Import Product: ${productName} (+${importQty})`, 
+            'success',                      
+              new Date().toISOString()        
+                          
           ).subscribe({
             next: () => console.log('Notification saved'),
             error: (err) => console.error('Failed to save notification', err)
@@ -578,18 +582,17 @@ filterByCategory() {
 
     } catch (error) {
       console.error('Error saving product:', error);
-      this.openpopup('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+      this.openpopup('An error occurred while saving data');
       this.isLoading = false;
     }
   }
-  // 1. สร้างตัวแปรเก็บฟังก์ชัน resolve ของ Promise
+
 private resolveConfirm: ((value: boolean) => void) | null = null;
 
-// 2. ฟังก์ชันหลักของคุณ (ใส่ async เพิ่มเข้าไป)
 async button_delete(sku: string, index: number) {
     this.showpopupconfirm = true;
     this.openpopup_confirm("Are you sure you want to delete this item? This action cannot be undone.");
-    // สร้าง Promise เพื่อหยุดรอการกดปุ่ม
+
     const confirm = await new Promise<boolean>((resolve) => {
       this.resolveConfirm = resolve;
     });
@@ -600,7 +603,7 @@ async button_delete(sku: string, index: number) {
       this.todoService.deleteInventory(sku).subscribe({
         next: (res) => {
           this.Inventory.splice(index, 1);
-          this.openpopup('ลบสินค้าเรียบร้อยแล้ว');
+          this.openpopup('Product deleted successfully');
           this.isLoading = false;
           const now = new Date();
           const auditData = {
@@ -608,7 +611,7 @@ async button_delete(sku: string, index: number) {
             time: now.toTimeString().split(' ')[0],
             username: this.username,
             email: this.email,
-            activity: `Delete Inventory SKU: ${sku}`, // ระบุว่าลบอะไร
+            activity: `Delete Inventory SKU: ${sku}`, 
             role: this.userRole,
             picture: this.profile
           };
@@ -619,7 +622,7 @@ async button_delete(sku: string, index: number) {
           });
         },
         error: (err) => {
-          this.openpopupnoti('เกิดข้อผิดพลาดในการลบสินค้า');
+          this.openpopupnoti('An error occurred while deleting the product');
           this.isLoading = false;
         }
       });
@@ -639,11 +642,11 @@ button_editt(item: any) {
 }
 async saveEdit() {
   this.isLoading = true;
-  // เริ่มต้นโดยใช้ค่า picture ปัจจุบัน (ซึ่งอาจเป็น URL ที่ผู้ใช้เพิ่งพิมพ์เข้ามา)
+
   let pictureUrl = this.selectedProduct.picture; 
 
   try {
-    // 1. ตรวจสอบว่ามีการเลือกไฟล์ใหม่หรือไม่ (ถ้ามี จะใช้ไฟล์นี้เป็นหลัก)
+   
     if (this.selectedFile) {
       const fileExt = this.selectedFile.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
@@ -662,16 +665,16 @@ async saveEdit() {
       pictureUrl = publicUrlData.publicUrl;
     }
 
-    // 2. อัปเดตข้อมูลที่จะส่งไป Backend
+
     const updatedProduct = {
       ...this.selectedProduct,
-      picture: pictureUrl // จะเป็น URL จากไฟล์ใหม่ หรือ URL ที่พิมพ์เข้ามา
+      picture: pictureUrl 
     };
     
 
     this.todoService.updateInventory(updatedProduct.sku, updatedProduct).subscribe({
       next: (res) => {
-        this.openpopup('แก้ไขข้อมูลสินค้าเรียบร้อยแล้ว');
+        this.openpopup('Product updated successfully');
         
         const index = this.Inventory.findIndex(item => item.sku === updatedProduct.sku);
       
@@ -704,27 +707,27 @@ async saveEdit() {
 
         this.isEditMode = false;
         this.isLoading = false;
-        this.selectedFile = null; // รีเซ็ตไฟล์
+        this.selectedFile = null; 
       },
       error: (err) => {
-        this.openpopupnoti('เกิดข้อผิดพลาดในการแก้ไขข้อมูล');
+        this.openpopupnoti('An error occurred while updating the product');
         this.isLoading = false;
       }
     });
   } catch (error) {
     console.error('Error uploading image:', error);
-    this.openpopup('อัปโหลดรูปภาพไม่สำเร็จ');
+    this.openpopup('Image upload failed');
     this.isLoading = false;
   }
 }
 onUrlChange(url: string) {
   if (url && url.trim() !== '') {
-    // ตรวจสอบเบื้องต้นว่าเป็น URL รูปภาพหรือไม่ (ไม่บังคับ)
+
     if (url.startsWith('http') || url.startsWith('https')) {
       this.imagePreview = url;
     }
   } else {
-    // ถ้าช่อง input ว่าง ให้ล้างรูปตัวอย่างออก (หรือจะให้กลับไปใช้รูปเดิมก็ได้)
+   
     this.imagePreview = this.selectedProduct.picture || null;
   }
 }
@@ -744,7 +747,7 @@ getChanges(original: any, updated: any) {
     const changes: { [key: string]: { from: any; to: any } } = {};
     
     Object.keys(updated).forEach(key => {
-      // ไม่ต้องเปรียบเทียบฟิลด์ที่ไม่จำเป็น เช่น updated_at
+   
       if (key !== 'updated_at' && original[key] !== updated[key]) {
         changes[key] = {
           from: original[key],
@@ -783,18 +786,18 @@ logout() {
     this.isMenuOpenprofile = !this.isMenuOpenprofile;
   }
   createNotification(title: string, description: string, type: 'info' | 'warning' | 'success') {
-    // ส่งค่าแยกเป็น 4 arguments ให้ตรงกับที่ Service ต้องการ
+
     this.todoService.addNotification(
       title,
       description,
       type,
-      'Just now'
+       new Date().toISOString()
     ).subscribe({
       next: () => console.log('Notification sent successfully'),
       error: (err) => console.error('Error sending notification', err)
     });
   }
-  // เพิ่มฟังก์ชันนี้ใน InventoryComponent
+
   getTimeAgo(dateString: string): string {
     const now = new Date();
     const past = new Date(dateString);
@@ -811,7 +814,7 @@ logout() {
     return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
   }
    generateSKU(category: string) {
-    // ถ้าไม่มีการเลือกหมวดหมู่ ให้ใช้ค่าเริ่มต้นเป็น 'ITEM'
+  
     const prefix = category ? category.toUpperCase() : 'ITEM';
     let maxNumber = 0;
 
@@ -831,22 +834,22 @@ logout() {
     this.newProduct.sku = `${prefix}-${nextNumber}`;
   }
   onCategoryChange() {
-    // จะทำงานเมื่อผู้ใช้พิมพ์หรือเลือก Category
+
     if (this.newProduct.category && this.newProduct.category.length >= 3) {
       this.generateSKU(this.newProduct.category);
     }
   }
   onSkuChange() {
     if (this.selectedProduct && this.selectedProduct.sku) {
-      // ค้นหา SKU จากรายการ Inventory ที่มีอยู่
+
       const foundProduct = this.filteredInventory.find(item => item.sku === this.selectedProduct.sku);
       
       if (foundProduct) {
-        // ถ้าเจอ ให้ดึงข้อมูลมาแสดง
+
         this.selectedProduct = { ...foundProduct };
         this.imagePreview = foundProduct.picture || null;
       } else {
-        this.openpopupnoti('ไม่พบข้อมูล SKU นี้ในระบบ');
+        this.openpopupnoti('SKU not found in the system');
         // รีเซ็ตข้อมูลถ้าไม่เจอ
         this.selectedProduct = { sku: this.selectedProduct.sku };
         this.imagePreview = null;
@@ -856,7 +859,7 @@ logout() {
 // เปลี่ยนชื่อฟังก์ชันเป็น saveAddToStock
  saveAddToStock() {
     if (!this.selectedProduct.sku || !this.importData.supplier || !this.importData.importQuantity) {
-      this.openpopupnoti('กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน (*)');
+      this.openpopupnoti('Please fill in all required fields (*)');
       return;
     }
 
@@ -877,7 +880,7 @@ logout() {
 
     this.todoService.updateInventory(importPayload.sku, importPayload).subscribe({
       next: (res) => {
-        this.openpopup('บันทึกการเพิ่มจำนวนสินค้าเรียบร้อยแล้ว');
+        this.openpopup('Quantity added successfully');
         this.loadInventory();
         
         const now = new Date();
@@ -921,38 +924,37 @@ logout() {
         this.isLoading = false;
       },
       error: (err) => {
-        this.openpopupnoti('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+        this.openpopupnoti('An error occurred while saving data');
         this.isLoading = false;
       }
     });
   }
-  // 3. เพิ่มฟังก์ชันบันทึกข้อมูลการนำเข้า
+ 
   saveImportToStock() {
     if (!this.selectedProduct.sku || !this.importData.supplier || !this.importData.importQuantity) {
-      this.openpopupnoti('กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน (*)');
+      this.openpopupnoti('Please fill in all required fields (*)');
       return;
     }
 
     this.isLoading = true;
 
-    // รวมข้อมูลสินค้าและข้อมูลการนำเข้า
+
     const importPayload = {
       ...this.selectedProduct,
       ...this.importData,
-      // คำนวณจำนวน Stock ใหม่ (จำนวนเดิม + จำนวนที่นำเข้า)
+
        quantity: Number(this.selectedProduct.quantity || 0) + Number(this.importData.importQuantity || 0)
     };
 
-    // ตัวอย่างการเรียก Service เพื่อบันทึก (ปรับเปลี่ยนตาม API ของคุณ)
     this.todoService.updateInventory(importPayload.sku, importPayload).subscribe({
       next: (res) => {
-        this.openpopup('บันทึกการนำเข้าสินค้าเรียบร้อยแล้ว');
+        this.openpopup('Import saved successfully');
         this.loadInventory();
         this.resetImportForm();
         this.isLoading = false;
       },
       error: (err) => {
-        this.openpopupnoti('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+        this.openpopupnoti('An error occurred while saving data');
         this.isLoading = false;
       }
     });

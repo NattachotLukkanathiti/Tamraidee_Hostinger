@@ -272,11 +272,11 @@ app.post('/api/notification', async (req, res) => {
     }
 
     const result = await pool.query(
-      `INSERT INTO notification (title, description, type, time_ago) 
-       VALUES ($1, $2, $3, $4) 
-       RETURNING *`,
-      [title, description, type, time_ago]
-    );
+  `INSERT INTO notification (title, description, type, created_at) 
+   VALUES ($1, $2, $3, $4) 
+   RETURNING *`,
+  [title, description, type, time_ago] 
+);
 
     res.status(201).json({ success: true, data: result.rows[0] });
   } catch (error) {
