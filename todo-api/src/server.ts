@@ -671,7 +671,7 @@ app.put('/api/sale_order/:id', async (req, res) => {
     res.status(500).send('Server Error');
   }
 });
-app.put('/todos/:id/completed', async (req, res) => {
+app.put('/todos/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { completed } = req.body;
