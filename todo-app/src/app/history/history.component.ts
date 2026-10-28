@@ -724,4 +724,5 @@ onFileSelected(event: any) {
     reader.readAsDataURL(file);
   }
 }
+showImagePopup = false;
 }

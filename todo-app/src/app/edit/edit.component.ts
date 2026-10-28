@@ -138,8 +138,10 @@ export class EditComponent implements OnInit, OnDestroy {
   back() { this.location.back(); }
   edit(){ this.router.navigate(['/edit']); }
 
- saveProfile() {
+  saveProfile() {
+    console.log('5. [saveProfile] เริ่มต้นการบันทึกข้อมูล');
     if (this.userId === 0) {
+      console.error('Error: userId เป็น 0 ไม่สามารถบันทึกได้');
       this.openpopup('Error: ไม่พบ ID ของผู้ใช้ กรุณาลองใหม่อีกครั้ง');
       return;
     }
@@ -147,7 +149,7 @@ export class EditComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     
     const updatedData = {
-      username: this.username, // ส่ง username ไปด้วย
+      username: this.username,
       dob: this.dob,
       national_id: this.nationalId,         
       address: this.address,
@@ -156,14 +158,17 @@ export class EditComponent implements OnInit, OnDestroy {
       phone: this.phone
     };
 
+    console.log('6. [saveProfile] ข้อมูลที่จะส่งไปอัปเดต (Payload):', updatedData);
+
     this.todoService.updateProfile(this.userId, updatedData).subscribe({
       next: (response) => {
         this.isLoading = false;
+        console.log('7. [saveProfile] อัปเดตสำเร็จ Response จาก Backend:', response);
         this.openpopup('Profile saved successfully!');
       },
       error: (error) => {
         this.isLoading = false;
-        console.error('Error updating profile:', error);
+        console.error('8. [saveProfile] อัปเดตไม่สำเร็จ Error:', error);
         this.openpopup('Failed to save profile. Please try again.');
       }
     });

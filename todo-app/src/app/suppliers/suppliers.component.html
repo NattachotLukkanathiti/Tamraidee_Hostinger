@@ -169,7 +169,7 @@
                     </ng-container>
     <!-- Data Rows -->
  <ng-template #realData>
-  <div class="table_detail2"  (click)="viewSupplierOrders(order)" *ngFor="let order of filteredSuppliers; let i = index" ...>
+  <div class="table_detail2" (click)="viewSupplierOrders(order)" *ngFor="let order of paginatedSuppliers; let i = index" [style.animation-delay]="i * 0.15 + 's'">
     <div class="table_detail">
       <div class="sku2" data-label="Created By">
         <img class="profile_employee" [src]="order.logo" alt="">{{ order.created_by }}
@@ -202,7 +202,7 @@
             <div class="sku">Date</div>
         </div>
         
-        <div class="table_detail2" *ngFor="let order of groupedSupplierOrders">
+        <div class="table_detail2" *ngFor="let order of paginatedGroupedOrders">
             <div class="table_detail">
                 <!-- เพิ่มการแสดงรูปภาพสินค้า -->
                 <div class="sku2">
@@ -227,7 +227,25 @@
             </div>
 
 
+           <div class="con_tainer_page">
+     <div class="pagination">
+        <!-- ปุ่ม Prev -->
+        <a class="prev" [class.disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">&lt; Prev</a>
+        
+        <!-- วนลูปแสดงตัวเลขหน้า -->
+        <a *ngFor="let page of visiblePages" 
+           class="page" 
+           [class.active]="currentPage === page" 
+           (click)="changePage(page)">
+           {{ page }}
+        </a>
+
+        <!-- ปุ่ม Next -->
+        <a class="next" [class.disabled]="currentPage === totalPages || totalPages === 0" (click)="changePage(currentPage + 1)">Next &gt;</a>
+     </div>
+ </div>
         </div>
+        
     </div>
     <div class="fix2" [class.open]="isMenuOpenprofile" [class.out]="out" [class.inhere]="inhere" [class.openn]="openn">
         <div [class.open]="isMenuOpenprofile" [class.out]="out" [class.inhere]="inhere" [class.openn]="openn">

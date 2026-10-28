@@ -276,11 +276,12 @@ input::placeholder{
 }
 .pagination {
   display: flex;
+  cursor: pointer;
   align-items: center;
   gap: 4px;
-  margin-left: auto;
   font-family: sans-serif;
 }
+
 .prev{
     color: #1364D5 !important;
 }
@@ -2224,6 +2225,16 @@ input::placeholder{
     display: grid;
     place-items: center;
     transition: background-color 120ms ease;
+}
+.con_tainer_page{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    margin-top: 20px;
+    width: 100%;
+    position: relative; /* เพิ่มบรรทัดนี้ */
+    z-index: 10;       /* เพิ่มบรรทัดนี้ */
 }
 
 .back-button:hover { background: var(--surface-muted); }

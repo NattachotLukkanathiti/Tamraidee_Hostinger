@@ -299,12 +299,17 @@
         </div>
         <div class="sku_pro">
             <label class="label_import" for="">Upload Ref</label>
-            <div class="con_edit" style="position: relative;">
-                <input type="text" class="sku_input" [value]="selectedProduct.upload_ref || 'No File'" readonly>
-                <label style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%);">
-                    <img src="image/paperclip_icon.svg" alt="">
-                </label>
-            </div>
+            <div class="con_edit" style="position: relative; display: flex; align-items: center;">
+    <!-- ช่อง Input -->
+    <input type="text" class="sku_input" [value]="selectedProduct.upload_ref ? 'View file' : 'No File'" readonly style="padding-right: 50px;">
+    
+    <!-- รูปภาพตัวอย่างเล็กๆ (Thumbnail) -->
+    <img class="pic"*ngIf="selectedProduct.upload_ref" 
+         [src]="selectedProduct.upload_ref" 
+         alt="Preview" 
+         (click)="showImagePopup = true"
+>
+</div>
         </div>
     </div>
 
@@ -475,12 +480,17 @@
             </div>
             <div class="sku_pro">
                 <label class="label_import">Upload Ref</label>
-                <div class="con_edit" style="position: relative;">
-                    <input type="text" class="sku_input" [value]="selectedProduct.upload_ref || 'No File'" readonly>
-                    <label style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%);">
-                        <img src="image/link.svg">
-                    </label>
-                </div>
+               <div class="con_edit" style="position: relative; display: flex; align-items: center;">
+    <!-- ช่อง Input -->
+    <input type="text" class="sku_input" [value]="selectedProduct.upload_ref ? 'View file' : 'No File'" readonly style="padding-right: 50px;">
+    
+    <!-- รูปภาพตัวอย่างเล็กๆ (Thumbnail) -->
+    <img class="pic"*ngIf="selectedProduct.upload_ref" 
+         [src]="selectedProduct.upload_ref" 
+         alt="Preview" 
+         (click)="showImagePopup = true"
+         >
+</div>
             </div>
         </div>
 
@@ -558,5 +568,14 @@
             <div (click)="button_cancels()" class="cancel" style="width: 200px;">Back to History</div>
         </div>
         
+    </div>
+</div>
+
+
+<div *ngIf="showImagePopup" class="backpop" (click)="showImagePopup = false" style="z-index: 9999;">
+    <div class="popupcontainer" style="background: transparent; box-shadow: none;" (click)="$event.stopPropagation()">
+        <div class="popup-content" style="position: relative; padding: 10px;">
+            <img [src]="selectedProduct.upload_ref" alt="Full Image" style="max-width: 100%; max-height: 80vh; border-radius: 8px;">
+        </div>
     </div>
 </div>

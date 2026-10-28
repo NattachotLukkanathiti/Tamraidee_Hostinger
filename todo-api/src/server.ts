@@ -510,7 +510,7 @@ app.post('/api/request_history', async (req, res) => {
       success: true,
       message: 'บันทึกคำขอปรับปรุงสต็อกสำเร็จ',
       data: result.rows[0]
-    });
+    })
 
   } catch (error) {
     console.error('Error inserting into request_history:', error);
@@ -671,7 +671,7 @@ app.put('/api/sale_order/:id', async (req, res) => {
     res.status(500).send('Server Error');
   }
 });
-app.put('/todos/:id', async (req, res) => {
+app.put('/todos/:id/completed', async (req, res) => {
   try {
     const { id } = req.params;
     const { completed } = req.body;

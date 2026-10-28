@@ -139,6 +139,7 @@ loadSuppliers() {
           order_history: supplierOrders.length
         };
       });
+       this.calculateTotalPages();
       this.filterSuppliers();
       this.isLoading = false; 
       this.loader = false;
@@ -153,20 +154,37 @@ loadSuppliers() {
   selectedStatus: string = 'Active';
   filteredSuppliers: any[] = [];
  filterSuppliers() {
-  this.filteredSuppliers = this.suppliers.filter(supplier => {
-    // 1. ถ้า status เป็น null/undefined ให้ถือว่าเป็น 'Active'
-    let status = supplier.status || 'Active';
+    const searchTerm = this.search.toLowerCase().trim();
 
-    status = status.toLowerCase();
-    const selected = this.selectedStatus.toLowerCase();
+    if (this.isViewingBrand) {
+      // ตารางที่ 2: ค้นหาจากชื่อสินค้า
+      this.filteredSuppliers = this.groupedSupplierOrders.filter(order => 
+        !searchTerm || (order.product_name && order.product_name.toLowerCase().includes(searchTerm))
+      );
+    } else {
+      // ตารางที่ 1: ค้นหาจากชื่อ, อีเมล และกรองตาม Status
+      this.filteredSuppliers = this.suppliers.filter(supplier => {
+        let status = supplier.status || 'Active';
+        const isStatusMatch = status.toLowerCase() === this.selectedStatus.toLowerCase();
+        
+        const isSearchMatch = !searchTerm || 
+          (supplier.supplier_name && supplier.supplier_name.toLowerCase().includes(searchTerm)) ||
+          (supplier.email && supplier.email.toLowerCase().includes(searchTerm));
 
-    return status === selected;
-  });
-}
+        return isStatusMatch && isSearchMatch;
+      });
+    }
+
+    this.calculateTotalPages();
+  }
+
   toggleMenu() { this.out = false; this.isMenuOpen = !this.isMenuOpen; this.isMenuOpenprofile = !this.isMenuOpenprofile; }
   hambar(){ this.isMenuOpen = !this.isMenuOpen; }
   setView(view: string) { this.currentView = view; }
-  filterS() { this.filteredItems = this.items.filter(item => item.toLowerCase().includes(this.search.toLowerCase()) ); }
+ filterS() {
+    this.currentPage = 1; // รีเซ็ตไปหน้าแรกเสมอเมื่อมีการพิมพ์ค้นหา
+    this.filterSuppliers();
+  }
 
   logout() {
     const now = new Date();
@@ -352,10 +370,12 @@ loadSuppliers() {
 supplierOrders: any[] = [];
 selectedSupplierName: string = '';
   groupedSupplierOrders: any[] = [];
+    paginatedGroupedOrders: any[] = [];
 viewSupplierOrders(supplier: any) {
    window.scrollTo({ top: 0, behavior: 'smooth' });
     this.selectedSupplierName = supplier.supplier_name;
     this.isLoading = true;
+    this.search = '';
 
     forkJoin({
         inventory: this.todoService.getInventory(),
@@ -365,37 +385,39 @@ viewSupplierOrders(supplier: any) {
             const allOrders = Array.isArray(res.orders) ? res.orders : (res.orders.data || []);
             
             this.supplierOrders = allOrders.filter((order: any) => {
-    if (order.status !== 'Completed') return false;
+                if (order.status !== 'Completed') return false;
 
-    const invItem = res.inventory.find((inv: any) => inv.product_name === order.product_name);
-    const brandName = invItem?.brand || order.brand;
+                const invItem = res.inventory.find((inv: any) => inv.product_name === order.product_name);
+                const brandName = invItem?.brand || order.brand;
 
-    if (!brandName) return false;
+                if (!brandName) return false;
 
-    if (String(brandName).toLowerCase() === String(supplier.supplier_name).toLowerCase()) {
-        // แนบรูปภาพจาก Inventory เข้าไปใน Object ของ Order
-        order.picture = invItem ? invItem.picture : null; 
-        return true;
-    }
-    return false;
-    
-});
-    // คำนวณรวมข้อมูลแล้วเก็บใส่ตัวแปรทันที
-        const grouped = this.supplierOrders.reduce((acc, order) => {
-          const key = order.product_name;
-          if (!acc[key]) {
-            acc[key] = { ...order, quantity: Number(order.quantity) || 0 };
-          } else {
-            acc[key].quantity += Number(order.quantity) || 0;
-          }
-          return acc;
-        }, {} as { [key: string]: any });
+                if (String(brandName).toLowerCase() === String(supplier.supplier_name).toLowerCase()) {
+                    order.picture = invItem ? invItem.picture : null; 
+                    return true;
+                }
+                return false;
+            });
 
-        this.groupedSupplierOrders = Object.values(grouped) as any[];
+            // คำนวณรวมข้อมูล
+            const grouped = this.supplierOrders.reduce((acc, order) => {
+                const key = order.product_name;
+                if (!acc[key]) {
+                    acc[key] = { ...order, quantity: Number(order.quantity) || 0 };
+                } else {
+                    acc[key].quantity += Number(order.quantity) || 0;
+                }
+                return acc;
+            }, {} as { [key: string]: any });
 
+            this.groupedSupplierOrders = Object.values(grouped) as any[];
 
             this.isLoading = false;
-            this.isViewingBrand = true; // สั่งให้เปลี่ยนไปแสดงตารางสินค้า
+            this.isViewingBrand = true;
+            
+            // --- เพิ่มส่วนนี้: รีเซ็ตหน้าและคำนวณข้อมูลใหม่ทันที ---
+            this.currentPage = 1;
+            this.filterSuppliers(); 
         },
         error: (err) => {
             console.error('Error fetching supplier orders:', err);
@@ -403,11 +425,12 @@ viewSupplierOrders(supplier: any) {
         }
     });
 }
-
 // ฟังก์ชันสำหรับกดย้อนกลับไปหน้า Suppliers
 backToSuppliers() {
     this.isViewingBrand = false;
     this.supplierOrders = [];
+       this.search = ''; // รีเซ็ตช่องค้นหา
+    this.filterSuppliers();
 }
 
 
@@ -427,4 +450,64 @@ backToSuppliers() {
 
     return Object.values(grouped) as any[];
   }
+
+  // --- เพิ่มตัวแปรเหล่านี้ใน Class ---
+currentPage: number = 1;
+itemsPerPage: number = 10; 
+totalPages: number = 1;
+paginatedSuppliers: any[] = [];
+
+// --- เพิ่มฟังก์ชันเหล่านี้ใน Class ---
+calculateTotalPages() {
+  this.totalPages = Math.ceil(this.filteredSuppliers.length / this.itemsPerPage);
+  if (this.totalPages === 0) this.totalPages = 1;
+  this.changePage(this.currentPage); 
+}
+
+ changePage(page: number) {
+    if (page < 1 || page > this.totalPages) return;
+    this.currentPage = page;
+    
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    const endIndex = startIndex + this.itemsPerPage;
+    
+    if (this.isViewingBrand) {
+      // ส่งข้อมูลไปให้ตารางที่ 2
+      this.paginatedGroupedOrders = this.filteredSuppliers.slice(startIndex, endIndex);
+    } else {
+      // ส่งข้อมูลไปให้ตารางที่ 1
+      this.paginatedSuppliers = this.filteredSuppliers.slice(startIndex, endIndex);
+    }
+  }
+
+
+// เพิ่ม Getter นี้ใน Class ของคุณ
+get visiblePages(): number[] {
+  const pages: number[] = [];
+  const maxVisible = 5; // จำนวนปุ่มตัวเลขที่ต้องการให้แสดงสูงสุด
+  
+  if (this.totalPages <= maxVisible) {
+    // ถ้าหน้าทั้งหมดน้อยกว่าหรือเท่ากับ maxVisible ให้แสดงทั้งหมด
+    for (let i = 1; i <= this.totalPages; i++) {
+      pages.push(i);
+    }
+  } else {
+    // คำนวณช่วงของหน้าที่จะแสดง
+    let startPage = Math.max(1, this.currentPage - 2);
+    let endPage = Math.min(this.totalPages, this.currentPage + 2);
+
+    // ปรับช่วงให้อยู่ในขอบเขตที่ถูกต้อง
+    if (startPage === 1) {
+      endPage = maxVisible;
+    } else if (endPage === this.totalPages) {
+      startPage = this.totalPages - maxVisible + 1;
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+  }
+  
+  return pages;
+}
 }
