@@ -30,7 +30,7 @@
                 {{ currentTime | date:'HH:mm:ss' }}
             </div>
         </div> -->
-        <div class="lin"></div>
+     <!--    <div class="lin"></div> -->
 <!--         <img class="iconsetting1" src="image/Maximize Icon.svg" (click)="toggleMenu()" [class.Max]="Max" alt=""> -->
         <!-- <img class="iconsetting2" src="image/Song.svg" alt=""> -->
 <!--         <img class="iconsetting3" (click)="openPro()" src="image/Chart.svg" alt="">
@@ -136,28 +136,28 @@
             <div class="headersum">Sales Summary</div>
             
         <div class="conT">
-    <div class="T">
+    <div class="T1">
         <img class="iconpass" src="image/Frame.svg" alt="">
         <div class="con_sub2">
             <div class="value">{{ summary.todays_sale | number:'1.2-2' }}</div>
             <div class="sub">Today’s Sale</div>
         </div>
     </div>
-    <div class="T">
+    <div class="T2">
         <img class="iconpass" src="image/shop2.svg" alt="">
         <div class="con_sub2">
             <div class="value">{{ summary.yearly_total_sales | number:'1.2-2' }}</div>
             <div class="sub">Yearly Sales</div>
         </div>
     </div>
-    <div class="T">
+    <div class="T3">
         <img class="iconpass" src="image/coin.svg" alt="">
         <div class="con_sub2">
             <div class="value">{{ summary.net_income | number:'1.2-2' }}</div>
             <div class="sub">Net Income</div>
         </div>
     </div>
-    <div class="T">
+    <div class="T4">
         <div class="con_sub"> <img class="iconpass" src="image/bag.svg" alt=""></div>
        
         <div class="con_sub2">
@@ -316,17 +316,17 @@
     </div>
 
 
-    @for (order of paginatedSaleOrders; track order.id) {
-        <div class="con_data_row">
-            <div class="CHs">{{ order.order_code }}</div>
-            <div class="CHs">{{ order.product_name }}</div>
-            <div class="CHs">{{ order.created_at | date:'yyyy-MM-dd'}}</div>
-            <div class="CHs">{{ order.quantity }}</div>
-            <div class="CHs">{{ order.status }}</div>
-        </div>
-    } @empty {
-        <div class="no-data">No sale orders found.</div>
-    }
+   @for (order of paginatedSaleOrders; track order.id; let i = $index) {
+    <div class="con_data_row" [style.animation-delay]="(i * 0.1) + 's'">
+        <div class="CHs">{{ order.order_code }}</div>
+        <div class="CHs">{{ order.product_name }}</div>
+        <div class="CHs">{{ order.created_at | date:'yyyy-MM-dd'}}</div>
+        <div class="CHs">{{ order.quantity }}</div>
+        <div class="CHs">{{ order.status }}</div>
+    </div>
+} @empty {
+    <div class="no-data">No sale orders found.</div>
+}
 
     <div class="pagination-controls" style="display: flex; justify-content: center; gap: 10px; margin-top: 20px;">
         <button class="btn-page" [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">

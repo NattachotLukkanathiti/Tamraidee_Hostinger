@@ -328,7 +328,17 @@
        <!-- แก้ไขช่อง Confirm Password -->
 <div class="sku_pro">
     <label class="label_import" for="">Confirm Password*</label>
-    <input type="password" class="sku_input" [(ngModel)]="selectedProduct.confirm_password" placeholder="Enter your password" autocomplete="new-password">
+        <ng-container *ngIf="!isSocialLogin; else socialAuth">
+        <input type="password" class="sku_input" [(ngModel)]="selectedProduct.confirm_password" placeholder="Enter your password" autocomplete="new-password">
+    </ng-container>
+    <ng-template #socialAuth>
+    <button class="sku_input google-confirm-btn" (click)="reAuthenticateWithGoogle()" style="display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer;">
+       <!-- เปลี่ยนข้อความตาม Provider -->
+       <span *ngIf="socialProvider === 'google'">Confirm with Google</span>
+       <span *ngIf="socialProvider === 'facebook'">Confirm with Facebook</span>
+       <span *ngIf="socialProvider === 'github'">Confirm with GitHub</span>
+    </button>
+</ng-template>
 </div>
     </div>
 
@@ -399,13 +409,19 @@
         <div class="con_sku_pro" style="flex-direction: column; margin-bottom: 20px;">
             <div class="sku_pro" style="width: 100%;">
                 <label class="label_import" for="">Upload Ref</label>
-                <div class="con_edit" style="position: relative;">
-                    <input type="text" class="sku_input" placeholder="Upload Ref Image / PDF" readonly>
-                    <label for="uploadRef" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer;">
-                        
-                        <img src="image/paperclip_icon.svg" alt="">
-                    </label>
-                </div>
+               <div class="con_edit" style="position: relative; display: flex; align-items: center;">
+    <!-- ช่องกรอกข้อความหรือลิงก์ -->
+    <input type="text" class="sku_input" placeholder="Upload Ref Image / PDF" [(ngModel)]="selectedProduct.upload_ref" style="flex: 1; padding-right: 70px;">
+    
+    <!-- ส่วนแสดงรูปภาพตัวอย่าง (จะแสดงเมื่อมีข้อมูลรูปภาพ) -->
+    <img *ngIf="selectedProduct.upload_ref" [src]="selectedProduct.upload_ref" alt="Preview" style="width: 30px; height: 30px; object-fit: cover; border-radius: 4px; position: absolute; right: 40px; top: 50%; transform: translateY(-50%);">
+
+    <!-- ซ่อน input file ไว้ และใช้ label ครอบไอคอนคลิป -->
+    <input type="file" id="uploadRef" style="display: none;" accept="image/*" (change)="onFileSelected($event)">
+    <label for="uploadRef" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer;">
+        <img src="image/paperclip_icon.svg" alt="Upload">
+    </label>
+</div>
             </div>
         </div>
 

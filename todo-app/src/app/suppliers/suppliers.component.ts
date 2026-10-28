@@ -351,7 +351,7 @@ loadSuppliers() {
   isViewingBrand: boolean = false;
 supplierOrders: any[] = [];
 selectedSupplierName: string = '';
-
+  groupedSupplierOrders: any[] = [];
 viewSupplierOrders(supplier: any) {
    window.scrollTo({ top: 0, behavior: 'smooth' });
     this.selectedSupplierName = supplier.supplier_name;
@@ -378,7 +378,21 @@ viewSupplierOrders(supplier: any) {
         return true;
     }
     return false;
+    
 });
+    // คำนวณรวมข้อมูลแล้วเก็บใส่ตัวแปรทันที
+        const grouped = this.supplierOrders.reduce((acc, order) => {
+          const key = order.product_name;
+          if (!acc[key]) {
+            acc[key] = { ...order, quantity: Number(order.quantity) || 0 };
+          } else {
+            acc[key].quantity += Number(order.quantity) || 0;
+          }
+          return acc;
+        }, {} as { [key: string]: any });
+
+        this.groupedSupplierOrders = Object.values(grouped) as any[];
+
 
             this.isLoading = false;
             this.isViewingBrand = true; // สั่งให้เปลี่ยนไปแสดงตารางสินค้า
@@ -395,4 +409,22 @@ backToSuppliers() {
     this.isViewingBrand = false;
     this.supplierOrders = [];
 }
+
+
+// เพิ่มฟังก์ชันนี้ใน class SuppliersComponent
+  getGroupedSupplierOrders() {
+    const grouped = this.supplierOrders.reduce((acc, order) => {
+      const key = order.product_name;
+      
+      if (!acc[key]) {
+        acc[key] = { ...order, quantity: Number(order.quantity) || 0 };
+      } else {
+        acc[key].quantity += Number(order.quantity) || 0;
+      }
+      
+      return acc;
+    }, {} as { [key: string]: any });
+
+    return Object.values(grouped) as any[];
+  }
 }

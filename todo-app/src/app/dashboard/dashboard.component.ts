@@ -556,14 +556,16 @@ filterDataByRange(range: string) {
   itemsPerPage: number = 5;
 
   // 2. เพิ่มฟังก์ชันดึงข้อมูลเฉพาะหน้าปัจจุบัน
-  get paginatedSaleOrders() {
+   get paginatedSaleOrders() {
+    const groupedOrders = this.getGroupedSaleOrders();
     const startIndex = (this.currentPage - 1) * this.itemsPerPage;
-    return this.saleOrders.slice(startIndex, startIndex + this.itemsPerPage);
+    return groupedOrders.slice(startIndex, startIndex + this.itemsPerPage);
   }
 
-  // 3. เพิ่มฟังก์ชันคำนวณหน้าทั้งหมด
+  // 3. คำนวณหน้าทั้งหมด
   get totalPages() {
-    return Math.ceil(this.saleOrders.length / this.itemsPerPage);
+    const groupedOrders = this.getGroupedSaleOrders();
+    return Math.ceil(groupedOrders.length / this.itemsPerPage);
   }
 
   // 4. ฟังก์ชันเปลี่ยนหน้า
@@ -571,6 +573,22 @@ filterDataByRange(range: string) {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPage = page;
     }
+  }
+
+  getGroupedSaleOrders() {
+    const grouped = this.saleOrders.reduce((acc, order) => {
+      const key = order.product_name; 
+      
+      if (!acc[key]) {
+        acc[key] = { ...order, quantity: Number(order.quantity) || 0 };
+      } else {
+        acc[key].quantity += Number(order.quantity) || 0;
+      }
+      
+      return acc;
+    }, {} as { [key: string]: any });
+
+    return Object.values(grouped) as any[];
   }
 
 

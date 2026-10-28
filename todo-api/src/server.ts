@@ -490,7 +490,7 @@ app.get('/api/request_history', async (req, res) => {
 // 📌 Route สำหรับบันทึกข้อมูล Request History (สถานะเริ่มต้น Pending)
 app.post('/api/request_history', async (req, res) => {
   try {
-    const { sku, requested_quantity, staff_reason, status, created_by, created_at, time } = req.body;
+    const { sku, requested_quantity, staff_reason, status, created_by, created_at, time ,upload_ref} = req.body;
 
     if (!sku || requested_quantity === undefined) {
       return res.status(400).json({ 
@@ -500,10 +500,10 @@ app.post('/api/request_history', async (req, res) => {
     }
 
     const result = await pool.query(
-      `INSERT INTO request_history (sku, requested_quantity, staff_reason, status, created_by, created_at, time) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7) 
+      `INSERT INTO request_history (sku, requested_quantity, staff_reason, status, created_by, created_at, time,upload_ref) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7,$8) 
        RETURNING *`,
-      [sku, requested_quantity, staff_reason, status || 'Pending', created_by, created_at, time]
+      [sku, requested_quantity, staff_reason, status || 'Pending', created_by, created_at, time,upload_ref]
     );
 
     res.status(201).json({

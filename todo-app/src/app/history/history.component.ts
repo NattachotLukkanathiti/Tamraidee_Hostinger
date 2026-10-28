@@ -6,6 +6,7 @@ import { Router, RouterLink } from '@angular/router';
 import { TodoService } from '../services/todo.service';
 import { interval, Subscription } from 'rxjs';
 import { createClient } from '@supabase/supabase-js'; 
+import { getAuth, GoogleAuthProvider, reauthenticateWithPopup } from 'firebase/auth';
 @Component({
   selector: 'app-history',
   imports: [CommonModule, DatePipe, RouterLink,FormsModule],
@@ -60,10 +61,19 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 
   private timeSubscription!: Subscription;
   
-
+  isSocialLogin: boolean = false;
   constructor(private router: Router, private ngZone: NgZone) {}
-
+  socialProvider: string = ''; 
   ngOnInit(): void {
+
+  const socialLoginStored = localStorage.getItem('isSocialLogin');
+  this.socialProvider = localStorage.getItem('socialProvider') || '';
+  if (socialLoginStored === 'true') {
+    this.isSocialLogin = true;
+  } else {
+    this.isSocialLogin = false;
+  }
+
      this.loadUsers(); 
        window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -81,6 +91,7 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
     this.email = state.email || '';
     this.userRole = state.role || 'user';
     this.profile = state.profile || '';
+
     this.loadHistory();
      if (state.Move_return === true) {
        this.stan = false;
@@ -363,6 +374,7 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
       sku: this.selectedProduct.sku,
       requested_quantity: this.selectedProduct.requested_quantity,
       staff_reason: this.selectedProduct.staff_reason || '',
+           upload_ref: this.selectedProduct.upload_ref || '', 
       status: 'Pending',
       created_by: this.username,
       created_at: now.toISOString().split('T')[0],
@@ -434,7 +446,7 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
   }
  confirmAdjustment2() {
   this.isLoading = true;
-  // 1. สร้างตัวแปรแยก (Local Variables) เพื่อดึงค่ามาจาก UI
+
   const currentId = this.selectedProduct.id;
   const currentSku = this.selectedProduct.sku;
   const selectedStatus = this.selectedProduct.status;
@@ -453,7 +465,11 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 
   this.loader = true;
 
-  // 2. ดึงข้อมูลผู้ใช้เพื่อตรวจสอบรหัสผ่าน
+if (this.isSocialLogin && inputPassword === "social_verified_success") {
+    this.processAdjustmentUpdate(currentId, currentSku, selectedStatus, adminNote, requestedQuantity);
+    return; 
+  }
+  // --- โค้ดเดิมของคุณทั้งหมดด้านล่างนี้ (ไม่มีการแก้ไขใดๆ) ---
   this.todoService.getTodoss().subscribe({
     next: (users) => {
       const currentUser = users.find((u: any) => u.username === this.username);
@@ -471,22 +487,14 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
         admin_note: adminNote 
       }).subscribe({
         next: () => {
-          
-    
           if (selectedStatus === 'Approved') {
-
             this.todoService.getInventory().subscribe({
               next: (inventory) => {
                 const currentProduct = inventory.find((item: any) => item.sku === currentSku);
                 
                 if (currentProduct) {
-           
-                  const updateData = { 
-                    ...currentProduct, 
-                    quantity: requestedQuantity 
-                  };
+                  const updateData = { ...currentProduct, quantity: requestedQuantity };
                   
-            
                   this.todoService.updateInventory(currentSku, updateData).subscribe({
                     next: () => { this.finalizeAdjustment(currentSku, selectedStatus); },
                     error: (err) => {
@@ -503,12 +511,9 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
                 }
               }
             });
-
           } else {
-        
             this.finalizeAdjustment(currentSku, selectedStatus);
           }
-
         },
         error: (err) => {
           this.loader = false;
@@ -518,8 +523,54 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
       });
     }
   });
-}
+ }
 
+ private processAdjustmentUpdate(currentId: any, currentSku: string, selectedStatus: string, adminNote: string, requestedQuantity: number) {
+  // 3. อัปเดตสถานะ Request
+  this.todoService.updateRequestStatus(currentId, { 
+    status: selectedStatus, 
+    admin_note: adminNote 
+  }).subscribe({
+    next: () => {
+      if (selectedStatus === 'Approved') {
+        this.todoService.getInventory().subscribe({
+          next: (inventory) => {
+            const currentProduct = inventory.find((item: any) => item.sku === currentSku);
+            
+            if (currentProduct) {
+              const updateData = { 
+                ...currentProduct, 
+                quantity: requestedQuantity 
+              };
+              
+              this.todoService.updateInventory(currentSku, updateData).subscribe({
+                next: () => { this.finalizeAdjustment(currentSku, selectedStatus); },
+                error: (err) => {
+                  this.loader = false;
+                  this.isLoading = false;
+                  console.error("Error updating inventory:", err);
+                  this.openpopupnoti("Status updated, but failed to update Inventory.");
+                }
+              });
+            } else {
+              this.loader = false;
+              this.isLoading = false;
+              this.openpopupnoti("Product not found in Inventory.");
+            }
+          }
+        });
+      } else {
+        this.finalizeAdjustment(currentSku, selectedStatus);
+      }
+    },
+    error: (err) => {
+      this.loader = false;
+      this.isLoading = false;
+      console.error("Error updating status:", err);
+      this.openpopupnoti("An error occurred while updating status.");
+    }
+  });
+}
  private finalizeAdjustment(sku: string, status: string) {
     this.todoService.updateHistoryStatusBySku(sku, status).subscribe(() => {
       
@@ -635,5 +686,42 @@ getUserProfileImage(username: string): string {
   if (!username) return 'image/user_avatar.svg';
   const user = this.usersList.find((u: any) => u.username === username);
   return user && user.profile ? user.profile : 'image/user_avatar.svg';
+}
+
+
+
+reAuthenticateWithGoogle() {
+  const auth = getAuth();
+  const user = auth.currentUser;
+  const provider = new GoogleAuthProvider();
+
+  if (user) {
+    this.isLoading = true;
+    reauthenticateWithPopup(user, provider)
+      .then((result) => {
+        this.isLoading = false;
+        this.openpopup("Authentication successful");
+   
+        this.selectedProduct.confirm_password = "social_verified_success";
+      })
+      .catch((error) => {
+        this.isLoading = false;
+        console.error(error);
+        this.openpopupnoti("Authentication failed. Please try again.");
+      });
+  }
+}
+
+
+onFileSelected(event: any) {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      // นำ URL ของรูปภาพที่ได้ไปใส่ในตัวแปร เพื่อให้แสดงผลในหน้าเว็บ
+      this.selectedProduct.upload_ref = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
 }
 }

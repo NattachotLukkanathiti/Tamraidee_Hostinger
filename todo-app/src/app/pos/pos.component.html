@@ -1,3 +1,4 @@
+<div class="bacdk"></div>
 <div class="navbaar">
 
     <div class="headercompany">
@@ -64,7 +65,7 @@
 
 </div>
  @if (openPanel === 'account') {
-  <!-- ฉากหลังสำหรับกดปิด -->
+
   <div class="sidebar-backdrop" (click)="closePanel()"></div>
 
   <div class="account-sidebar" [class.closing]="isClosing" aria-label="Account menu">
@@ -108,7 +109,7 @@
     <main class="pos-main" [class.pos-main--without-right]="!isRightPanelOpen">
       <div class="left-side">
         <div class="quick-options">
-          <button class="quick-button quick-button--teal" type="button" ><img src="image/u_shopping-cart.svg" alt="" />View Orders</button>
+          <button  (click)="Animation_out2()"class="quick-button quick-button--teal" type="button" ><img src="image/u_shopping-cart.svg" alt="" />View Orders</button>
           <button class="quick-button quick-button--blue" type="button" (click)="resetOrder()"><img src="image/u_redo.svg" alt="" />Reset</button>
         </div>
 

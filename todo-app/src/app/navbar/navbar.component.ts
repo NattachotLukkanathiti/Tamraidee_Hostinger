@@ -413,7 +413,8 @@ loadTodos() {
       picture: this.profile
     };
 
-
+ localStorage.removeItem('isSocialLogin');
+  localStorage.removeItem('socialProvider');
     this.todoService.logAudit(auditData).subscribe({
       next: () => {
         console.log('Logout audit saved');

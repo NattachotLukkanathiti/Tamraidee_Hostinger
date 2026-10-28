@@ -26,7 +26,7 @@
                 {{ currentTime | date:'HH:mm:ss' }}
             </div>
         </div> -->
-        <div class="lin"></div>
+      <!--   <div class="lin"></div> -->
 <!--         <img class="iconsetting1" src="image/Maximize Icon.svg" (click)="toggleMenu()" [class.Max]="Max" alt=""> -->
         <!-- <img class="iconsetting2" src="image/Song.svg" alt=""> -->
 <!--         <img class="iconsetting3" (click)="openPro()" src="image/Chart.svg" alt="">
@@ -202,7 +202,7 @@
             <div class="sku">Date</div>
         </div>
         
-        <div class="table_detail2" *ngFor="let order of supplierOrders">
+        <div class="table_detail2" *ngFor="let order of groupedSupplierOrders">
             <div class="table_detail">
                 <!-- เพิ่มการแสดงรูปภาพสินค้า -->
                 <div class="sku2">

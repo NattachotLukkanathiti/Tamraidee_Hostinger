@@ -184,6 +184,16 @@ private handleSocialLogin(provider: any) {
 
       const userData = { username, title: email, password: user.uid, profile, status: 'Active' };
 
+        localStorage.setItem('isSocialLogin', 'true');
+      
+      // 2. บันทึกประเภทของ Provider เพื่อนำไปแสดงผลปุ่มให้ถูกต้อง
+      if (provider instanceof GoogleAuthProvider) {
+        localStorage.setItem('socialProvider', 'google');
+      } else if (provider instanceof FacebookAuthProvider) {
+        localStorage.setItem('socialProvider', 'facebook');
+      } else {
+        localStorage.setItem('socialProvider', 'github');
+      }
       // 1. บันทึกหรืออัปเดตข้อมูลลง Supabase
       this.todoService.registerOrUpdateUser(userData).subscribe({
         next: () => {
@@ -214,7 +224,7 @@ private handleSocialLogin(provider: any) {
     });
 }private proceedAfterLogin(user: any, email: string, username: string, role: string) {
   const profile = user.photoURL || '';
-
+  
   const now = new Date();
   const auditData = {
     date: now.toISOString().split('T')[0],

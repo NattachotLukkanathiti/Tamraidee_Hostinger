@@ -535,16 +535,30 @@ box-sizing: border-box;
     font-weight: 500;
 }
 
-.T {
+.T1,.T2,.T3,.T4 {
     height: 70px;
     width: 180px;
     display: flex;
     background-color: #FFF;
     border-radius: 10px;
     box-shadow: 0px 2px 6px 0px #00000013;
-
+        opacity: 0;
+    transform: translateY(40px);
+    animation: fadeIn 1s ease-in-out forwards;
 }
+/* 2. กำหนดเวลาดีเลย์ให้แต่ละตัว */
+.T1 { animation-delay: 0.2s; }
+.T2 { animation-delay: 0.4s; }
+.T3 { animation-delay: 0.6s; }
+.T4 { animation-delay: 0.8s; }
 
+/* 3. สร้างคีย์เฟรมสำหรับการเลื่อนขึ้น */
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
 .conT {
     margin-left: 30px;
     display: flex;
@@ -924,11 +938,7 @@ box-sizing: border-box;
     .tab{
         margin-top: 50px;
     }
-    .header_Inventory{
-        font-size: 50px !important;
-        transform: translateY(-50px) !important;
-        
-    }
+
      .container2 {
         display: block;
         width: 100%;
@@ -2298,9 +2308,19 @@ box-sizing: border-box;
     display: flex;
     justify-content: space-between;
     padding: 10px 0;
+    opacity: 0;
     border-bottom: 1px solid #eee;
+      transform: translateY(15px);
+    animation: wow 2s ease-in-out forwards;
 }
-
+@keyframes wow{
+    0%{
+        opacity: 0;
+    }
+    100%{
+        opacity: 1;
+    }
+}
 .no-data {
     text-align: center;
     padding: 20px;
