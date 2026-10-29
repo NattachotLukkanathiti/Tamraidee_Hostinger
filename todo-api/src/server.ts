@@ -52,13 +52,14 @@ app.get('/api/todos', async (req, res) => {
 app.put('/api/request_history/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, admin_note, approved_by } = req.body; // รับ approved_by เพิ่ม
+    const { status, admin_note, approved_by, approved_date, approved_time } = req.body; // รับ approved_by เพิ่ม
 
     const result = await pool.query(
       `UPDATE request_history 
-       SET status = $1, admin_note = $2, approved_by = $3 
-       WHERE id = $4 RETURNING *`,
-      [status, admin_note, approved_by, id]
+       SET status = $1, admin_note = $2, approved_by = $3 ,  approved_date = $4,
+           approved_time = $5
+       WHERE id = $6 RETURNING *`,
+      [status, admin_note, approved_by, approved_date, approved_time, id]
     );
 
     if (result.rowCount === 0) {

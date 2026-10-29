@@ -548,17 +548,15 @@ if (this.isSocialLogin && inputPassword === "social_verified_success") {
   // 3. อัปเดตสถานะ Request
     const now = new Date();
   
-  // ข้อมูลที่จะอัปเดต
-  const updatePayload: any = { 
-    status: selectedStatus, 
-    admin_note: adminNote,
-        ...(selectedStatus === 'Approved' && {
-      approved_by: this.username,
-      approved_picture: this.profile || 'image/profileee.svg',
-      approved_date: new Date().toISOString().split('T')[0],
-      approved_time: new Date().toTimeString().split(' ')[0]
-    })
-  };
+ const updatePayload: any = { 
+  status: selectedStatus, 
+  admin_note: adminNote,
+  ...(selectedStatus === 'Approved' && {
+    approved_by: this.username,
+        approved_date: now.toISOString().split('T')[0], // เพิ่มวันที่
+    approved_time: now.toTimeString().split(' ')[0] 
+  })
+};
 
   // ถ้าสถานะเป็น Approved ให้เพิ่มข้อมูลผู้ที่อนุมัติ
   if (selectedStatus === 'Approved') {

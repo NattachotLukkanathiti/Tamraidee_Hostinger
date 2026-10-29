@@ -547,23 +547,26 @@
         </div>
 
        <!-- Approved By -->
-        <div class="con_sku_pro" *ngIf="selectedProduct.status === 'Approved'" style="align-items: center; margin-top: 10px;">
-            <div class="sku_pro" style="display: flex; align-items: center;">
-                <label class="label_import" style="margin-bottom: 0; margin-right: 10px;">Approved By</label>
-                <img class="profile_employee" [src]="selectedProduct.approved_picture || 'image/profileee.svg'" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 10px;">
-                <span>{{ selectedProduct.approved_by || '-' }}</span>
-            </div>
-            <div class="sku_pro" style="display: flex; gap: 10px;">
-                <div class="sku_input" style="display: flex; align-items: center; justify-content: space-between;">
-                    <span>{{ selectedProduct.approved_date || '-' }}</span>
-       
-                </div>
-                <div class="sku_input" style="display: flex; align-items: center; justify-content: space-between;">
-                    <span>{{ selectedProduct.approved_time || '-' }}</span>
-           
-                </div>
-            </div>
+       <!-- Approved By -->
+<div class="con_sku_pro" *ngIf="selectedProduct.status === 'Approved'" style="align-items: center; margin-top: 10px;">
+    <div class="sku_pro" style="display: flex; align-items: center;">
+        <label class="label_import" style="margin-bottom: 0; margin-right: 10px;">Approved By</label>
+        <!-- ใช้ฟังก์ชัน getUserProfileImage ดึงรูปจาก todos -->
+        <img class="profile_employee" 
+             [src]="getUserProfileImage(selectedProduct.approved_by)" 
+             style="width: 30px; height: 30px; border-radius: 50%; margin-right: 10px;">
+        <span>{{ selectedProduct.approved_by || '-' }}</span>
+    </div>
+    <div class="sku_pro" style="display: flex; gap: 10px;">
+        <div class="sku_input" style="display: flex; align-items: center; justify-content: space-between;">
+            <!-- หากไม่ได้บันทึกเวลาลง DB ให้ใช้ created_at หรือดึงจากข้อมูลที่อัปเดตล่าสุด -->
+            <span>{{ selectedProduct.approved_date || '-' }}</span>
         </div>
+        <div class="sku_input" style="display: flex; align-items: center; justify-content: space-between;">
+            <span>{{ selectedProduct.approved_time || '-' }}</span>
+        </div>
+    </div>
+</div>
 
         <!-- Buttons -->
         <div class="button_import">
