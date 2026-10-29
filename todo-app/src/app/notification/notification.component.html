@@ -121,11 +121,10 @@
         </div>
         
        <div class="sku3">
-          <span class="view" *ngIf="item.title.includes('Pending Approvals')|| item.title.includes('Stock Adjustment')|| item.title.includes('Accepted') || item.title.includes('Rejected')  " 
-          (click)="goToHistory(item); $event.stopPropagation()" 
-        >
-        View Details
-    </span>
+        <span class="view" *ngIf="item.title.includes('Pending Approvals') || item.title.includes('Stock Adjustment') || item.title.includes('Accepted') || item.title.includes('Rejected')" 
+      (click)="goToHistory(item); $event.stopPropagation()">
+    View Details
+</span>
     <span>{{ getTimeAgo(item.created_at) }}</span>
 
     <div class="blue_noti" *ngIf="!item.is_read"></div>

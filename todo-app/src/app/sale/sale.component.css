@@ -1666,7 +1666,7 @@ width: 100%;
     align-items: center;
     width: 100%;
     gap: 10px;
-
+    background-color: #F4F5FC;
     box-sizing: border-box;
     padding: 10px 20px; 
     border-radius: 8px; 
@@ -1839,12 +1839,17 @@ select.sku_input {
 .con_table{
     margin-top: 40px;
     display: flex;
-    width: 100%;
+    width: 25%;
 }
-.sku_pro3{
+.con_sku_pro1{
+    margin-top: 30px;
+    margin-bottom: 30px;
+}
+.sku_pro3 {
     font-size: 13px;
-    position: absolute;
-        margin-top: 70px; 
+    margin-left: 10px;
+    font-weight: 500 !important;
+    margin-right: auto;
 }
 .connnn {
     display: flex;

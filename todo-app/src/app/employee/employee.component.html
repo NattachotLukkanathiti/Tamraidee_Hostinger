@@ -163,7 +163,7 @@
                     </ng-container>
     <!-- Data Rows -->
  <ng-template #realData>
-  <div class="table_detail2" *ngFor="let order of filteredEmployeeList; let i = index" [style.animation-delay]="i * 0.15 + 's'">
+  <div class="table_detail2" *ngFor="let order of  paginatedEmployeeList; let i = index" [style.animation-delay]="i * 0.15 + 's'">
     <div class="table_detail">
       <div class="sku2" data-label="Role">{{ order.role === 'pos' ? 'Frontend' : (order.role || 'Guest') }}</div>
       <div class="sku2" data-label="Username">

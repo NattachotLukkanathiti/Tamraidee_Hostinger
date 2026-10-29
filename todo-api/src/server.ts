@@ -49,15 +49,23 @@ app.get('/api/todos', async (req, res) => {
   }
 });
 // 📌 Route สำหรับอัปเดตสถานะและ Admin Note ของ Request History
+// 📌 Route สำหรับอัปเดตสถานะ, Admin Note และข้อมูลผู้กดอนุมัติของ Request History
 app.put('/api/request_history/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, admin_note } = req.body; // เพิ่ม admin_note
+    const { status, admin_note, approved_by, approved_picture, approved_date, approved_time } = req.body;
 
-    // อัปเดตทั้ง status และ admin_note
+    // อัปเดตข้อมูลทั้งหมด รวมถึงข้อมูลผู้ที่อนุมัติ
     const result = await pool.query(
-      `UPDATE request_history SET status = $1, admin_note = $2 WHERE id = $3 RETURNING *`,
-      [status, admin_note, id]
+      `UPDATE request_history 
+       SET status = $1, 
+           admin_note = $2, 
+           approved_by = $3, 
+           approved_picture = $4, 
+           approved_date = $5, 
+           approved_time = $6 
+       WHERE id = $7 RETURNING *`,
+      [status, admin_note, approved_by, approved_picture, approved_date, approved_time, id]
     );
 
     if (result.rowCount === 0) {

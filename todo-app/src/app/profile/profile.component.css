@@ -140,15 +140,23 @@ button:disabled {
     margin-top: 60px;
 }
 
+.cons{
+    position: relative;
+    box-sizing: border-box;
+}
 .action-btn {
     flex: 0 0 auto;
-    width: 26px;
-    height: 24px;
+    width: 30px;
+    height: 30px;
     padding: 0;
+    position: absolute;
     border: 0;
+    background-color: #FFFCE8;
     border-radius: 5px;
     color: #2b2f38;
     display: inline-grid;
+    bottom: 6px;   /* ระยะห่างจากขอบบน */
+    right: 0;
     place-items: center;
     transition: filter 120ms ease;
 }
@@ -420,6 +428,9 @@ button:disabled {
 .pr{
     display: grid;
     width: 100px;
-    font: 500 16px/22px;
 
+}
+.oe{
+    font-weight: 600;
+    margin-bottom: 8px;
 }

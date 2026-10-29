@@ -91,6 +91,11 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
     this.email = state.email || '';
     this.userRole = state.role || 'user';
     this.profile = state.profile || '';
+    
+  const initialStatus = state.filterStatus || 'all';
+
+  // ส่งค่า initialStatus เข้าไปใน loadHistory
+  this.loadHistory(initialStatus); 
 
     this.loadHistory();
      if (state.Move_return === true) {
@@ -207,7 +212,7 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
   }
 
 
- loadHistory() {
+ loadHistory(initialStatus: string = 'all') {
     this.isLoading = false;
     this.todoService.getTodoss().subscribe({
       next: (users) => {
@@ -221,9 +226,13 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
                 picture: user && user.profile ? user.profile : 'assets/default-avatar.png'
               };
             });
-            
- 
-            this.filteredHistory = [...this.history];
+              if (initialStatus !== 'all') {
+              this.selectedStatus = initialStatus;
+            }
+
+               this.filterHistory(); 
+/*  
+            this.filteredHistory = [...this.history]; */
             this.updatePagination();
 
             this.isLoading = false;
@@ -353,6 +362,7 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
   }
   button_cancels(){
     this.outimport = true;
+      this.selectedFileName = ''; 
     setTimeout(() =>{
             this.product2 = true;
             this.product1 = true;
@@ -445,6 +455,7 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
     this.outimport = false;
   }
  confirmAdjustment2() {
+  
   this.isLoading = true;
 
   const currentId = this.selectedProduct.id;
@@ -480,11 +491,19 @@ if (this.isSocialLogin && inputPassword === "social_verified_success") {
         this.openpopupnoti("Incorrect password. Please try again.");
         return;
       }
+      
 
       // 3. อัปเดตสถานะ Request
       this.todoService.updateRequestStatus(currentId, { 
+        
         status: selectedStatus, 
-        admin_note: adminNote 
+        admin_note: adminNote,
+            ...(selectedStatus === 'Approved' && {
+          approved_by: this.username,
+          approved_picture: this.profile || 'image/profileee.svg',
+          approved_date: new Date().toISOString().split('T')[0],
+          approved_time: new Date().toTimeString().split(' ')[0]
+        })
       }).subscribe({
         next: () => {
           if (selectedStatus === 'Approved') {
@@ -527,10 +546,28 @@ if (this.isSocialLogin && inputPassword === "social_verified_success") {
 
  private processAdjustmentUpdate(currentId: any, currentSku: string, selectedStatus: string, adminNote: string, requestedQuantity: number) {
   // 3. อัปเดตสถานะ Request
-  this.todoService.updateRequestStatus(currentId, { 
+    const now = new Date();
+  
+  // ข้อมูลที่จะอัปเดต
+  const updatePayload: any = { 
     status: selectedStatus, 
-    admin_note: adminNote 
-  }).subscribe({
+    admin_note: adminNote,
+        ...(selectedStatus === 'Approved' && {
+      approved_by: this.username,
+      approved_picture: this.profile || 'image/profileee.svg',
+      approved_date: new Date().toISOString().split('T')[0],
+      approved_time: new Date().toTimeString().split(' ')[0]
+    })
+  };
+
+  // ถ้าสถานะเป็น Approved ให้เพิ่มข้อมูลผู้ที่อนุมัติ
+  if (selectedStatus === 'Approved') {
+    updatePayload.approved_by = this.username;
+    updatePayload.approved_picture = this.profile || 'image/profileee.svg';
+    updatePayload.approved_date = now.toISOString().split('T')[0];
+    updatePayload.approved_time = now.toTimeString().split(' ')[0];
+  }
+  this.todoService.updateRequestStatus(currentId,updatePayload).subscribe({
     next: () => {
       if (selectedStatus === 'Approved') {
         this.todoService.getInventory().subscribe({
@@ -712,17 +749,24 @@ reAuthenticateWithGoogle() {
   }
 }
 
-
+selectedFile: File | null = null;
+selectedFileName: string = '';
 onFileSelected(event: any) {
   const file = event.target.files[0];
   if (file) {
+  
+    this.selectedFileName = file.name; 
+    
+    this.selectedFile = file;
+
     const reader = new FileReader();
     reader.onload = (e: any) => {
-      // นำ URL ของรูปภาพที่ได้ไปใส่ในตัวแปร เพื่อให้แสดงผลในหน้าเว็บ
       this.selectedProduct.upload_ref = e.target.result;
     };
     reader.readAsDataURL(file);
   }
 }
 showImagePopup = false;
+
+
 }

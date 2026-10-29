@@ -42,6 +42,8 @@ export class NotificationComponent implements OnInit, OnDestroy {
     this.userRole = state.role || 'user';
     this.profile = state.profile || '';
        if (this.username) {
+          this.loadHistory(); 
+                this.loadInventory(); 
       this.loadNotifications();
     }
 
@@ -239,20 +241,56 @@ loadNotifications() {
     // 1. ทำการบันทึกว่าอ่านแล้ว
     this.markAsRead(item);
     
-    // 2. นำทางไปหน้า Stock History
+     this.out = false;
+  this.play_Return = false;
+  this.Animation_out = true;
+  
+  setTimeout(() => {
+    this.router.navigate(['/history'], {
+      state: {
+        username: this.username, 
+        email: this.email, 
+        role: this.userRole, 
+        profile: this.profile,
+        filterStatus: 'Pending' // <--- ส่งค่าตัวกรองไปที่นี่
+      }
+    });
+  }, 300);
     this.Animation_out3();
 }
   get hasUnreadNotifications(): boolean {
     return this.notifications.some(item => !item.is_read);
   }
-  pendingApprovals(): number {
-  return this.notifications.filter(item => item.title.includes('Pending Approvals')).length;
-}
 
-inventoryAlerts(): number {
-  return this.notifications.filter(item => item.type === 'warning').length;
-}
+  historyList: any[] = [];
+    loadHistory() {
+    this.todoService.getHistory().subscribe({
+      next: (res: any) => {
+        this.historyList = Array.isArray(res) ? res : (res.data || []);
+      },
+      error: (err) => console.error('Error fetching history:', err)
+    });
+  }
+    pendingApprovals(): number {
+    // นับจากรายการใน History ที่มีสถานะเป็น 'Pending' เท่านั้น
+    return this.historyList.filter(item => item.status === 'Pending').length;
+  }
 
+
+    loadInventory() {
+    this.todoService.getInventory().subscribe({
+      next: (res: any) => {
+        this.inventoryList = Array.isArray(res) ? res : (res.data || []);
+      },
+      error: (err) => console.error('Error fetching inventory:', err)
+    });
+  }
+  inventoryList: any[] = [];
+  inventoryAlerts(): number {
+    return this.inventoryList.filter(item => 
+      item.status === 'Low Stock' || item.quantity < 10
+    ).length;
+  }
 stockUpdates(): number {
   return this.notifications.filter(item => item.type === 'success').length;
 }

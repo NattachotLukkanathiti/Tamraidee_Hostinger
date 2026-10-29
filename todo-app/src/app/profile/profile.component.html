@@ -36,13 +36,17 @@
     <div class="page-heading">
     
     <h1>Profile</h1>
-    <button  type="button" class="action-btn action-btn--edit edit-profile-button" (click)="edit()"><img src="image/edit.svg"  alt=""></button>
+  
   </div>
 
   <div class="profile-card">
     <div class="profile-card__top">
-      <img class="profile-avatar" [src]="profile" />
-      <div class="pr">Role<span class="role">{{ userRole }}</span></div>
+     <div class="cons">
+       <img class="profile-avatar" [src]="profile" />
+         <button  type="button" class="action-btn" (click)="edit()"><img src="image/edit.svg"  alt=""></button>
+     </div>
+      <div class="pr"><div class="oe">Role</div>
+        <span class="role">{{ userRole }}</span></div>
        <div class="phone">Phone
         <span class="profile-field__value">{{ phone }}</span>
       </div>

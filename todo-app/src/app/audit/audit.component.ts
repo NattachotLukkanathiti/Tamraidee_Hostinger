@@ -144,6 +144,7 @@ export class AuditComponent {
   reloads() {
     this.loadAudit();
     this.isLoading = true; 
+    this.loadAudit();
 }   
   Animationa2_out(){
     this.Animation_outdash = true;

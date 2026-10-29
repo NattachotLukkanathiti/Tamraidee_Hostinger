@@ -113,9 +113,12 @@ export class EditComponent implements OnInit, OnDestroy {
           role: this.userRole, 
           profile: this.profile,
           dob: this.dob,
-
+            address: this.address,                  // เพิ่ม Current Address
+        emergencyContact: this.emergencyContact, // เพิ่ม Emergency Contact
+        nationalId: this.nationalId,
            phone: this.phone,
-          Move_return: true 
+          Move_return: true ,
+                 fromEdit: true, 
         }
       })
     this.showpopup = false;
@@ -137,16 +140,15 @@ export class EditComponent implements OnInit, OnDestroy {
   openPro() { /* Logic */ }
   back() { this.location.back(); }
   edit(){ this.router.navigate(['/edit']); }
-
-  saveProfile() {
-    console.log('5. [saveProfile] เริ่มต้นการบันทึกข้อมูล');
+isSubmitted = false;
+ saveProfile() {
+    
     if (this.userId === 0) {
-      console.error('Error: userId เป็น 0 ไม่สามารถบันทึกได้');
       this.openpopup('Error: ไม่พบ ID ของผู้ใช้ กรุณาลองใหม่อีกครั้ง');
       return;
     }
     
-    this.isLoading = true;
+
     
     const updatedData = {
       username: this.username,
@@ -158,22 +160,42 @@ export class EditComponent implements OnInit, OnDestroy {
       phone: this.phone
     };
 
-    console.log('6. [saveProfile] ข้อมูลที่จะส่งไปอัปเดต (Payload):', updatedData);
-
     this.todoService.updateProfile(this.userId, updatedData).subscribe({
       next: (response) => {
+           this.isSubmitted = false; 
         this.isLoading = false;
-        console.log('7. [saveProfile] อัปเดตสำเร็จ Response จาก Backend:', response);
+         const now = new Date();
+        const auditData = {
+          date: now.toISOString().split('T')[0],
+          time: now.toTimeString().split(' ')[0],
+          username: this.username,
+          email: this.email,
+          activity: 'Edit Profile',
+          role: this.userRole,
+          picture: this.profile
+        };
+
+        this.todoService.logAudit(auditData).subscribe({
+          next: () => console.log('Profile edit audit saved successfully'),
+          error: (err) => console.error('Failed to save profile edit audit', err)
+        });
         this.openpopup('Profile saved successfully!');
       },
       error: (error) => {
         this.isLoading = false;
-        console.error('8. [saveProfile] อัปเดตไม่สำเร็จ Error:', error);
-        this.openpopup('Failed to save profile. Please try again.');
+        this.isSubmitted = true; 
+        console.error('Error updating profile:', error);
+        this.openpopupnoti('Failed to save profile. Please try again.');
       }
     });
   }
+    openpopupnoti(message: string) {
+    this.showpopupnoti = true;
+    this.popup = message;
+    this.cdr.markForCheck();
+  }
 
+  showpopupnoti = false;
   button_cancels() { this.back(); }
   onProfileImageSelected(event: any) {
     const file = event.target.files[0];

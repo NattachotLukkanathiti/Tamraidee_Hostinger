@@ -18,8 +18,8 @@
 <div class="he" >Sales Orders</div>
 <div class="he" *ngIf="userRole === 'admin' || userRole === 'backend'" (click)="Animationa3_out()">Stock History</div>
 <div class="he" *ngIf="userRole === 'admin' || userRole === 'manager'"(click)="Animationa4_out()">Employee</div>
-<div class="he" *ngIf="userRole === 'admin' || userRole === 'manager'"  (click)="Animation_out5()">Audit Log</div>
-<div class="he" *ngIf="userRole === 'admin' || userRole === 'manager'" (click)="Animation_out6()">Suppliers</div>
+<div class="he" *ngIf="userRole === 'admin' || userRole === 'manager'"  (click)="Animation_out6()">Audit Log</div>
+<div class="he" *ngIf="userRole === 'admin' || userRole === 'manager'" (click)="Animation_out5()">Suppliers</div>
 <!-- <div class="he" (click)="Animation_out5()">Help</div>
 <div class="he" (click)="Animation_out5()">Setting</div> -->
     </div>
@@ -179,7 +179,7 @@
         <div class="sku2" data-label="Amount">{{ order.amount || '-' }}</div>
         <div class="sku2" data-label="Create By">
             <div class="connn">
-                <img class="iconsetting4" [src]="order.picture || 'image/profile.svg'" alt="">
+                <img class="iconsetting4" [src]="order.picture || 'image/profileee.svg'" alt="">
                 {{ order.create_by }} 
             </div>
         </div>
@@ -274,7 +274,7 @@
         </div>
 
         <!-- Row 1: Adjustment No. & Quantity -->
-        <div class="con_sku_pro">
+        <div class="con_sku_pro1">
          <div class="sku_pro">
     <label class="label_import" for="">Cancellation Reason</label>
     <div class="custom-select-wrapper">
@@ -291,10 +291,10 @@
 
         <!-- Row 4: Request By & Date/Time -->
           <label class="label_import">Created By</label>
-        <div class="con_sku_pro" style="align-items: center; margin-top: 20px;">
+        <div class="con_sku_pro1" style="align-items: center; margin-top: 20px;">
             <div class="sku_pro" style="display: flex; align-items: center;">
            
-                <img class="profile_employee" [src]="selectedProduct.picture || 'image/user_avatar.svg'" alt="" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 10px;">
+                <img class="profile_employee" [src]="selectedProduct.picture || 'image/profileee.svg'" alt="" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 10px;">
                <span>{{ selectedProduct.create_by || username }}</span>
             </div>
             <div class="sku_pro" style="display: flex; gap: 10px;">
@@ -336,7 +336,8 @@
             <div class="sku_pro" >Brand</div>
             <div class="sku_pro" >Quantity</div>
             <div class="sku_pro" >Price</div>
-            <div class="sku_pro" >Amount</div>
+            <div class="sku_pro" >Amount
+            </div>
         </div>
 
         <div class="container_detail">
@@ -351,41 +352,43 @@
             <div class="sku_pro" >{{ item.quantity }}</div>
             <div class="sku_pro" >{{ item.price | number }}</div>
             <div class="sku_pro" >{{ (item.price * item.quantity) | number }}
-                    <div class="sku_pro3" style="text-align: right;">
-        <div>{{ selectedProduct.subtotal || (selectedProduct.amount) | number }}</div>
-        <div>{{ selectedProduct.insurance || '0' | number }}</div>
-        <div>{{ selectedProduct.discount  || 'None' }}</div>
-        <div style="font-weight: bold; margin-top: 10px;">{{ selectedProduct.amount | number }}</div>
-    </div>
+            
+            </div>
+            
+        </div>
+        
+
+      <div class="con_sku_pro_">
+    <!-- เว้นว่าง 4 คอลัมน์แรก เพื่อให้ตรงกับ SKU, Name, Brand, Quantity -->
+    <div class="sku_pro"></div>
+    <div class="sku_pro"></div>
+    <div class="sku_pro"></div>
+    <div class="sku_pro"></div>
+
+    <!-- ส่วนสรุปยอด ใช้พื้นที่เท่ากับ 2 คอลัมน์สุดท้าย (Price, Amount) -->
+    <div class="sku_pro" style="flex: 2;">
+        <div class="con_table">
+            <div class="sku_pro2">
+                <div>Subtotal</div>
+                <div>Product insurance</div>
+                <div>Discount</div>
+                <div style="font-weight: bold; margin-top: 10px;">Grand Total</div>
+            </div>
+            <div class="sku_pro3">
+                <div>{{ selectedProduct.subtotal || (selectedProduct.amount) | number }}</div>
+                <div>{{ selectedProduct.insurance || '0' | number }}</div>
+                <div>{{ selectedProduct.discount  || 'None' }}</div>
+                <div style="font-weight: bold; margin-top: 10px;">{{ selectedProduct.amount | number }}</div>
             </div>
         </div>
-
-        <!-- Grand Total & Summary -->
-        <div class="con_sku_pro_" >
-            <div class="sku_pro"></div>
-            <div class="sku_pro"></div>
-            <div class="sku_pro"></div>
-            <div class="connnn">
-    <!-- ฝั่งซ้าย: ชื่อรายการ -->
-    <div class="con_table">
-        <div class="sku_pro2">
-        <div class="sku_pro">Subtotal</div>
-        <div class="sku_pro">Product insurance</div>
-        <div class="sku_pro">Discount</div>
-        <div style="font-weight: bold; margin-top: 10px;">Grand Total</div>
-    </div>
-
-    <!-- ฝั่งขวา: ตัวเลข -->
-
     </div>
 </div>
-        </div>
 </div>
             
         </div>
 
         <!-- Upload Ref -->
-        <div class="con_sku_pro" style="background-color: transparent !important; margin-top: 20px;">
+       <!--  <div class="con_sku_pro" style="background-color: transparent !important; margin-top: 20px;">
             <div class="sku_pro">
                 <label class="label_import">Upload Ref</label>
                 <div class="con_edit" style="position: relative; max-width: 300px;">
@@ -395,14 +398,14 @@
                     </label>
                 </div>
             </div>
-        </div>
+        </div> -->
 
         <!-- Created By & Date/Time -->
         <div class="con_sku_pro" style="background-color: transparent !important;">
             <div class="sku_pro">
                 <label class="label_import">Created By</label>
                 <div style="display: flex; align-items: center; margin-top: 10px;">
-                    <img [src]="selectedProduct.picture || 'image/user_avatar.svg'" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 10px;">
+                    <img [src]="selectedProduct.picture || 'image/profileee.svg'" style="width: 30px; height: 30px; border-radius: 50%; margin-right: 10px;">
                     <span>{{ selectedProduct.create_by || username }}</span>
                 </div>
             </div>

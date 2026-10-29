@@ -74,7 +74,7 @@ ber = false;
   private timeSubscription!: Subscription;
     private notiSubscription!: Subscription;
       private profileSubscription!: Subscription;
-  constructor(private router: Router) {}
+  constructor(public router: Router) {}
 
   ngOnInit(): void {
 
@@ -152,6 +152,9 @@ ber = false;
       })
       // 2. แก้จาก 'notifications' เป็น 'notification' (ตัด s ออก)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'notification' }, (payload: any) => {
+        this.ngZone.run(() => { this.loadNotifications(); });
+      })
+       .on('postgres_changes', { event: '*', schema: 'public', table: 'notification_status' }, () => {
         this.ngZone.run(() => { this.loadNotifications(); });
       })
       // 3. แก้จาก 'chat_messages' เป็น 'chat'

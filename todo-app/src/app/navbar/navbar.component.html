@@ -2,7 +2,7 @@
 <!--     <button class="hamburger" (click)="hambar()">
         <img src="image/ham.svg" alt="">
     </button> -->
-    <div class="headercompany">
+    <div class="headercompany"  *ngIf="router.url !== '/pos'">
         <img src="image/logo.svg" alt="">
     </div>
     <!--   <div class="search">
@@ -23,17 +23,17 @@
 <div class="he" (click)="Animation_out5()">Setting</div> -->
     </div>
     <div class="container_bar">
-        <div class="time" [class.active]="isTimeOpen" (click)="isTimeOpen = !isTimeOpen">
+        <div class="time"*ngIf="router.url !== '/pos'" [class.active]="isTimeOpen" (click)="isTimeOpen = !isTimeOpen">
             <img class="icon_time" src="image/Time Icon.svg">
             <div class="Y">
                 {{ currentTime | date:'HH:mm:ss' }}
             </div>
         </div>
-        <div class="lin"></div>
+        <div *ngIf="router.url !== '/pos'" class="lin"></div >
 <!--         <img class="iconsetting1" src="image/Maximize Icon.svg" (click)="toggleMenu()" [class.Max]="Max" alt=""> -->
         <!-- <img class="iconsetting2" src="image/Song.svg" alt=""> -->
       
-<button (click)="toggleSound()" class="con_sound" *ngIf="isActive">
+<button  (click)="toggleSound()"  class="con_sound" *ngIf="isActive && router.url !== '/pos'">
   <span *ngIf="isSoundEnabled"><img class="icon" src="icon_sound/on.png" alt=""></span>
   <span *ngIf="!isSoundEnabled"><img class="icon" src="icon_sound/off.png" alt=""></span>
 </button>
@@ -52,7 +52,7 @@
   </button>
 </div>
 
-<div class="red_noti">
+<div class="red_noti" >
   <!-- จุดสีแดง (แสดงเมื่อมีเงื่อนไขที่คุณกำหนด) -->
   <div class="red_notification" *ngIf="hasProfileUpdate"></div>
 

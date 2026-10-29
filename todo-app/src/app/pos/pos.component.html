@@ -1,5 +1,6 @@
 <div class="bacdk"></div>
-<div class="navbaar">
+<div class="connnn">
+  <div class="navbaar">
 
     <div class="headercompany">
         <img src="image/logo.svg" alt="">
@@ -98,8 +99,9 @@
   </div>
     </div>
 }
-<div class="pos-shell" [class.Return]="play_Return">
-  <div class="container_all"  [class.fade-out-right]="Animation_out" >
+<div class="pos-shell" >
+  <div class="shell" [class.Return]="play_Return">
+    <div class="container_all"  [class.fade-out-right]="Animation_out" >
 
     @if (openPanel === 'account') { <button class="nav-backdrop nav-backdrop--clear" type="button" aria-label="Close account menu" (click)="closePanel()"></button> }
     @if (isNavOpen) { <button class="nav-backdrop" type="button" aria-label="Close navigation" (click)="toggleNav()"></button> }
@@ -246,8 +248,9 @@
     </main>
 
   </div>
+  </div>
 </div>
-<!-- QR Code Payment Modal -->
+
 <div class="qr-modal-backdrop" [class.product]="product" (click)="closeQrModal()">
   <div class="qr-modal-content" [class.out_comimport]="outimport" (click)="$event.stopPropagation()">
     <div class="qr-modal-header">
@@ -255,7 +258,8 @@
      <span class="pom">{{ formatCurrency(total) }}</span>
 <!--       <button class="close-btn" (click)="closeQrModal()">&times;</button> -->
     </div>
-      <div class="con_pom">
+        <div class="conn">
+             <div class="con_pom">
         <img class="pom"src="image/pom.png" alt="">
       </div>
     <div class="qr-modal-body">
@@ -269,10 +273,11 @@
         Confirm Payment
       </button>
     </div>
+        </div>
   </div>
 </div>
 
-<!-- Cash Payment Modal -->
+
 <div class="qr-modal-backdrop" *ngIf="showCashModal" (click)="closeCashModal()">
   <div class="qr-modal-content" [class.out_comimport]="outimport" (click)="$event.stopPropagation()">
     <div class="qr-modal-header">
@@ -281,7 +286,7 @@
     </div>
     
     <div class="qr-modal-body" style="text-align: left; padding: 0 20px;">
-      <!-- รายการสินค้า -->
+
       <div class="con_cash">
         <div *ngFor="let item of cartItems" style="display: flex; justify-content: space-between; margin-bottom: 20px;">
           <span>{{ item.name }} (x{{ item.quantity }})</span>
@@ -311,5 +316,19 @@
         Confirm Payment
       </button>
     </div>
+  </div>
+</div>
+
+</div>
+
+
+
+    <div *ngIf="isLoading" class="loading-container">
+  <img class="logo_loading" src="/image/logoo.svg" alt="" >
+  <div class="loading">
+    <div class="loader1"></div>
+    <div class="loader2"></div>
+    <div class="loader3"></div>
+    <div class="loader4"></div>
   </div>
 </div>

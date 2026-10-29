@@ -6,7 +6,7 @@
         <img src="image/logo.svg" alt="">
     </div>
 
-    <!-- เมนูตรงกลาง Navbar -->
+
     <div class="con_nav">
          <div class="he" (click)="Animationa_out1()" >Pos</div>
         <div class="he" *ngIf="userRole === 'admin' || userRole === 'manager'" (click)="Animationa_out()">Dashboard</div>
@@ -123,7 +123,7 @@
                 
                  <div class="table-container">
                     
-    <!-- Header -->
+
     <div class="table">
         <div class="sku">Date</div>
         <div class="sku">SKU</div>
@@ -181,10 +181,10 @@
 </div>
 <div class="con_tainer_page">
      <div class="pagination">
-        <!-- ปุ่ม Prev -->
+
         <a class="prev" [class.disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">&lt; Prev</a>
         
-        <!-- วนลูปแสดงตัวเลขหน้า -->
+   
         <a *ngFor="let page of visiblePages" 
            class="page" 
            [class.active]="currentPage === page" 
@@ -300,10 +300,10 @@
         <div class="sku_pro">
             <label class="label_import" for="">Upload Ref</label>
             <div class="con_edit" style="position: relative; display: flex; align-items: center;">
-    <!-- ช่อง Input -->
+
     <input type="text" class="sku_input" [value]="selectedProduct.upload_ref ? 'View file' : 'No File'" readonly style="padding-right: 50px;">
     
-    <!-- รูปภาพตัวอย่างเล็กๆ (Thumbnail) -->
+
     <img class="pic"*ngIf="selectedProduct.upload_ref" 
          [src]="selectedProduct.upload_ref" 
          alt="Preview" 
@@ -330,7 +330,7 @@
     <option class="sku_inputt" [ngValue]="'Rejected'">Rejected</option>
 </select>
         </div>
-       <!-- แก้ไขช่อง Confirm Password -->
+
 <div class="sku_pro">
     <label class="label_import" for="">Confirm Password*</label>
         <ng-container *ngIf="!isSocialLogin; else socialAuth">
@@ -414,19 +414,21 @@
         <div class="con_sku_pro" style="flex-direction: column; margin-bottom: 20px;">
             <div class="sku_pro" style="width: 100%;">
                 <label class="label_import" for="">Upload Ref</label>
-               <div class="con_edit" style="position: relative; display: flex; align-items: center;">
-    <!-- ช่องกรอกข้อความหรือลิงก์ -->
-    <input type="text" class="sku_input" placeholder="Upload Ref Image / PDF" [(ngModel)]="selectedProduct.upload_ref" style="flex: 1; padding-right: 70px;">
-    
-    <!-- ส่วนแสดงรูปภาพตัวอย่าง (จะแสดงเมื่อมีข้อมูลรูปภาพ) -->
-    <img *ngIf="selectedProduct.upload_ref" [src]="selectedProduct.upload_ref" alt="Preview" style="width: 30px; height: 30px; object-fit: cover; border-radius: 4px; position: absolute; right: 40px; top: 50%; transform: translateY(-50%);">
 
-    <!-- ซ่อน input file ไว้ และใช้ label ครอบไอคอนคลิป -->
+<label for="uploadRef" class="con_edit" style="position: relative; display: flex; align-items: center; cursor: pointer;">
+ 
+    <input type="text" 
+           class="sku_input" 
+           [value]="selectedFileName || (selectedProduct.upload_ref ? 'View file' : 'No File')" 
+           readonly 
+           style="flex: 1; padding-right: 40px; cursor: pointer; pointer-events: none;">
+    
+    <!-- ซ่อน input file ไว้ -->
     <input type="file" id="uploadRef" style="display: none;" accept="image/*" (change)="onFileSelected($event)">
-    <label for="uploadRef" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer;">
-        <img src="image/paperclip_icon.svg" alt="Upload">
-    </label>
-</div>
+    
+  
+
+</label>
             </div>
         </div>
 

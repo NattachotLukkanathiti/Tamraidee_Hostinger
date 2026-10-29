@@ -1259,7 +1259,7 @@ input::placeholder{
     background:#eb2d2d;
 }
 .backpop {
-    background-color: rgba(0, 0, 0, 0.28);
+        background-color: #d9d9d977;
     position: fixed; /* ใช้ fixed เพื่อให้ตรึงอยู่กับหน้าจอแม้จะมีการเลื่อน */
     top: 0;
     left: 0;
@@ -1561,13 +1561,13 @@ input::placeholder{
         
     }
 }
-/* /////หน้าเพิ่ม supplier */
-/* โครงสร้างหลักของฟอร์ม */
 .import_product {
     background-color: #d9d9d977;
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
     position: fixed;
+    top: 0;      /* เพิ่มบรรทัดนี้ */
+    left: 0;     /* เพิ่มบรรทัดนี้ */
     z-index: 10;
 }
 
@@ -2127,20 +2127,7 @@ input::placeholder{
 
 
 
-/* พื้นหลังมืดเมื่อ Popup แสดง */
-.backpop {
-    background-color: rgba(0, 0, 0, 0.4);
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    justify-content: center;
-    align-items: center;
-    display: flex;
-    z-index: 9999;
-    animation: fadeIn 0.2s ease-out;
-}
+
 
 /* กล่อง Popup */
 .popupcontainer {
@@ -2148,7 +2135,6 @@ input::placeholder{
     border-radius: 12px;
     width: 400px;
     padding: 30px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
     z-index: 10000;
     display: flex;
     justify-content: center;

@@ -63,7 +63,8 @@ export class ProfileComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     const state = history.state;
-    
+
+    this.fromEdit = state.fromEdit || false;
     this.userId = state.id || state._id || 0;
     this.username = state.username || '';
     this.email = state.email || '';
@@ -96,9 +97,17 @@ export class ProfileComponent implements OnInit, OnDestroy {
   // --- UI Functions ---
   hambar() { this.isMenuOpen = !this.isMenuOpen; }
   openPro() { /* Logic */ }
-  back() { this.location.back(); }
 
-  // --- ส่งข้อมูลไปหน้า Edit ---
+    fromEdit = false; 
+    back() { 
+    if (this.fromEdit) {
+      window.history.go(-3); 
+    } else {
+      this.location.back(); 
+    }
+  }
+
+
   edit(){
     this.router.navigate(['/edit'],{
         state:{  
@@ -108,7 +117,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
           role: this.userRole, 
           profile: this.profile,
           dob: this.dob,
-          nationalId: this.nationnal, // ส่งไปเป็น nationalId
+          nationalId: this.nationnal, 
           address: this.address,
           emergencyContact: this.emergency, 
            phone: this.phone,

@@ -186,7 +186,6 @@
 @keyframes open{
   0%{
     opacity: 0;
-    transform: translateY(50px);
   }
 }
 .container_all{
@@ -414,6 +413,9 @@
   font-size: 14px;
   font-weight: 400;
 }
+.connnn{
+  z-index: 99999 !important;
+}
 .con_pro {
   display: flex;
   flex-direction: column;
@@ -423,6 +425,7 @@
   background-color: white;
   width: 100vw;
   height: 100vh;
+  z-index: -1;
   position: fixed;
 
 }
@@ -585,8 +588,9 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 9999; /* เพิ่มเลขนี้เพื่อให้แน่ใจว่าจะอยู่บนสุด */
+  z-index: 9999;
 }
+
 
 .qr-modal-content {
   background: white;
@@ -595,13 +599,27 @@
     border-radius: 12px; /* สมมติว่ากรอบของคุณมีความโค้ง */
   overflow: hidden;  
   height:80vh;
+    max-height: 80vh;
   text-align: center;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   z-index: 10000;
    
     animation: moves 0.5s ease-in-out;
 }
+.conn {
+  max-height: 60vh; /* กำหนดความสูงให้ไม่เกิน 60% ของหน้าจอ */
+  overflow-y: auto; /* ทำให้เลื่อนขึ้น-ลงได้ */
+  padding: 0 20px; /* เพิ่มระยะห่างด้านข้าง */
+}
 
+/* ปรับแต่ง Scrollbar ให้ดูสวยงาม (ไม่บังคับ) */
+.conn::-webkit-scrollbar {
+  width: 6px;
+}
+.conn::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
 .QR{
   width: 200px;
   
@@ -730,6 +748,7 @@
 .pom {
   display: flex;
   margin-left: auto;
+  margin-right: 20px;
 }
 .pom2{
   display: flex;
@@ -1098,6 +1117,7 @@
   flex: 1;
   display: grid;
   align-content: start;
+  cursor: pointer;
   grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
   column-gap: 11px;
   row-gap: 15px;
@@ -1109,14 +1129,42 @@
 
 .product-card {
   min-width: 0;
+    cursor: pointer;
   padding: 0 0 16px;
   border: 1px solid transparent;
   border-radius: 10px;
   background: #fff;
   text-align: left;
-  transition: border-color 140ms ease, box-shadow 140ms ease;
-}
+    transition: transform 0.2s ease, border-color 0.1s ease, box-shadow 0.1s ease;
+    animation: wow 2s ease-in-out ;
 
+}
+.category-row{
+  animation: wow2 1.5s ease-in-out;
+}
+@keyframes wow2{
+  0%{
+    opacity: 0;
+    transform: translateX(500px);
+  }
+  100%{
+
+  }
+}
+@keyframes wow{
+  0%{
+    opacity: 0;
+   transform: translateY(400px);
+  }
+  100%{
+    transform: translateY(0px);
+  }
+}
+ .product-card:active {
+  border-color: #7ad361;
+  transform: scale(1.1);
+  box-shadow: 0 6px 18px rgba(33, 43, 54, .07);
+}
 .product-card:hover {
   border-color: #e6eaed;
   box-shadow: 0 6px 18px rgba(33, 43, 54, .07);
@@ -1226,8 +1274,17 @@
   flex-direction: column;
   gap: 20px;
   overflow: hidden;
-  
+  animation: fr 1.5s ease-in-out;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+}
+@keyframes fr{
+  0%{
+
+    transform: translateY(-600px);
+  }
+  100%{
+
+  }
 }
 
 .right-side--closed {
@@ -2475,3 +2532,79 @@
     padding: 12px 18px;
   }
 }
+
+
+
+
+.loading-container {
+    position: fixed;
+    top: -20px;
+    flex-direction: column;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.8);
+    z-index: 9999;
+}
+
+.loading {
+    display: flex;
+    gap: 8px;
+    width: 100px;
+}
+
+.loading>div {
+    height: 16px;
+    background: #203e18;
+    flex: 1;
+    transform: scaleY(0.1);
+    animation: loading 0.5s ease-in-out infinite alternate;
+    
+}
+
+@keyframes loading {
+    0% {
+        opacity: 0.2;
+        transform: scaleY(0.1);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scaleY(2.8);
+        background: #84D46E;
+    }
+}
+
+
+.loader1 {
+    animation-delay: 0.1s !important;
+}
+.loader2 {
+    animation-delay: 0.2s !important;
+}
+.loader3 {
+    animation-delay: 0.3s !important;
+}
+.loader4 {
+    animation-delay: 0.4s !important;
+}
+.logo_loading {     
+    width: 300px;     
+    transform: scaleX(1.2);
+    height: 300px;    
+    animation: expandLogo 2s linear infinite alternate;
+}
+
+@keyframes expandLogo {
+    0% {
+        opacity: 0%;
+    }
+    100% {
+        opacity: 100%;
+    }
+}
+
+

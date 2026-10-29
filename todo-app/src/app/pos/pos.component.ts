@@ -533,12 +533,13 @@ qrCodeUrl: string = '';
       this.changeDetector.markForCheck();
     }, 300);
   }
-
+isLoading = false;
  confirmCashPayment(): void {
+  this.isLoading = true;
     if (this.cashReceived < this.total) {
+      this.isLoading = false;
       return alert('No enough');
     }
-
     this.processOrder(); 
   }
 
@@ -563,6 +564,7 @@ qrCodeUrl: string = '';
 
   paymentSuccess = false;
 processOrder(): void {
+  this.isLoading = true;
     const orderCode = `#${this.orderCode}`;
     const now = new Date().toISOString();
 
@@ -589,7 +591,7 @@ processOrder(): void {
       discount: this.formatCurrency(this.discountAmount),
       grandTotal: this.formatCurrency(this.total)
     };
-
+    const productNames = this.cartItems.map(item => item.name).join(', ');
     this.cartItems.forEach(item => {
       const itemAmount = item.price * item.quantity;
       const salesData = {
@@ -617,7 +619,24 @@ processOrder(): void {
       };
       this.todoService.updateInventoryStock(item.id, updateData).subscribe();
     });
+  const auditNow = new Date();
+    const auditData = {
+      date: auditNow.toISOString().split('T')[0],
+      time: auditNow.toTimeString().split(' ')[0],
+      username: this.username,
+      email: this.email,
+      activity: `Completed Order: ${orderCode}`,
+            product: productNames,
+      role: this.userRole,
+      picture: this.profile
+    };
 
+    this.todoService.logAudit(auditData).subscribe({
+   
+      next: () => 
+        console.log('Order completion audit saved successfully'),
+      error: (err) => console.error('Failed to save order completion audit', err)
+    });
     // เปลี่ยนสถานะให้แสดงข้อความ "ชำระเงินสำเร็จ"
     this.paymentSuccess = true;
     this.changeDetector.markForCheck();
@@ -629,12 +648,12 @@ processOrder(): void {
       role: this.userRole,
       profile: this.profile
     };
-
+       
     // รอ 1.5 วินาที เพื่อให้พนักงานเห็นข้อความ แล้วค่อยเด้งไปหน้าใบเสร็จ
     setTimeout(() => {
       this.paymentSuccess = false;
       this.showCashModal = false;
-      
+      this.isLoading = false;
       this.router.navigate(['/receipt'], {
         state: { 
           receiptData: receiptData,

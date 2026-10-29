@@ -177,7 +177,7 @@ private handleSocialLogin(provider: any) {
   this.isLoading = true;
   signInWithPopup(auth, provider)
     .then((result) => {
-      const user = result.user;
+      const user = result.user
       const email = user.email || '';
       const username = user.displayName || user.email?.split('@')[0] || 'User';
       const profile = user.photoURL || '';
@@ -186,7 +186,7 @@ private handleSocialLogin(provider: any) {
 
         localStorage.setItem('isSocialLogin', 'true');
       
-      // 2. บันทึกประเภทของ Provider เพื่อนำไปแสดงผลปุ่มให้ถูกต้อง
+
       if (provider instanceof GoogleAuthProvider) {
         localStorage.setItem('socialProvider', 'google');
       } else if (provider instanceof FacebookAuthProvider) {
@@ -194,18 +194,18 @@ private handleSocialLogin(provider: any) {
       } else {
         localStorage.setItem('socialProvider', 'github');
       }
-      // 1. บันทึกหรืออัปเดตข้อมูลลง Supabase
+
       this.todoService.registerOrUpdateUser(userData).subscribe({
         next: () => {
           
-          // 2. ตรวจสอบ Role จาก Supabase ว่าผู้ใช้คนนี้มีสิทธิ์อะไร
+     
           this.todoService.checkUserRole(email).subscribe({
             next: (res) => {
-              // ถ้ามี Role อยู่แล้ว ให้ส่ง Role นั้นไป
+    
               this.proceedAfterLogin(user, email, username, res.role);
             },
             error: () => {
-              // ถ้าไม่พบข้อมูล (ผู้ใช้ใหม่) ให้ส่งค่าว่าง (Guest)
+       
               this.proceedAfterLogin(user, email, username, '');
             }
           });
@@ -216,6 +216,7 @@ private handleSocialLogin(provider: any) {
           this.proceedAfterLogin(user, email, username, '');
         }
       });
+      
     })
     .catch((error) => {
       this.isLoading = false;

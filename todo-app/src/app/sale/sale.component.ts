@@ -365,13 +365,28 @@ confirmCancel() {
         this.todoService.updateInventoryStock(product.sku, updateData).subscribe();
       }
     });
+ const now = new Date();
+    const auditData = {
+      date: now.toISOString().split('T')[0],
+      time: now.toTimeString().split(' ')[0],
+      username: this.username,
+      email: this.email,
+      activity: `Cancel Order: ${orderCode}`,
+      role: this.userRole,
+      picture: this.profile
+    };
 
+    this.todoService.logAudit(auditData).subscribe({
+      next: () => console.log('Cancel order audit saved successfully'),
+      error: (err) => console.error('Failed to save cancel order audit', err)
+    });
     // อัปเดตสถานะบนหน้าจอ
     this.selectedProduct.status = 'Canceled';
     this.outimport = true;
       this.loadSaleOrders(); 
     setTimeout(() => { 
       this.product2 = true; 
+       this.button_edit = false;
       this.loadSaleOrders(); // โหลดข้อมูลใหม่ทั้งหมด
     }, 400);
   });
@@ -404,7 +419,7 @@ groupOrdersByCode(orders: any[]) {
       }
     });
 
-    this.groupedSaleOrders = Array.from(map.values());
+        this.groupedSaleOrders = Array.from(map.values()).reverse();
     this.filteredSaleOrders = [...this.groupedSaleOrders];
     this.updatePagination();
   });

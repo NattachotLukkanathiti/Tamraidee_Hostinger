@@ -624,6 +624,9 @@ mat-form-field {
         display: block;
         margin-left: 0;
     }
+    .header_Sign{
+        font-size: 30px;
+    }
     .container {
         min-width: unset !important; /* ล้างค่า min-width 1000px เดิม */     /* กำหนดความกว้างให้พอดีกับจอมือถือ */
         padding: 20px !important;

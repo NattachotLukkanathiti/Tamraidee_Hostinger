@@ -94,6 +94,21 @@ export class SettingsPageComponent implements OnInit {
       next: (response) => {
         this.isLoading = false;
         if (response.success) {
+            const now = new Date();
+          const auditData = {
+            date: now.toISOString().split('T')[0],
+            time: now.toTimeString().split(' ')[0],
+            username: this.username,
+            email: this.email,
+            activity: 'Update Store Settings',
+            role: this.userRole,
+            picture: this.profile
+          };
+
+          this.todoService.logAudit(auditData).subscribe({
+            next: () => console.log('Settings audit saved successfully'),
+            error: (err) => console.error('Failed to save settings audit', err)
+          });
           this.openpopup('Settings saved successfully');
         }
       },

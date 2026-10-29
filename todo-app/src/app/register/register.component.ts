@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core'; // Added OnInit
+import { Component, OnInit } from '@angular/core'; 
 import { FormsModule } from '@angular/forms';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { TodoService } from '../services/todo.service';
@@ -31,7 +31,7 @@ const auth = getAuth(app);
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.css']
 })
-export class RegisterComponent implements OnInit { // Added implements OnInit
+export class RegisterComponent implements OnInit { 
 
   title = '';
   username = '';
@@ -48,7 +48,7 @@ export class RegisterComponent implements OnInit { // Added implements OnInit
   registersuccess = false;
   otp = '';
   otpoutput: boolean = false;
-     isLoading = false; // เพิ่มตัวแปรนี้
+     isLoading = false; 
   ngOnDestroy(): void {
     if (this.update) {
       this.update.unsubscribe();
@@ -57,7 +57,7 @@ export class RegisterComponent implements OnInit { // Added implements OnInit
    verifyOtp() {
     this.todoService.verifyOtp(this.title, this.otp).subscribe({
       next: () => {
-        // เมื่อ OTP ถูกต้อง ให้ทำการบันทึกข้อมูลลงระบบ
+      
         this.todoService.addTodo(this.username, this.title, this.password, this.confirmPassword).subscribe(() => {
           this.openpopup("Success");
           this.username = '';
@@ -65,14 +65,14 @@ export class RegisterComponent implements OnInit { // Added implements OnInit
           this.password = '';
           this.confirmPassword = '';
           this.otp = '';
-          this.otpoutput = false; // กลับไปหน้าแรก
+          this.otpoutput = false; 
           this.loadTodos();
           this.loading = false;
           this.registersuccess = true;
         });
       },
       error: () => {
-        this.openpopupnoti("รหัส OTP ไม่ถูกต้องหรือหมดอายุ");
+        this.openpopupnoti("Invalid or expired OTP.");
       }
     });
   }
@@ -121,41 +121,41 @@ export class RegisterComponent implements OnInit { // Added implements OnInit
   }      
 
   addTodo() {
-    this.isLoading = true; // เริ่มแสดง Loading
-  // 1. ตรวจสอบว่ากรอกข้อมูลครบหรือไม่ ก่อนที่จะ return ออกไป
+    this.isLoading = true; 
+  
   if (!this.title.trim() || !this.username.trim()) {
-    this.isLoading = false; // เริ่มแสดง Loading
-    this.openpopupnoti("กรุณากรอกอีเมลและชื่อผู้ใช้ให้ครบถ้วน");
+    this.isLoading = false; 
+    this.openpopupnoti("Please enter both your email and username.");
     return;
   }
 
     const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailPattern.test(this.title)) {
-      this.isLoading = false; // เริ่มแสดง Loading
+      this.isLoading = false;
       this.openpopupnoti("Please enter a valid email address");
       return;
     }
     const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
     if (!passwordPattern.test(this.password)) {
-      this.isLoading = false; // เริ่มแสดง Loading
+      this.isLoading = false; 
       this.openpopupnoti("รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร และประกอบด้วยตัวพิมพ์ใหญ่ พิมพ์เล็ก ตัวเลข และอักขระพิเศษ เช่น @$!%*?&#");
       
       return;
     }
     const checkEmail = this.todos.some(todo => todo.title === this.title);
     if (checkEmail) {
-      this.isLoading = false; // เริ่มแสดง Loading
+      this.isLoading = false;
       this.openpopupnoti("This is account a already in use")
       return;
     }
     if (this.password !== this.confirmPassword) {
-      this.isLoading = false; // เริ่มแสดง Loading
+      this.isLoading = false; 
       this.openpopupnoti("Passwords do not match");
       return;
     }
-    // Added password match validation
+
     if (this.password !== this.confirmPassword) {
-      this.isLoading = false; // เริ่มแสดง Loading
+      this.isLoading = false;
       this.openpopupnoti("Password do not match");
       return;
     }
@@ -170,11 +170,11 @@ export class RegisterComponent implements OnInit { // Added implements OnInit
         };
         sessionStorage.setItem('tempUserData', JSON.stringify(userData));
       this.router.navigate(['/otp'], { state: { userData } });
-      this.otpoutput = true; // 2. สั่งเปิดหน้า OTP
+      this.otpoutput = true; 
       this.loading = false;
     },
     error: () => {
-      this.openpopupnoti("ไม่สามารถส่ง OTP ได้ กรุณาลองใหม่อีกครั้ง");
+      this.openpopupnoti("Unable to send OTP. Please try again.");
       this.loading = false;
     }
   });
@@ -224,18 +224,18 @@ export class RegisterComponent implements OnInit { // Added implements OnInit
   
         const userData = { username, title: email, password: user.uid, profile, status: 'Active' };
   
-        // 1. บันทึกหรืออัปเดตข้อมูลลง Supabase
+       
         this.todoService.registerOrUpdateUser(userData).subscribe({
           next: () => {
             
-            // 2. ตรวจสอบ Role จาก Supabase ว่าผู้ใช้คนนี้มีสิทธิ์อะไร
+         
             this.todoService.checkUserRole(email).subscribe({
               next: (res) => {
-                // ถ้ามี Role อยู่แล้ว ให้ส่ง Role นั้นไป
+              
                 this.proceedAfterLogin(user, email, username, res.role);
               },
               error: () => {
-                // ถ้าไม่พบข้อมูล (ผู้ใช้ใหม่) ให้ส่งค่าว่าง (Guest)
+
                 this.proceedAfterLogin(user, email, username, '');
               }
             });
@@ -246,11 +246,12 @@ export class RegisterComponent implements OnInit { // Added implements OnInit
             this.proceedAfterLogin(user, email, username, '');
           }
         });
+        
       })
       .catch((error) => {
         this.isLoading = false;
         console.error(error);
-        this.openpopupnoti("การล็อกอินล้มเหลว กรุณาลองใหม่อีกครั้ง");
+        this.openpopupnoti("Login failed. Please try again.");
       });
   }private proceedAfterLogin(user: any, email: string, username: string, role: string) {
     const profile = user.photoURL || '';
@@ -271,7 +272,7 @@ export class RegisterComponent implements OnInit { // Added implements OnInit
   
     const navigationState = { state: { username, email, profile, role, stan: true } };
   
-    // ตรวจสอบ Role เพื่อส่งไปหน้าที่ถูกต้อง
+
     if (!role) {
       this.router.navigate(['/confirmemployee'], navigationState);
     } else {

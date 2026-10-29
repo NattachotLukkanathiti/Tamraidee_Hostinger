@@ -316,7 +316,7 @@
     </div>
 
 
-   @for (order of paginatedSaleOrders; track order.id; let i = $index) {
+<div class="ty">   @for (order of paginatedSaleOrders; track order.id; let i = $index) {
     <div class="con_data_row" [style.animation-delay]="(i * 0.1) + 's'">
         <div class="CHs">{{ order.order_code }}</div>
         <div class="CHs">{{ order.product_name }}</div>
@@ -326,9 +326,9 @@
     </div>
 } @empty {
     <div class="no-data">No sale orders found.</div>
-}
+}</div>
 
-    <div class="pagination-controls" style="display: flex; justify-content: center; gap: 10px; margin-top: 20px;">
+    <div class="pagination-controls">
         <button class="btn-page" [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">
             <img src="image/leftt.svg" alt="">
         </button>
@@ -387,7 +387,7 @@
         <span class="product-row__name">{{ product.name }}</span>
       </li>
 
-      <!-- กรณีไม่มีข้อมูล -->
+   
       <li class="product-list__empty" *ngIf="products().length === 0">
         No products yet.
       </li>

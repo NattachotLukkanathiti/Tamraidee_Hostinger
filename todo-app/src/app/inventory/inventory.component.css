@@ -2191,7 +2191,10 @@ flex-direction: column; /* ใส่หรือไม่ใส่ก็ได�
     height: 300px;
     animation: expandLogo 2s linear infinite alternate;
 }
-
+.profile-field__value.invalid {
+    border: 1px solid #DC1818 !important;
+    background-color: #fff9f9 !important; /* เพิ่มพื้นหลังสีแดงอ่อนเพื่อให้เห็นชัดขึ้น */
+}
 @keyframes expandLogo {
     0% {
         opacity: 0%;

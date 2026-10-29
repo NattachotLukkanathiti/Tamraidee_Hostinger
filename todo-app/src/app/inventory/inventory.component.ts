@@ -109,7 +109,7 @@ selectedProduct: any = {
     supplier: '',
     invoiceNo: '',
     importQuantity: null,
-    invoiceFile: '',
+    invoiceFile: null,
       upload: ''
   };
   selectedCategory: string = 'all';
@@ -374,7 +374,11 @@ filterByCategory() {
     }
   });
 }
+triggerInvoiceUploadAdd2() {
+  document.getElementById('invoiceUploadAdd2')?.click();
+}
   button_cancels() {
+    this.selectedFileName = '';
       this.resetImportForm();
         this.resetForm() ;
    this.outimport = true;
@@ -419,24 +423,23 @@ filterByCategory() {
   }
 
 
-  onFileSelected(event: any) {
+ selectedFileName: string = '';
+
+// 2. อัปเดตฟังก์ชัน onFileSelected
+onFileSelected(event: any) {
   const file = event.target.files[0];
   if (file) {
-    this.selectedFile = file;
-    
-
-    if (this.selectedProduct) {
-      this.selectedProduct.picture = ''; 
-    }
+    // เก็บชื่อไฟล์ไว้สำหรับแสดงผลใน input
+    this.selectedFileName = file.name;
 
     const reader = new FileReader();
-    reader.onload = () => {
-      this.imagePreview = reader.result as string;
+    reader.onload = (e: any) => {
+      // นำ URL ของรูปภาพที่ได้ไปใส่ในตัวแปร เพื่อให้แสดงผลในหน้าเว็บ
+      this.selectedProduct.upload_ref = e.target.result;
     };
     reader.readAsDataURL(file);
   }
 }
-
 
   async saveToStock() {
     this.isLoading = true;
@@ -836,18 +839,25 @@ logout() {
       this.generateSKU(this.newProduct.category);
     }
   }
-  onSkuChange() {
+ onSkuChange() {
     if (this.selectedProduct && this.selectedProduct.sku) {
+      const sku = this.selectedProduct.sku.trim();
 
-      const foundProduct = this.filteredInventory.find(item => item.sku === this.selectedProduct.sku);
-      
-      if (foundProduct) {
-
-        this.selectedProduct = { ...foundProduct };
-        this.imagePreview = foundProduct.picture || null;
+      // ตรวจสอบว่า SKU มีความยาวพอที่จะค้นหาหรือไม่ (เช่น 5 ตัวอักษรขึ้นไป)
+      if (sku.length >= 5) {
+        const foundProduct = this.filteredInventory.find(item => item.sku.toLowerCase() === sku.toLowerCase());
+        
+        if (foundProduct) {
+          // ถ้าเจอข้อมูล ให้ดึงมาแสดงผลทันที
+          this.selectedProduct = { ...foundProduct };
+          this.imagePreview = foundProduct.picture || null;
+        } else {
+          // ถ้าพิมพ์ครบแล้วแต่ไม่เจอ ให้ล้างข้อมูล (แต่ยังเก็บ SKU ที่พิมพ์ไว้)
+          this.selectedProduct = { sku: this.selectedProduct.sku };
+          this.imagePreview = null;
+        }
       } else {
-        this.openpopupnoti('SKU not found in the system');
-        // รีเซ็ตข้อมูลถ้าไม่เจอ
+        // ถ้าลบข้อความออก หรือพิมพ์ยังไม่ครบ ให้ล้างข้อมูลที่เคยแสดงออกไปก่อน
         this.selectedProduct = { sku: this.selectedProduct.sku };
         this.imagePreview = null;
       }
@@ -870,6 +880,12 @@ logout() {
     supplier: this.importData.supplier,
     invoiceNo: this.importData.invoiceNo,
     importQuantity: Number(this.importData.importQuantity),
+
+
+      category: this.selectedProduct.category,
+      quantity_alert: this.selectedProduct.quantity_alert,
+      picture: this.selectedProduct.picture,
+
       upload: this.importData.upload || '',
     quantity: Number(this.selectedProduct.quantity || 0) + Number(this.importData.importQuantity || 0)
   };
@@ -959,7 +975,7 @@ logout() {
 
   // 4. ฟังก์ชันล้างค่าฟอร์มนำเข้า
   resetImportForm() {
-    this.importData = { supplier: '', invoiceNo: '', importQuantity: null, invoiceFile: '', upload: '' };
+    this.importData = { supplier: '', invoiceNo: '', importQuantity: null, invoiceFile: null, upload: '' };
     this.selectedProduct = {};
     this.imagePreview = null;
   }
@@ -1008,6 +1024,9 @@ triggerInvoiceUpload() {
 onInvoiceFileSelected(event: any) {
   const file = event.target.files[0];
   if (file) {
+    // 1. เก็บ Object ของไฟล์ไว้ เพื่อให้ HTML ดึง .name ไปแสดงได้
+    this.importData.invoiceFile = file; 
+
     const reader = new FileReader();
     
     reader.onload = (e: any) => {
@@ -1018,7 +1037,6 @@ onInvoiceFileSelected(event: any) {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
         
-        // ลดขนาดความกว้างสูงสุดเหลือ 500px (ช่วยลดขนาด Base64 ลงได้มาก)
         const maxWidth = 500; 
         const scaleSize = maxWidth / img.width;
         
@@ -1028,11 +1046,10 @@ onInvoiceFileSelected(event: any) {
         if (ctx) {
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
           
-          // ลดคุณภาพลงเหลือ 0.5 (50%)
           const compressedBase64 = canvas.toDataURL('image/jpeg', 0.5);
           
           this.importData.upload = compressedBase64;
-          this.importData.invoiceFile = 'File Selected';
+          // ลบ this.importData.invoiceFile = 'File Selected'; ออกไป
           console.log('Compressed Base64 Length:', compressedBase64.length);
         }
       };
@@ -1044,6 +1061,7 @@ onInvoiceFileSelected(event: any) {
 triggerInvoiceUploadAdd() {
   document.getElementById('invoiceUploadAdd')?.click();
 }
+
 
 showInvoicePopup: boolean = false;
 selectedUpload: string = ''; 

@@ -54,31 +54,42 @@
 </div>
 
       <!-- Role ห้ามแก้ไข ใช้ span เหมือนเดิม -->
-      <div class="pr">Role<span class="role">{{ userRole }}</span></div>
-      <div class="phone">Phone
-  <input type="text" class="profile-field__value" style="border: none; background: transparent; width: 100%;" [(ngModel)]="phone">
+     <div class="pr">Role<span class="role">{{ userRole }}</span></div>
+<div class="phone">Phone
+  <input type="text" class="profile-field__value" 
+         [class.invalid]="isSubmitted && !phone"
+         style="border: none; background: transparent; width: 100%;" [(ngModel)]="phone">
 </div>
-    </div>
+</div>
 
-    <div class="profile-grid">
-      <div class="profile-field">Full Name
-        <input type="text" class="profile-field__value" style="border: none; background: transparent; width: 100%;" [(ngModel)]="username">
-      </div>
-      <div class="profile-field">Date of Birth
-        <input type="date" class="profile-field__value" style="border: none; background: transparent; width: 100%;" [(ngModel)]="dob">
-      </div>
-      <div class="profile-field">National ID Number
-        <input type="text" class="profile-field__value" style="border: none; background: transparent; width: 100%;" [(ngModel)]="nationalId">
-      </div>
-      
-    </div>
+<div class="profile-grid">
+  <div class="profile-field">Full Name
+    <input type="text" class="profile-field__value" 
+           [class.invalid]="isSubmitted && !username"
+           style="border: none; background: transparent; width: 100%;" [(ngModel)]="username">
+  </div>
+  <div class="profile-field">Date of Birth
+    <input type="date" class="profile-field__value" 
+           [class.invalid]="isSubmitted && !dob"
+           style="border: none; background: transparent; width: 100%;" [(ngModel)]="dob">
+  </div>
+  <div class="profile-field">National ID Number
+    <input type="text" class="profile-field__value" 
+           [class.invalid]="isSubmitted && !nationalId"
+           style="border: none; background: transparent; width: 100%;" [(ngModel)]="nationalId">
+  </div>
+</div>
 
-    <div class="profile-field">Current Address
-      <textarea class="profile-field__value profile-field__value--area" style="border: none; background: transparent; width: 100%; resize: none;" [(ngModel)]="address"></textarea>
-    </div>
-    <div class="profile-field">Emergency Contact
-      <textarea class="profile-field__value profile-field__value--area" style="border: none; background: transparent; width: 100%; resize: none;" [(ngModel)]="emergencyContact"></textarea>
-    </div>
+<div class="profile-field">Current Address
+  <textarea class="profile-field__value profile-field__value--area" 
+            [class.invalid]="isSubmitted && !address"
+            style="border: none; background: transparent; width: 100%; resize: none;" [(ngModel)]="address"></textarea>
+</div>
+<div class="profile-field">Emergency Contact
+  <textarea class="profile-field__value profile-field__value--area" 
+            [class.invalid]="isSubmitted && !emergencyContact"
+            style="border: none; background: transparent; width: 100%; resize: none;" [(ngModel)]="emergencyContact"></textarea>
+</div>
   </div>
   </div>
        <div class="button_import">                 
@@ -106,6 +117,20 @@
 </div>
 </div>
 
+    <div *ngIf="showpopupnoti" class="backpop">
+        <div *ngIf="showpopupnoti" class="popupcontainer">
+            <div class="popup-content">
+                <img class="iconsuccess" src="image/cross.svg" alt="">
+                <div class="headerpop">
+                    Something went Wrong
+                </div>
+                <div class="subheadersuccess">
+                    {{popup}}
+                </div>
+                <button class="buttonnoti" (click)="closepopup()">OK</button>
+            </div>
+        </div>
+    </div>
 <div *ngIf="isLoading" class="loading-container">
     <img class="logo_loading" src="/image/logoo.svg" alt="" >
   <div class="loading">

@@ -768,3 +768,105 @@ button:disabled {
     0% { opacity: 0%; }
     100% { opacity: 100%; }
 }
+.backpop {
+    background-color: rgba(0, 0, 0, 0.28);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    z-index: 9999;
+}
+
+.popupcontainer {
+    background-color: #FFFFFF;
+    border: 2px solid #bccbbb85;
+    border-radius: 10px;
+    width: 500px;
+    padding: 30px 50px;
+    height: 250px;
+    position: absolute;
+    z-index: 1;
+    font-size: 30px;
+    font-weight: 700;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.popup-content {
+    width: 100%;
+}
+
+.headerpop {
+    margin-top: 20px;
+    font-size: 30px;
+    font-weight: 800;
+    color: #212B36;
+    margin-bottom: 15px;
+    display: flex;
+    justify-content: center;
+}
+
+.subheadersuccess {
+    font-size: 15px;
+    color: #646B72;
+    margin-bottom: 20px;
+    font-weight: 300;
+    justify-content: center;
+    display: flex;
+    text-align: center;
+}
+
+.iconsuccess {
+    width: 40px;
+    height: 40px;
+    justify-content: center;
+    display: flex;
+    align-items: center;
+    margin: auto;
+    margin-bottom: 20px;
+    margin-top: 20px;
+}
+
+.buttonnoti {
+    width: 100%;
+    height: 20px;
+    padding: 23px;
+    font-size: 16px;
+    color: #FFFFFF;
+    border: 2px solid #E6EAED;
+    border-radius: 8px;
+    background: #DC1818;
+    justify-content: center;
+    display: flex;
+    margin-bottom: 20px;
+    align-items: center;
+    cursor: pointer;
+}
+
+.buttonnoti:hover {
+    background: #eb2d2d;
+}
+
+/* Responsive สำหรับหน้าจอมือถือ */
+@media (max-width: 768px) {
+    .popupcontainer {
+        width: 60% !important;
+    }
+    .headerpop {
+        font-size: 20px !important;
+    }
+    .iconsuccess {
+        width: 60px !important;
+        height: 60px !important;
+    }
+}
+
+.profile-field__value.invalid {
+    border: 1px solid #DC1818 !important;
+    background-color: #fff9f9 !important; /* เพิ่มพื้นหลังสีแดงอ่อนเพื่อให้เห็นชัดขึ้น */
+}

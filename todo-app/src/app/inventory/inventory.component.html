@@ -205,8 +205,8 @@
     <div class="sku2" data-label="Quantity Alert">{{ item.quantity_alert }}</div>
     
     <div class="button_small">
-        <img class="icon_small_inventory" src="image/edit.svg" (click)="button_editt(item)">
-        <img class="icon_small_inventory2" src="image/delete.svg" (click)="button_delete(item.sku, i)" alt="">
+        <img class="icon_small_inventory" src="image/edit.svg" (click)="button_editt(item); $event.stopPropagation()">
+        <img class="icon_small_inventory2" src="image/delete.svg" (click)="button_delete(item.sku, i);$event.stopPropagation()" alt="">
     </div>
 </div>
     <div class="line"></div>
@@ -331,7 +331,7 @@
     <!-- ถ้าเลือกรูปแล้ว ให้แสดงรูปภาพตัวอย่าง -->
     <img *ngIf="imagePreview" [src]="imagePreview" alt="Product Preview" style="width: 100px; height: 100px; object-fit: cover;">
     
-    <!-- Input file ที่ซ่อนไว้ -->
+
     <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" style="display: none;">
     <div class="sku_pro2">
     <label class="label_import">Image URL</label>
@@ -407,9 +407,9 @@
                  <input type="file" id="invoiceUploadAdd" (change)="onInvoiceFileSelected($event)" accept="image/*" style="display: none;">
     
     <!-- แก้ไข input text เดิมให้เรียกใช้ฟังก์ชัน -->
-    <input type="text" placeholder="Click to Upload Invoice" class="sku_input" 
-           [value]="importData.invoiceFile ? 'File Selected' : ''" 
-           (click)="triggerInvoiceUploadAdd()" readonly style="cursor: pointer;">
+    <input type="text" placeholder="Click to Upload Invoice" class="sku_input"
+       [value]="importData.invoiceFile ? importData.invoiceFile.name : ''"
+       (click)="triggerInvoiceUploadAdd()" readonly style="cursor: pointer;">
             </div>         
         </div>           
 
@@ -442,9 +442,9 @@
         <!-- ส่วนข้อมูลสินค้า (ดึงอัตโนมัติ) -->
         <div class="con_sku_pro">
             <div class="sku_pro">
-                <label class="label_import" for="">SKU <span class="important">*</span></label>
-                <input type="text" class="sku_input" [(ngModel)]="selectedProduct.sku" (blur)="onSkuChange()">
-            </div>
+    <label class="label_import" for="">SKU <span class="important">*</span></label>
+    <input type="text" class="sku_input" [(ngModel)]="selectedProduct.sku" (ngModelChange)="onSkuChange()">
+</div>
             <div class="sku_pro">
                 <label class="label_import" for="">Product Name</label>
                 <input type="text" class="sku_input" [(ngModel)]="selectedProduct.product_name" [disabled]="true">
@@ -513,7 +513,21 @@
             </div>
             <div class="sku_pro">
                 <label class="label_import" for="">Upload Invoice <span class="important">*</span></label>
-                <input type="text" placeholder="Upload Invoice Image / PDF" class="sku_input" [(ngModel)]="importData.invoiceFile">
+                 <input type="file" 
+           id="invoiceUploadAdd2" 
+           (change)="onInvoiceFileSelected($event)" 
+           accept="image/*,application/pdf" 
+           style="display: none;">
+           
+    <!-- Input สำหรับแสดงผลและรับการคลิก -->
+    <input type="text" 
+           placeholder="Upload Invoice Image / PDF" 
+           class="sku_input"
+           [value]="importData.invoiceFile?.name || ''"
+           (click)="triggerInvoiceUploadAdd2()" 
+           readonly 
+           style="cursor: pointer;">
+
             </div>
         </div>
 
