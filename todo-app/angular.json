@@ -16,7 +16,6 @@
             "outputPath": "dist/todo-app",
             "index": "src/index.html",
             "browser": "src/main.ts",
-            
             "polyfills": [
               "zone.js"
             ],
@@ -37,17 +36,16 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "2GB",
-                  "maximumError": "2GB"
+                  "maximumWarning": "2MB",
+                  "maximumError": "3MB"
                 },
                 {
                   "type": "anyComponentStyle",
                   "maximumWarning": "20kB",
-                  "maximumError": "1GB"
+                  "maximumError": "50kB"
                 }
               ],
               "outputHashing": "all"
-
             },
             "development": {
               "optimization": false,
@@ -61,11 +59,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
             "proxyConfig": "src/ngrok.json",
-    "allowedHosts": [
-      "mouse-afford-handbrake.ngrok-free.dev"
-      
-    ]
-  },
+            "allowedHosts": [
+              "mouse-afford-handbrake.ngrok-free.dev"
+            ]
+          },
           "configurations": {
             "production": {
               "buildTarget": "todo-app:build:production"
@@ -86,12 +83,12 @@
               "zone.js",
               "zone.js/testing"
             ],
+            "karmaConfig": "karma.conf.js",
             "tsConfig": "tsconfig.spec.json",
             "assets": [
               {
                 "glob": "**/*",
                 "input": "public"
-                
               }
             ],
             "styles": [
@@ -99,8 +96,60 @@
             ],
             "scripts": []
           }
+        },
+        "cypress-run": {
+          "builder": "@cypress/schematic:cypress",
+          "options": {
+            "devServerTarget": "todo-app:serve"
+          },
+          "configurations": {
+            "production": {
+              "devServerTarget": "todo-app:serve:production"
+            }
+          }
+        },
+        "cypress-open": {
+          "builder": "@cypress/schematic:cypress",
+          "options": {
+            "watch": true,
+            "headless": false
+          }
+        },
+        "ct": {
+          "builder": "@cypress/schematic:cypress",
+          "options": {
+            "devServerTarget": "todo-app:serve",
+            "watch": true,
+            "headless": false,
+            "testingType": "component"
+          },
+          "configurations": {
+            "development": {
+              "devServerTarget": "todo-app:serve:development"
+            }
+          }
+        },
+        "e2e": {
+          "builder": "@cypress/schematic:cypress",
+          "options": {
+            "devServerTarget": "todo-app:serve",
+            "watch": true,
+            "headless": false
+          },
+          "configurations": {
+            "production": {
+              "devServerTarget": "todo-app:serve:production"
+            }
+          }
         }
       }
     }
+  },
+  "cli": {
+    "schematicCollections": [
+      "@cypress/schematic",
+      "@cypress/schematic",
+      "@schematics/angular"
+    ]
   }
 }

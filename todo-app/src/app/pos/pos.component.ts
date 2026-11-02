@@ -77,6 +77,7 @@ export class PosComponent implements OnInit, OnDestroy {
   cartItems: CartItem[] = [];
   selectedNav = 'Pos';
   isNavOpen = false;
+  form_noti = false;
   isRightPanelOpen = true;
   openPanel: HeaderPanel = null;
   currentView: MainView = 'pos';
@@ -101,6 +102,12 @@ play_Return = false;
       this.username = state.username || '';
       this.userRole = state.role || '';
     }
+        if (state.form_noti === true) {
+  
+    this.play_Return = false;
+
+    this.form_noti = true; // ทำงานได้แน่นอนเพราะไม่มี Error แล้ว
+  } 
         if (state.Move_return6 === true) {
       this.play_Return = true;
     }
@@ -369,7 +376,9 @@ play_Return = false;
     const item = this.cartItems.find((entry) => entry.id === product.id);
     if (item) item.quantity = Math.min(item.quantity + 1, product.stock);
     else this.cartItems = [...this.cartItems, { ...product, quantity: 1, batchNo: '' }];
+    
   }
+  
 
   changeQuantity(item: CartItem, change: number): void {
     const next = item.quantity + change;
@@ -566,7 +575,6 @@ isLoading = false;
 processOrder(): void {
   this.isLoading = true;
     const orderCode = `#${this.orderCode}`;
-    const now = new Date().toISOString();
 
   const addressArray = this.storeAddress 
       ? this.storeAddress.split(',').map(addr => addr.trim()) 
@@ -592,33 +600,26 @@ processOrder(): void {
       grandTotal: this.formatCurrency(this.total)
     };
     const productNames = this.cartItems.map(item => item.name).join(', ');
-    this.cartItems.forEach(item => {
-      const itemAmount = item.price * item.quantity;
-      const salesData = {
-        order_code: orderCode,
-        product_name: item.name,
-        quantity: item.quantity,
-        amount: itemAmount,
-        picture: this.profile, 
-        create_by: this.username,
-        status: 'Completed',
-        created_at: now
-      };
 
-      this.todoService.saveSalesOrder(salesData).subscribe();
-
-      const newStock = item.stock - item.quantity;
-      const updateData = {
-        product_name: item.name,
-        picture: item.image, 
-        quantity: newStock,
-        price: item.price,
-        category: item.category,
-        brand: item.brand || 'N/A',
-        quantity_alert: item.quantity_alert || 10
-      };
-      this.todoService.updateInventoryStock(item.id, updateData).subscribe();
+    // ส่งทั้งออเดอร์ให้ Backend ตัดสต็อก + บันทึกยอดขาย + แจ้งเตือนสต็อกต่ำ ใน transaction เดียว
+    this.todoService.checkout({
+      order_code: orderCode,
+      items: this.cartItems.map(item => ({ sku: item.id, quantity: item.quantity })),
+      discount: this.discountAmount,
+      picture: this.profile
+    }).subscribe({
+      next: () => this.finishOrder(orderCode, productNames, receiptData),
+      error: (err) => {
+        this.isLoading = false;
+        this.changeDetector.markForCheck();
+        alert(err.error?.message || 'ไม่สามารถบันทึกการขายได้ กรุณาลองใหม่อีกครั้ง');
+        // โหลดสต็อกล่าสุด เผื่อมีเครื่องอื่นขายไปก่อน
+        this.loadInventory();
+      }
     });
+  }
+
+  private finishOrder(orderCode: string, productNames: string, receiptData: any): void {
   const auditNow = new Date();
     const auditData = {
       date: auditNow.toISOString().split('T')[0],
@@ -665,4 +666,10 @@ processOrder(): void {
       this.loadInventory();
     }, 1500);
   }
+
+
+  getCartQuantity(productId: string): number {
+  const item = this.cartItems.find(i => i.id=== productId);
+  return item ? item.quantity : 0;
+}
 }

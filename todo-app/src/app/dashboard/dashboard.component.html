@@ -3,7 +3,7 @@
         <img src="image/ham.svg" alt="">
     </button>
     <div class="headercompany">
-        <img src="image/logo.svg" alt="">
+<!--         <img src="image/logo.svg" alt=""> -->
     </div>
     <!--   <div class="search">
         <input class="inputser"type="text" placeholder="Search" [(ngModel)]="search" (input)="filterS()">
@@ -112,7 +112,7 @@
     </div>
 
    <div class="container2">
-     <div class="container" [class.fade-out-left]="Animation_outLeft"  [class.fade-out]="Animation_out" [class.fade-out2]="Animation_outsale"
+     <div class="container" [class.form_noti]="form_noti" [class.fade-out-left]="Animation_outLeft"  [class.fade-out]="Animation_out" [class.fade-out2]="Animation_outsale"
         [class.Return]="play_Return" [class.Boom]="stan">
     <div class="hea">
         <div class="con_header">
@@ -183,10 +183,19 @@
 </div>
             </div>
             <div class="line-header"></div>
-            <div class="box-total">
-                <div class="total"><span class="point"></span>Total Purchase</div>
-                <div class="total"><span class="point2"></span>Total Sales</div>
-            </div>
+     <div class="box-total">
+   <!--  <div class="total">
+        <span class="point"></span>
+        Total Purchase: <strong>{{ formatK(totalPurchase) }}</strong>
+    </div> -->
+    <div class="total">
+        <span class="point"></span>
+     <div class="consd">
+           Total Sales:
+         <div class="Total_sale">{{ formatK(totalSales) }}</div>
+     </div>
+    </div>
+</div>
             <div class="bigcontainergraph">
 
                 <div class="num-container">
@@ -219,7 +228,7 @@
 
                     </ng-container>
 
-                    <!-- ส่วนแสดงข้อมูลจริงเมื่อ loader เป็น false -->
+            
                     <ng-template #realData>
                         <div *ngFor="let item of data; let i=index" class="bar-container">
                             <div class="bar" [style.height.px]="calculateHeight(item.value)"></div>
@@ -235,15 +244,15 @@
 
         <div class="static"><div class="weekly__header">
   <h2 class="weekly__title">Weekly Sales</h2>
-  <div class="weekly__nav">
-    <button type="button" class="weekly__arrow" aria-label="Previous week">
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.5 2.5 5 8l5.5 5.5" /></svg>
-    </button>
-    <span class="weekly__range"></span>
-    <button type="button" class="weekly__arrow" aria-label="Next week" >
-      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 2.5 11 8l-5.5 5.5" /></svg>
-    </button>
-  </div>
+<div class="weekly__nav">
+  <button type="button" class="weekly__arrow" (click)="changeWeek(-1)">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10.5 2.5 5 8l5.5 5.5" /></svg>
+  </button>
+  <span class="weekly__range">{{ currentWeekRange }}</span>
+  <button type="button" class="weekly__arrow" (click)="changeWeek(1)">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5.5 2.5 11 8l-5.5 5.5" /></svg>
+  </button>
+</div>
 </div>
 
 <div class="heatmap-scroll">
@@ -260,7 +269,7 @@
           <span class="heatmap__day">{{ day }}</span>
           @for (slot of [0, 1, 2, 3, 4, 5, 6, 7]; track slot; let s = $index) {
             <!-- เพิ่มการเรียกใช้ getHeatmapClass() ที่นี่ -->
-            <span class="heatmap__cell" [ngClass]="getHeatmapClass(day, s)"></span>
+      <span class="heatmap__cell" [ngClass]="'heatmap__cell--' + getHeatmapClass(day, s)"></span>
           }
         </div>
       }
@@ -280,7 +289,7 @@
 
 
     </div>
-    <div class="consale" [class.fade-out-left]="Animation_outLeft" [class.fade-out]="Animation_out" [class.fade-out2]="Animation_outsale"
+    <div class="consale"  [class.fade-out-left]="Animation_outLeft" [class.fade-out]="Animation_out" [class.fade-out2]="Animation_outsale"
         [class.Return]="play_Return" [class.Boom]="stan">
          <div class="in_bt2">
                          <!-- แก้ไขตรงนี้ -->
@@ -368,8 +377,8 @@
    </div>
    <div class="legend">
   <span class="legend__item"><span class="legend__dot legend__dot--early"></span>Early</span>
-  <span class="legend__item"><span class="legend__dot legend__dot--on-time"></span>On Time</span>
-  <span class="legend__item"><span class="legend__dot legend__dot--late"></span>Late</span>
+ <!--  <span class="legend__item"><span class="legend__dot legend__dot--on-time"></span>On Time</span>
+  <span class="legend__item"><span class="legend__dot legend__dot--late"></span>Late</span> -->
 </div>
 </div>
 

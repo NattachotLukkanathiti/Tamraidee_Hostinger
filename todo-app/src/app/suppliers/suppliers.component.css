@@ -2141,7 +2141,19 @@ input::placeholder{
     align-items: center;
     animation: scaleUp 0.3s ease-out;
 }
+.form_noti{
+    animation: form_noti 1s ease-in-out !important;
+}
+@keyframes form_noti {
+    0% {
+        transform: translateY(500px);
+        opacity: 0;
+    }
 
+    100% {
+        opacity: 1;
+    }
+}
 .popup-content {
     width: 100%;
     text-align: center;

@@ -7,6 +7,7 @@ import { TodoService } from '../services/todo.service';
 import { forkJoin,interval, Subscription } from 'rxjs';
 import { Output, EventEmitter } from '@angular/core';
 import { createClient } from '@supabase/supabase-js'; 
+import { environment } from '../../environments/environment';
 
 type HeaderPanel = 'account' | null;
 @Component({
@@ -21,9 +22,7 @@ export class NavbarComponent implements OnInit {
     private changeDetector = inject(ChangeDetectorRef);
     private ngZone = inject(NgZone); 
 
-      private supabaseUrl = 'https://iemqkiftkhyoalyqpjzj.supabase.co'; 
-  private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImllbXFraWZ0a2h5b2FseXFwanpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyNjExODMsImV4cCI6MjEwNzgzNzE4M30.zk_zlo7QSHuNlM943ikEfwS6eWWbRjTYlWEN94kxn7o';
-  private supabase = createClient(this.supabaseUrl, this.supabaseKey);
+  private supabase = createClient(environment.supabase.url, environment.supabase.anonKey);
   search = '';
   items: string[] = ['รายการที่ 1', 'รายการที่ 2', 'รายการที่ 3'];
   filteredItems: string[] = [...this.items];
@@ -70,6 +69,7 @@ export class NavbarComponent implements OnInit {
 };
 status: string = '';
 ber = false;
+noti_in = false;
   openpro = false;
   private timeSubscription!: Subscription;
     private notiSubscription!: Subscription;
@@ -185,6 +185,7 @@ ber = false;
   }
 
   Animationa_out11(){
+            this.noti_in = false; 
      this.isClosing = true;
     this.outs = false;
         this.out = true;
@@ -201,6 +202,7 @@ ber = false;
     } ,300)
   }
   Animationa_out1(){
+            this.noti_in = false; 
      this.isClosing = true;
     this.outs = false;
         this.out = true;
@@ -217,6 +219,7 @@ ber = false;
     } ,300)
   }
   Animationa_out(){
+        this.noti_in = false;  
     this.isClosing = true;
     this.outs = false;
         this.out = true;
@@ -231,6 +234,7 @@ ber = false;
     } ,300)
   }
   Animation_out2(){
+            this.noti_in = false; 
     this.isClosing = true;
             this.out = true;
     this.play_Return = false;
@@ -244,6 +248,7 @@ ber = false;
     } ,300)
   }
   Animation_out3(){
+            this.noti_in = false; 
     this.isClosing = true;
             this.out = true;
     this.play_Return = false;
@@ -257,6 +262,7 @@ ber = false;
     } ,300)
   }
   Animation_out4(){
+            this.noti_in = false; 
     this.isClosing = true;
             this.out = true;
     this.play_Return = false;
@@ -270,6 +276,7 @@ ber = false;
     } ,300)
   }
   Animation_out5(){
+            this.noti_in = false; 
     this.isClosing = true;
             this.out = false;
     this.play_Return = false;
@@ -283,6 +290,7 @@ ber = false;
     } ,300)
   }
   Animation_out6(){
+            this.noti_in = false; 
     this.isClosing = true;
             this.out = true;
     this.play_Return = false;
@@ -486,11 +494,24 @@ loadTodos() {
     }, 300);
   }
 
-  openNotifications(): void {
-    this.router.navigate(['/notification'],{
-          state: { username: this.username, email: this.email, Move_returns3: true, role: this.userRole, profile: this.profile }
-    });
-  }
+  openNotifications(): void {    
+    this.noti_in = true;     
+    
+    setTimeout(() => {
+        this.router.navigate(['/notification'], {           
+            state: { 
+                username: this.username, 
+                email: this.email, 
+                Move_returns3: true, 
+                role: this.userRole, 
+                profile: this.profile,
+                timestamp: new Date().toISOString() 
+            }     
+            
+        });
+            this.noti_in = false; 
+    },500); // หน่วงเวลา 1 วินาที (1000 มิลลิวินาที)
+}
 loadNotifications(): void {
   if (!this.username) return;
 

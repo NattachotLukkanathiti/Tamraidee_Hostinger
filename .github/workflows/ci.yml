@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  api:
+    name: API (typecheck + tests)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: todo-api
+
+    # ฐานข้อมูลสำหรับ test เท่านั้น (test จะล้างตารางทุกครั้ง)
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: tamraidee_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: todo-api/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_USER: postgres
+          DB_PASSWORD: test
+          DB_NAME: tamraidee_test
+          JWT_SECRET: ci-test-secret
+
+  web:
+    name: Web (unit tests + production build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: todo-app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: todo-app/package-lock.json
+      # @angular/fire@21 ต้องการ Angular 21 แต่โปรเจกต์ใช้ 19 (และไม่ได้ import ใช้งาน) จึงต้องข้าม peer check
+      - run: npm ci --legacy-peer-deps
+      - run: npm run test:ci
+      - run: npm run build

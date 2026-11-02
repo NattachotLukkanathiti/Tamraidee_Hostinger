@@ -44,6 +44,7 @@ paginatedEmployeeList: any[] = [];
   reload = false;
   isLoading = false; 
   loader = false;
+  form_noti = false;
   Animation_outdash = false;
   return = false;
   play_Return = false;
@@ -68,7 +69,12 @@ selectedaccount: any = { role: '' };
     this.email = state.email || '';
     this.userRole = state.role || 'user';
     this.profile = state.profile || '';
-
+  if (state.form_noti === true) {
+    this.stan = false;
+    this.play_Return = false;
+    this.out = false;
+    this.form_noti = true; // ทำงานได้แน่นอนเพราะไม่มี Error แล้ว
+  } 
      if (state.Move_return === true) {
     this.stan = false;
       this.play_Return = true;
@@ -111,6 +117,7 @@ selectedaccount: any = { role: '' };
 
 
     Animationa_out1(){
+      this.form_noti = false;
   this.Animation_outdash = true;
     setTimeout(() =>{
       this.router.navigate(['/pos'],{
@@ -119,6 +126,7 @@ selectedaccount: any = { role: '' };
     } ,300)
   }
   Animationa2_out(){
+          this.form_noti = false;
     this.Animation_outdash = true;
 
     setTimeout(() =>{
@@ -128,6 +136,7 @@ selectedaccount: any = { role: '' };
     } ,300)
   }
   Animationa3_out(){
+          this.form_noti = false;
     this.Animation_outdash = true;
 
     setTimeout(() =>{
@@ -137,7 +146,7 @@ selectedaccount: any = { role: '' };
     } ,300)
   }
   Animationa4_out(){
-
+      this.form_noti = false;
     this.Animation_outdash = true
     setTimeout(() =>{
       this.router.navigate(['/history'],{
@@ -146,6 +155,7 @@ selectedaccount: any = { role: '' };
     } ,300)
   }
   Animation_out5(){
+          this.form_noti = false;
             this.out = false;
     this.play_Return = false;
     this.Animation_out = true;
@@ -156,6 +166,8 @@ selectedaccount: any = { role: '' };
     } ,300)
   }
   Animationa6_out(){
+
+          this.form_noti = false;
  this.out = false;
     this.play_Return = false;
     this.Animation_out = true;
@@ -167,6 +179,7 @@ selectedaccount: any = { role: '' };
   }
   
   Animationa_out(){
+          this.form_noti = false;
     this.Animation_outdash = true;
     
     setTimeout(() =>{

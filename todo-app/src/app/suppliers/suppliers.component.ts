@@ -44,6 +44,7 @@ export class SuppliersComponent {
   return = false;
   stan = false;
   openn = false;
+  form_noti = false;
   profile = '';
   userRole: string = '';
   
@@ -75,7 +76,12 @@ export class SuppliersComponent {
     this.userRole = state.role || 'user';
     this.profile = state.profile || '';
     this.loadSuppliers();
-    
+       if (state.form_noti === true) {
+    this.stan = false;
+    this.play_Return = false;
+    this.out = false;
+    this.form_noti = true; // ทำงานได้แน่นอนเพราะไม่มี Error แล้ว
+  } 
     if (state.Move_return === true) { this.out = false; }
     if (state.Move_returns3 === true) { this.play_Return = false; this.out = false; }
     if (state.Open_bar === true){ this.openn = true; }
@@ -98,13 +104,20 @@ export class SuppliersComponent {
     this.isLoading = true; 
   }   
 
-  Animationa2_out(){ this.out = false; this.Animation_outdash = true; this.inhere = true; this.play_Return = false; setTimeout(() =>{ this.router.navigate(['/inventory'],{ state:{username: this.username , email: this.email, Move_return:true,role:this.userRole ,profile:this.profile} }) } ,300) }
-  Animationa3_out(){ this.out = false; this.Animation_outdash = true; this.inhere = true; this.play_Return = false; setTimeout(() =>{ this.router.navigate(['/sale'],{ state:{username: this.username , email: this.email, Move_return:true,role:this.userRole ,profile:this.profile} }) } ,300) }
-  Animationa4_out(){ this.out = false; this.Animation_outdash = true; this.inhere = true; this.play_Return = false; setTimeout(() =>{ this.router.navigate(['/history'],{ state:{username: this.username , email: this.email, Move_return4:true ,role:this.userRole ,profile:this.profile} }) } ,300) }
-  Animationa5_out(){ this.out = false; this.Animation_outdash = true; this.inhere = true; this.play_Return = false; setTimeout(() =>{ this.router.navigate(['/employee'],{ state:{username: this.username , email: this.email, Move_returnout:true ,role:this.userRole ,profile:this.profile} }) } ,300) }
-  Animationa6_out(){ this.out = false; this.Animation_outdash = true; this.inhere = true; this.play_Return = false; setTimeout(() =>{ this.router.navigate(['/audit'],{ state:{username: this.username , email: this.email, Move_return4:true ,role:this.userRole ,profile:this.profile} }) } ,300) }
-  Animationa_out1(){   this.Animation_outdash = true; setTimeout(() =>{ this.router.navigate(['/pos'],{ state:{username: this.username , email: this.email, Move_return6:true ,role:this.userRole ,profile:this.profile} }) } ,300) }
-  Animationa_out(){ this.Animation_outdash = true; setTimeout(() =>{ this.router.navigate(['/dashboard'],{ state:{username: this.username , email: this.email, Move_return:true ,Dont_animation: true ,role:this.userRole ,profile:this.profile} }) } ,300) }
+  Animationa2_out(){
+    this.form_noti = false;
+     this.out = false; 
+     this.Animation_outdash = true; 
+     this.inhere = true; this.play_Return = false; 
+     setTimeout(() =>{ this.router.navigate(['/inventory'],
+      { state:{username: this.username , email: this.email, Move_return:true,role:this.userRole ,profile:this.profile} }) 
+    } ,300) }
+  Animationa3_out(){ this.form_noti = false; this.out = false; this.Animation_outdash = true; this.inhere = true; this.play_Return = false; setTimeout(() =>{ this.router.navigate(['/sale'],{ state:{username: this.username , email: this.email, Move_return:true,role:this.userRole ,profile:this.profile} }) } ,300) }
+  Animationa4_out(){ this.form_noti = false; this.out = false; this.Animation_outdash = true; this.inhere = true; this.play_Return = false; setTimeout(() =>{ this.router.navigate(['/history'],{ state:{username: this.username , email: this.email, Move_return4:true ,role:this.userRole ,profile:this.profile} }) } ,300) }
+  Animationa5_out(){ this.form_noti = false; this.out = false; this.Animation_outdash = true; this.inhere = true; this.play_Return = false; setTimeout(() =>{ this.router.navigate(['/employee'],{ state:{username: this.username , email: this.email, Move_returnout:true ,role:this.userRole ,profile:this.profile} }) } ,300) }
+  Animationa6_out(){ this.form_noti = false; this.out = false; this.Animation_outdash = true; this.inhere = true; this.play_Return = false; setTimeout(() =>{ this.router.navigate(['/audit'],{ state:{username: this.username , email: this.email, Move_return4:true ,role:this.userRole ,profile:this.profile} }) } ,300) }
+  Animationa_out1(){ this.form_noti = false;   this.Animation_outdash = true; setTimeout(() =>{ this.router.navigate(['/pos'],{ state:{username: this.username , email: this.email, Move_return6:true ,role:this.userRole ,profile:this.profile} }) } ,300) }
+  Animationa_out(){  this.form_noti = false;this.Animation_outdash = true; setTimeout(() =>{ this.router.navigate(['/dashboard'],{ state:{username: this.username , email: this.email, Move_return:true ,Dont_animation: true ,role:this.userRole ,profile:this.profile} }) } ,300) }
   
   openpopupnoti(message:string){ this.showpopupnoti = true; this.popup = message; }
   closepopup(){ this.showpopup = false; this.showpopupnoti = false; this.router.navigate(['/login']); }
@@ -134,9 +147,14 @@ loadSuppliers() {
           return String(brandName).toLowerCase() === String(supplier.supplier_name).toLowerCase();
         });
         
+         // กำหนด Type ให้ sum เป็น number
+        const totalQuantity = supplierOrders.reduce((sum: number, order: any) => {
+          return sum + (Number(order.quantity) || 0);
+        }, 0);
+
         return {
           ...supplier,
-          order_history: supplierOrders.length
+          order_history: totalQuantity // อัปเดตค่าตรงนี้
         };
       });
        this.calculateTotalPages();

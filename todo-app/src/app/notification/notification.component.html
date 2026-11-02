@@ -57,31 +57,31 @@
         <div class="container" [class.fade-out]="Animation_out"  [class.Return]="play_Return" [class.Boom]="stan">
             
             <!-- ส่วนของ Notification สไตล์ใหม่ -->
-            <main class="page-noti">
+            <main class="page-noti" [class.animation]="animation"> 
     <div class="notification-banner">
-        <h1>Notification</h1>
-        <div class="notification-stats" *ngIf="userRole === 'admin' || userRole === 'manager'" >
+        <div class="header_Inventory">Notification</div>
+        <div class="notification-stats"  *ngIf="userRole === 'admin' || userRole === 'manager'" >
             <div class="stat-card stat-card--blue">
                 <div class="stat-card__icon">
-                    <div class="icon-inner">&#9203;</div>
+                    <img src="image/pending.svg" alt="">
                 </div>
                 <div class="stat-card__content">
                     <strong class="stat-card__value">{{ pendingApprovals() }}</strong>
                     <div class="stat-card__label">Pending Approvals</div>
                 </div>
             </div>
-            <div class="stat-card stat-card--orange">
+            <div class="stat-card2 stat-card--orange">
                 <div class="stat-card__icon">
-                    <div class="icon-inner">&#9888;</div>
+                    <img src="image/alert_noti.svg" alt="">
                 </div>
                 <div class="stat-card__content">
                     <strong class="stat-card__value">{{ inventoryAlerts() }}</strong>
                     <div class="stat-card__label">Inventory Alerts</div>
                 </div>
             </div>
-            <div class="stat-card stat-card--green">
+            <div class="stat-card3 stat-card--green">
                 <div class="stat-card__icon">
-                    <div class="icon-inner">&#128337;</div>
+                        <img src="image/update.svg" alt="">
                 </div>
                 <div class="stat-card__content">
                     <strong class="stat-card__value">{{ stockUpdates() }}</strong>
@@ -91,8 +91,8 @@
         </div>
     </div>
 
-    <h2 class="page-subheading">View All</h2>
   <div class="card-list">
+        <h2 class="page-subheading">View All</h2>
     <div class="table_detail2" *ngFor="let item of notifications; let i = index" 
      [style.animation-delay]="i * 0.15 + 's'"
      (click)="markAsRead(item)"
@@ -116,17 +116,34 @@
                 <span *ngIf="item.title.includes('Accepted')">Stock Adjustment : <span style="color: #22c55e;">Accepted</span></span>
                 <span *ngIf="item.title.includes('Rejected')">Stock Adjustment : <span style="color: #ef4444;">Rejected</span></span>
                 <span *ngIf="item.title.includes('Pending Approvals') && !item.title.includes('submitted')">Stock Adjustment : <span>Pending Approvals</span></span>
+
+                 <span *ngIf="item.type === 'warning' && item.title.includes('Inventory Alert')">
+            {{ item.title }} 
+        </span>
             </div>
-            <div class="sku2">{{ item.description }}</div>
+            <div class="sku9">{{ item.description }} 
+              
+            </div>
         </div>
         
-       <div class="sku3">
-        <span class="view" *ngIf="item.title.includes('Pending Approvals') || item.title.includes('Stock Adjustment') || item.title.includes('Accepted') || item.title.includes('Rejected')" 
-      (click)="goToHistory(item); $event.stopPropagation()">
-    View Details
-</span>
-    <span>{{ getTimeAgo(item.created_at) }}</span>
+      <div class="sku3">
+    <div class="container_view">
+        <!-- ปุ่มสำหรับ Pending Approvals และอื่นๆ -->
+        <span class="view"  
+              (click)="goToHistory(item); $event.stopPropagation()" 
+              *ngIf="item.title.includes('Pending Approvals') || item.title.includes('Stock Adjustment') || item.title.includes('Accepted') || item.title.includes('Rejected')">
+            View Details
+        </span>
 
+        <!-- ปุ่มสำหรับ Inventory Alert (Warning) -->
+        <span class="view"  
+              (click)="goToInventory(item); $event.stopPropagation()" 
+              *ngIf="item.type.includes('warning')">
+            View Details
+        </span>
+    </div>
+
+    <span>{{ getTimeAgo(item.created_at) }}</span>
     <div class="blue_noti" *ngIf="!item.is_read"></div>
 </div>
     </div>
@@ -158,3 +175,6 @@
         </div>
     </div>
 </div>
+
+
+<div class="back"></div>

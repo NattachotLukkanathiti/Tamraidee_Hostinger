@@ -3,7 +3,7 @@
         <img src="image/ham.svg" alt="">
     </button>
     <div class="headercompany">
-        <img src="image/logo.svg" alt="">
+   <!--      <img src="image/logo.svg" alt=""> -->
     </div>
     <!--   <div class="search">
         <input class="inputser"type="text" placeholder="Search" [(ngModel)]="search" (input)="filterS()">
@@ -83,8 +83,8 @@
             <div class="Logout" (click)="logout()"><img class="" src="/icon_manager/Logout.svg">Log Out</div>
         </div>
     </div>
-    <div class="Animation_out" [class.fade-out]="Animation_out" [class.fade-out2]="Animation_outdash" [class.Return]="play_Return" [class.Boom]="stan">
-        <div class="container"  [class.fade-out]="Animation_out" [class.fade-out2]="Animation_outdash" [class.Return]="play_Return" [class.Boom]="stan">
+    <div class="Animation_out" [class.form_noti]="form_noti" [class.fade-out]="Animation_out" [class.fade-out2]="Animation_outdash" [class.Return]="play_Return" [class.Boom]="stan">
+        <div class="container"  [class.form_noti]="form_noti" [class.fade-out]="Animation_out" [class.fade-out2]="Animation_outdash" [class.Return]="play_Return" [class.Boom]="stan">
             <div class="static">
                 <div class="header_in">
                     <div class="header_Inventory">Sales Orders</div>
@@ -185,22 +185,30 @@
         </div>
         <div class="status" data-label="Status" [ngClass]="{'text-green': order.status === 'Completed', 'text-red': order.status === 'Canceled', 'text-blue': order.status === 'Pending'}">
             {{ order.status }}
-            <img class="icon" (click)="opencancel(order); $event.stopPropagation()" src="image/cancelss.svg">
+            <img *ngIf="order.status !== 'Canceled'" class="icon" (click)="opencancel(order); $event.stopPropagation()" src="image/cancelss.svg">
         </div>
     </div>
     <div class="line"></div>
   </div>
 </ng-template>
 </div>
-       <div class="con_tainer_page">
-  <div class="pagination">
-    <a class="prev" [class.disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">&lt; Prev</a>
-    <a class="page" [class.active]="currentPage === 1" (click)="changePage(1)">1</a>
-    <a *ngIf="totalPages >= 2" class="page" [class.active]="currentPage === 2" (click)="changePage(2)">2</a>
-    <span *ngIf="totalPages > 3" class="dots">...</span>
-    <a *ngIf="totalPages > 2" class="page" [class.active]="currentPage === totalPages" (click)="changePage(totalPages)">{{ totalPages }}</a>
-    <a class="next" [class.disabled]="currentPage === totalPages || totalPages === 0" (click)="changePage(currentPage + 1)">Next &gt;</a>
-  </div>
+     <div class="con_tainer_page">
+     <div class="pagination">
+
+        <a class="prev" [class.disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">&lt; Prev</a>
+        
+   
+        <a *ngFor="let page of visiblePages" 
+           class="page" 
+           [class.active]="currentPage === page" 
+           (click)="changePage(page)">
+           {{ page }}
+        </a>
+
+        <!-- ปุ่ม Next -->
+        <a class="next" [class.disabled]="currentPage === totalPages || totalPages === 0" (click)="changePage(currentPage + 1)">Next &gt;</a>
+     </div>
+ </div>
 </div>
                 </div>
                 

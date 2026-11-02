@@ -59,7 +59,7 @@ groupedSaleOrders: any[] = [];
   profile = '';
   play_Return = false;
    userRole: string = '';
-  
+  form_noti = false;
   private timeSubscription!: Subscription;
   constructor(private router: Router) {}
 
@@ -77,6 +77,12 @@ groupedSaleOrders: any[] = [];
       this.play_Return = true;
       this.out = false;
   }
+    if (state.form_noti === true) {
+    this.stan = false;
+    this.play_Return = false;
+    this.out = false;
+    this.form_noti = true; // ทำงานได้แน่นอนเพราะไม่มี Error แล้ว
+  } 
     if (state.Move_return2 === true){
       this.stan = false;
       this.play_Return = true;
@@ -129,6 +135,7 @@ groupedSaleOrders: any[] = [];
     this.isLoading = true; 
 }   
   Animationa2_out(){
+    this.form_noti = false;
     this.Animation_outdash = true;
 
     setTimeout(() =>{
@@ -139,7 +146,7 @@ groupedSaleOrders: any[] = [];
   }
   Animationa3_out(){
     this.Animation_out = true;
-
+this.form_noti = false;
     setTimeout(() =>{
       this.router.navigate(['/history'],{
         state:{username: this.username , email: this.email, Move_return44:true , role:this.userRole ,profile:this.profile}
@@ -147,6 +154,7 @@ groupedSaleOrders: any[] = [];
     } ,300)
   }
   Animationa4_out(){
+    this.form_noti = false;
     this.Animation_out = true;
 
     setTimeout(() =>{
@@ -156,6 +164,7 @@ groupedSaleOrders: any[] = [];
     } ,300)
   }
   Animation_out5(){
+    this.form_noti = false;
               this.out = false;
     this.Animation_out = true;
     setTimeout(() =>{
@@ -165,6 +174,7 @@ groupedSaleOrders: any[] = [];
     } ,300)
   }
   Animation_out6(){
+    this.form_noti = false;
               this.out = false;
     this.Animation_out = true;
     setTimeout(() =>{
@@ -174,6 +184,7 @@ groupedSaleOrders: any[] = [];
     } ,300)
   }
   Animationa_out(){
+    this.form_noti = false;
     this.Animation_outdash = true;
     
     setTimeout(() =>{
@@ -183,6 +194,7 @@ groupedSaleOrders: any[] = [];
     } ,300)
   }
     Animationa_out1(){
+      this.form_noti = false;
             this.Animation_outdash = true;
 
     setTimeout(() =>{
@@ -246,9 +258,21 @@ groupedSaleOrders: any[] = [];
   }
 
   filterS() {
-    this.filteredItems = this.items.filter(item =>
-      item.toLowerCase().includes(this.search.toLowerCase())
-    );
+    if (!this.search || this.search.trim() === '') {
+      // ถ้าช่องค้นหาว่าง ให้แสดงข้อมูลทั้งหมด
+      this.filteredSaleOrders = [...this.groupedSaleOrders];
+    } else {
+      const searchTerm = this.search.toLowerCase().trim();
+      
+      this.filteredSaleOrders = this.groupedSaleOrders.filter(order => 
+        (order.order_code && order.order_code.toLowerCase().includes(searchTerm)) ||
+        (order.create_by && order.create_by.toLowerCase().includes(searchTerm))
+      );
+    }
+    
+    // รีเซ็ตหน้ากลับไปที่หน้าแรก และอัปเดต Pagination
+    this.currentPage = 1;
+    this.updatePagination();
   }
 
  logout() {
@@ -338,33 +362,13 @@ confirmCancel() {
   // ดึงรายการสินค้าทั้งหมดที่อยู่ในบิลเดียวกัน
   const itemsToCancel = this.selectedProduct.items || [this.selectedProduct];
 
-  // ดึงข้อมูล Inventory ทั้งหมดมาก่อน เพื่อใช้ในการอัปเดตสต็อก
-  this.todoService.getInventory().subscribe(inventory => {
-    
-    itemsToCancel.forEach((item: any) => {
-      // 1. อัปเดตสถานะของแต่ละรายการในฐานข้อมูลเป็น 'Canceled'
-      this.todoService.updateSaleOrderStatus(item.id, 'Canceled').subscribe();
-
-      // 2. คืนสต็อกสินค้า
-      const product = inventory.find(p => p.product_name === item.product_name);
-      if (product) {
-        const currentQty = Number(product.quantity) || 0;
-        const qtyToReturn = Number(item.quantity) || 1;
-        const newQty = currentQty + qtyToReturn;
-
-        const updateData = {
-          product_name: product.product_name,
-          picture: product.picture,
-          quantity: newQty,
-          price: product.price,
-          category: product.category,
-          brand: product.brand || 'N/A',
-          quantity_alert: product.quantity_alert || 10
-        };
-
-        this.todoService.updateInventoryStock(product.sku, updateData).subscribe();
-      }
-    });
+  // ให้ Backend ยกเลิกและคืนสต็อกใน transaction เดียว (รายการที่ยกเลิกไปแล้วจะไม่ถูกคืนสต็อกซ้ำ)
+  this.todoService.cancelSaleOrders(itemsToCancel.map((item: any) => item.id)).subscribe({
+    error: (err) => {
+      alert(err.error?.message || 'ไม่สามารถยกเลิกออเดอร์ได้ กรุณาลองใหม่อีกครั้ง');
+      this.loadSaleOrders();
+    },
+    next: () => {
  const now = new Date();
     const auditData = {
       date: now.toISOString().split('T')[0],
@@ -384,11 +388,12 @@ confirmCancel() {
     this.selectedProduct.status = 'Canceled';
     this.outimport = true;
       this.loadSaleOrders(); 
-    setTimeout(() => { 
-      this.product2 = true; 
+    setTimeout(() => {
+      this.product2 = true;
        this.button_edit = false;
       this.loadSaleOrders(); // โหลดข้อมูลใหม่ทั้งหมด
     }, 400);
+    }
   });
 }
 groupOrdersByCode(orders: any[]) {
@@ -439,9 +444,9 @@ groupOrdersByCode(orders: any[]) {
 
 
 
-  // ---> เพิ่มฟังก์ชันนี้เข้าไปเพื่อให้เหมือน Inventory <---
+
   get visiblePages(): number[] {
-    const blockSize = 3; // กำหนดให้แสดงทีละ 3 หน้า
+    const blockSize = 3;
     const currentBlock = Math.floor((this.currentPage - 1) / blockSize);
     const startPage = (currentBlock * blockSize) + 1;
     const endPage = Math.min(startPage + blockSize - 1, this.totalPages);

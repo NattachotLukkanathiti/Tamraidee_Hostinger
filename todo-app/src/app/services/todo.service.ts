@@ -1,11 +1,11 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface Todo {
   id: number;
   title: string;
-  password: string;
   completed: boolean;
 }
 // ประกาศและ Export Interface ที่นี่
@@ -28,7 +28,7 @@ export interface ChatMessage {
 export class TodoService {
   private http = inject(HttpClient);
 
-  private apiUrl = 'https://api.tamraidee.tech/api';
+  private apiUrl = `${environment.apiBase}/api`;
 
   private headers = new HttpHeaders({
     'ngrok-skip-browser-warning': 'true'
@@ -54,18 +54,6 @@ export class TodoService {
     );
   }
 
-  updateTodo(todo: Todo) {
-    return this.http.put<Todo>(
-      `${this.apiUrl}/todos/${todo.id}`,
-      { completed: todo.completed },
-      { headers: this.headers }
-    );
-  }
-
-  deleteTodo(id: number) {
-    return this.http.delete(`${this.apiUrl}/todos/${id}`, { headers: this.headers });
-  }
-
   login(title: string, password: string) {
     return this.http.post<any>(`${this.apiUrl}/login`, { title, password }, { headers: this.headers });
   }
@@ -82,8 +70,21 @@ export class TodoService {
     return this.http.get<any[]>(`${this.apiUrl}/months`, { headers: this.headers });
   }
 
-  resetPassword(title: string, password: string): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/reset-password`, { title, password }, { headers: this.headers });
+  resetPassword(title: string, password: string, resetToken: string): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/reset-password`, { title, password, resetToken }, { headers: this.headers });
+  }
+
+  checkEmail(title: string): Observable<{ exists: boolean; message?: string }> {
+    return this.http.post<{ exists: boolean; message?: string }>(`${this.apiUrl}/check-email`, { title }, { headers: this.headers });
+  }
+
+  // ยืนยันตัวตนซ้ำ: ส่งรหัสผ่าน หรือ firebaseToken (กรณี social login ที่เพิ่ง re-authenticate)
+  verifyPassword(username: string, credential: { password?: string; firebaseToken?: string }): Observable<{ valid: boolean }> {
+    return this.http.post<{ valid: boolean }>(`${this.apiUrl}/verify-password`, { username, ...credential }, { headers: this.headers });
+  }
+
+  socialLogin(idToken: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/auth/social`, { idToken }, { headers: this.headers });
   }
 
   getSaleOrders() {
@@ -134,10 +135,6 @@ export class TodoService {
     return this.http.get<any[]>(`${this.apiUrl}/inventory`, { headers: this.headers });
   }
 
-  getCategories(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/categories`, { headers: this.headers });
-  }
-
   getNotifications(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/notification`, { headers: this.headers });
   }
@@ -154,10 +151,6 @@ export class TodoService {
     return this.http.put<any>(`${this.apiUrl}/todos/${id}`, profileData, { headers: this.headers });
   }
 
-  getLastSku(): Observable<{ lastSku: string }> {
-    return this.http.get<{ lastSku: string }>(`${this.apiUrl}/inventory/last-sku`, { headers: this.headers });
-  }
-
   addSupplier(supplierData: any): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/suppliers`, supplierData, { headers: this.headers });
   }
@@ -168,6 +161,16 @@ export class TodoService {
 
   updateSupplier(id: number, supplierData: any): Observable<any> {
     return this.http.put<any>(`${this.apiUrl}/suppliers/${id}`, supplierData, { headers: this.headers });
+  }
+
+  // ปิดการขายทั้งออเดอร์ในครั้งเดียว (Backend ตัดสต็อก + บันทึกยอดขายใน transaction)
+  checkout(order: { order_code: string; items: { sku: string; quantity: number }[]; discount: number; picture?: string }): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/checkout`, order, { headers: this.headers });
+  }
+
+  // ยกเลิกรายการขายและคืนสต็อก (Backend ทำใน transaction เดียว)
+  cancelSaleOrders(ids: number[]): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/sale_order/cancel`, { ids }, { headers: this.headers });
   }
 
   saveSalesOrder(orderData: any) {
@@ -190,24 +193,12 @@ export class TodoService {
     return this.http.get<any[]>(`${this.apiUrl}/request_history`, { headers: this.headers });
   }
 
-  getRequestHistoryById(id: number): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/request_history/${id}`, { headers: this.headers });
-  }
-
   updateRequestStatus(id: number, data: { status: string, admin_note?: string }): Observable<any> {
     return this.http.put<any>(`${this.apiUrl}/request_history/${id}`, data, { headers: this.headers });
   }
 
   updateHistoryStatusBySku(sku: string, status: string): Observable<any> {
     return this.http.put<any>(`${this.apiUrl}/history/status/${sku}`, { status }, { headers: this.headers });
-  }
-
-  updateNotificationStatus(id: number, data: { read_by: string[] }): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/notification/${id}`, data, { headers: this.headers });
-  }
-
-  updateNotificationReadStatus(id: number, readStatus: number) {
-    return this.http.put(`${this.apiUrl}/notifications/${id}`, { read: readStatus }, { headers: this.headers });
   }
 
   getNotificationStatus(username: string): Observable<any[]> {
@@ -278,8 +269,13 @@ export class TodoService {
   checkUserRole(email: string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/users/role/${email}`, { headers: this.headers });
   }
-registerOrUpdateUser(userData: any) {
-  // แก้ไขจาก ttp://localhost:3000... เป็นการใช้ this.apiUrl แทน
-  return this.http.post(`${this.apiUrl}/users/upsert`, userData, { headers: this.headers });
-}
+
+// เพิ่มฟังก์ชันนี้สำหรับการสร้าง Notification โดยเฉพาะ
+  createNotification(notificationData: any): Observable<any> {
+    return this.http.post<any>(
+      `${this.apiUrl}/notification`, 
+      notificationData, 
+      { headers: this.headers }
+    );
+  }
 }

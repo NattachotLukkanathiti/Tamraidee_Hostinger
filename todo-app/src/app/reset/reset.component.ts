@@ -13,6 +13,7 @@ import { TodoService } from '../services/todo.service';
 })
 export class ResetComponent implements OnInit, OnDestroy {
   title = ''; // ใช้เก็บ Email
+  resetToken = ''; // ได้จากหน้า Step หลังยืนยัน OTP สำเร็จ
   password = '';
   confirmPassword = '';
   showPassword = false;
@@ -33,11 +34,13 @@ export class ResetComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     // ดึงข้อมูล Email จาก history.state ที่ส่งมาจากหน้า OTP
     const userData = history.state?.userData;
-    if (userData && userData.title) {
+    const resetToken = history.state?.resetToken;
+    if (userData && userData.title && resetToken) {
       this.title = userData.title;
+      this.resetToken = resetToken;
     } else {
       this.openpopupnoti("ไม่พบข้อมูลผู้ใช้งาน กรุณาทำรายการใหม่");
-      setTimeout(() => this.router.navigate(['/forget']), 2000);
+      setTimeout(() => this.router.navigate(['/forgot']), 2000);
     }
   }
 
@@ -72,7 +75,7 @@ export class ResetComponent implements OnInit, OnDestroy {
     }
 
     // ส่งข้อมูลไปอัปเดตที่ Backend
-    this.todoService.resetPassword(this.title, this.password).subscribe({
+    this.todoService.resetPassword(this.title, this.password, this.resetToken).subscribe({
       next: () => {
         this.loading = false;
         this.isLoading = false;

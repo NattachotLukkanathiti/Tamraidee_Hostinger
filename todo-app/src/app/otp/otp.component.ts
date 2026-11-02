@@ -2,8 +2,21 @@ import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { environment } from '../../environments/environment';
 
+export const OTP_LENGTH = 6;
+const OTP_LIFETIME_SECONDS = 5 * 60;
+// ขอรหัสใหม่ได้เมื่อผ่านไปแล้ว 5 วินาทีหลังขอครั้งล่าสุด
+const RESEND_COOLDOWN_SECONDS = 5;
+
+interface PendingUser {
+  username?: string;
+  title?: string;
+  password?: string;
+}
+
+// หน้ากรอก OTP ใช้ร่วมกัน 2 โหมด: สมัครสมาชิก (/otp) และลืมรหัสผ่าน (/step ตั้ง route data { mode: 'forget' })
 @Component({
   selector: 'app-otp',
   standalone: true,
@@ -13,76 +26,96 @@ import { Router } from '@angular/router';
 })
 export class OtpComponent implements OnInit, OnDestroy {
 
-  private http = inject(HttpClient);
-  private router = inject(Router);
+  private readonly http = inject(HttpClient);
+  private readonly router = inject(Router);
+  private readonly apiUrl = environment.apiBase;
 
-  // URL API บน Render ของคุณ
-  private apiUrl = 'https://api.tamraidee.tech';
+  readonly isReset = inject(ActivatedRoute, { optional: true })?.snapshot.data['mode'] === 'forget';
 
-  // ✏️ เปลี่ยนเป็น Array เก็บเลข 4 ช่อง เพื่อรองรับ HTML แบบ 4 กล่อง
-  otpDigits: string[] = ['', '', '', ''];
+  otpDigits: string[] = new Array(OTP_LENGTH).fill('');
 
-  userData: { username?: string; title?: string; password?: string } = {};
-  errorMessage: string = '';
-  isLoading: boolean = false;
+  userData: PendingUser = {};
+  errorMessage = '';
+  isLoading = false;
   showpopup = false;
   showpopupnoti = false;
   popup = '';
   registersuccess = false;
-  timeLeft = 5 * 60; // 5 นาที (300 วินาที)
-  timer: any;
+  timeLeft = OTP_LIFETIME_SECONDS;
+  timer: ReturnType<typeof setInterval> | undefined;
 
-  openpopup(message:string){
+  get title(): string {
+    return this.isReset ? '2 Step Verification' : 'Email OTP Verification';
+  }
+
+  get submitLabel(): string {
+    return this.isReset ? 'Submit' : 'Verify & Proceed';
+  }
+
+  get timerText(): string {
+    const minutes = Math.floor(this.timeLeft / 60);
+    const seconds = this.timeLeft % 60;
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  }
+
+  get canResend(): boolean {
+    return this.timeLeft <= OTP_LIFETIME_SECONDS - RESEND_COOLDOWN_SECONDS;
+  }
+
+  openpopup(message: string) {
     this.popup = message;
     this.showpopup = true;
   }
-  closepopup(){
+
+  closepopup() {
     this.showpopup = false;
     this.showpopupnoti = false;
-    
-    if(this.registersuccess === true){
-      this.router.navigate(['/login']); 
-            this.registersuccess = false;
+
+    if (this.registersuccess) {
+      void this.router.navigate(['/login']);
+      this.registersuccess = false;
     }
   }
-  openpopupnoti(message:string){
+
+  openpopupnoti(message: string) {
     this.showpopupnoti = true;
     this.popup = message;
   }
+
   ngOnInit() {
-    // 📌 1. ดึงข้อมูลจาก sessionStorage ก่อน (ป้องกันการรีเฟรชหน้าจอแล้วหลุด)
+    // ดึงข้อมูลจาก sessionStorage ก่อน (กันรีเฟรชหน้าแล้วข้อมูลหาย) ไม่มีค่อยใช้ history.state
     const savedData = sessionStorage.getItem('tempUserData');
 
     if (savedData) {
       this.userData = JSON.parse(savedData);
     } else if (history.state?.userData?.title) {
-      // ถ้าไม่มีใน sessionStorage แต่มีใน history.state ให้จดลง sessionStorage ทันที
       this.userData = history.state.userData;
       sessionStorage.setItem('tempUserData', JSON.stringify(this.userData));
     }
 
-    // 📌 2. ถ้าไม่มีข้อมูลอีเมลจริงๆ ให้เด้งกลับไปหน้าสมัครสมาชิก
-    if (!this.userData || !this.userData.title) {
+    // ไม่มีอีเมลให้ยืนยัน -> กลับไปเริ่มใหม่ที่หน้าสมัครสมาชิก
+    if (!this.userData?.title) {
       alert('ไม่พบข้อมูลการสมัครสมาชิก กรุณากรอกข้อมูลใหม่');
-      this.router.navigate(['/register']); // 📌 แก้ตาม path หน้าสมัครของคุณ เช่น /register หรือ /signup
+      void this.router.navigate(['/register']);
       return;
     }
 
     this.startTimer();
   }
 
-  // ➕ ฟังก์ชันเลื่อนโฟกัสไปกล่องถัดไปอัตโนมัติเมื่อพิมพ์ตัวเลข
-  onDigitInput(event: any, index: number, nextInput: HTMLInputElement | null) {
-    const val = event.target.value.replace(/[^0-9]/g, '');
-    this.otpDigits[index] = val;
-    event.target.value = val;
+  // รับเฉพาะตัวเลข แล้วเลื่อนโฟกัสไปกล่องถัดไป
+  onDigitInput(event: Event, index: number, nextInput: HTMLInputElement | null) {
+    const input = event.target as HTMLInputElement;
+    const value = input.value.replaceAll(/\D/g, '');
+    this.otpDigits[index] = value;
+    input.value = value;
 
-    if (val && nextInput) {
+    if (value && nextInput) {
       nextInput.focus();
     }
   }
 
-  // ➕ ฟังก์ชันกด Backspace เพื่อถอยกลับไปลบช่องก่อนหน้า
+  // กด Backspace ในกล่องที่ว่าง -> ถอยไปกล่องก่อนหน้า
   onKeyDown(event: KeyboardEvent, index: number, prevInput: HTMLInputElement | null) {
     if (event.key === 'Backspace' && !this.otpDigits[index] && prevInput) {
       prevInput.focus();
@@ -90,7 +123,7 @@ export class OtpComponent implements OnInit, OnDestroy {
   }
 
   startTimer() {
-    if (this.timer) clearInterval(this.timer);
+    clearInterval(this.timer);
     this.timer = setInterval(() => {
       if (this.timeLeft > 0) {
         this.timeLeft--;
@@ -100,22 +133,13 @@ export class OtpComponent implements OnInit, OnDestroy {
     }, 1000);
   }
 
-  get timerText() {
-    const minutes = Math.floor(this.timeLeft / 60);
-    const seconds = this.timeLeft % 60;
-    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-  }
-
-  // 📌 3. ฟังก์ชันกดยืนยัน OTP และส่งข้อมูลไปยัง /todos
+  // กดยืนยัน OTP: ส่งไป /todos เพื่อตรวจ OTP แล้วสมัครสมาชิก (หรือขอ reset token ถ้าเป็นโหมดลืมรหัสผ่าน)
   submitRegister() {
-     this.isLoading = true; // เริ่มแสดง Loading
-    // นำเลข 4 ช่องมารวมกันเป็น String ชุดเดียว
     const fullOtp = this.otpDigits.join('');
 
-    if (!fullOtp || fullOtp.length !== 4) {
-       this.isLoading = false; // เริ่มแสดง Loading
-      this.errorMessage = 'กรุณากรอกรหัส OTP ให้ครบ 4 หลัก';
-          this.openpopupnoti(this.errorMessage)
+    if (fullOtp.length !== OTP_LENGTH) {
+      this.errorMessage = `กรุณากรอกรหัส OTP ให้ครบ ${OTP_LENGTH} หลัก`;
+      this.openpopupnoti(this.errorMessage);
       return;
     }
 
@@ -126,55 +150,59 @@ export class OtpComponent implements OnInit, OnDestroy {
       username: this.userData.username,
       title: this.userData.title,
       password: this.userData.password,
-      
-      otp: fullOtp
+      otp: fullOtp,
+      isReset: this.isReset
     };
 
-    // ยิงไปยัง /todos บน Backend เพื่อตรวจสอบ OTP และบันทึกข้อมูล
-    this.http.post<any>(`${this.apiUrl}/todos`, payload).subscribe({
-      next: (res) => {
-        this.isLoading = false;
-        // 🧹 ลบข้อมูลชั่วคราวออกเมื่อสมัครสมาชิกสำเร็จ
-        sessionStorage.removeItem('tempUserData');
-        this.openpopup("Your register Completed")
-           this.registersuccess = true;
-        // ย้ายไปหน้า Login
-      },
+    this.http.post<{ resetToken?: string }>(`${this.apiUrl}/todos`, payload).subscribe({
+      next: (res) => this.onVerified(res),
       error: (err) => {
         this.isLoading = false;
-        // แสดงข้อความแจ้งเตือน Error จาก Backend
         this.errorMessage = err.error?.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง';
         this.openpopupnoti(this.errorMessage);
       }
     });
   }
 
-  // 📌 4. ฟังก์ชันขอรหัส OTP ใหม่
+  private onVerified(res: { resetToken?: string }) {
+    this.isLoading = false;
+    // ลบข้อมูลชั่วคราว (อีเมล/รหัสผ่านที่รอสมัคร) ออกจาก sessionStorage
+    sessionStorage.removeItem('tempUserData');
+
+    if (this.isReset) {
+      void this.router.navigate(['/reset'], {
+        state: { userData: { title: this.userData.title }, resetToken: res.resetToken }
+      });
+      return;
+    }
+
+    this.openpopup('Your register Completed');
+    this.registersuccess = true;
+  }
+
+  // ขอรหัส OTP ใหม่
   resendOtp() {
-    this.isLoading = true; // เริ่มแสดง Loading
-    if (this.timeLeft > 295) return;
+    if (!this.canResend) return;
 
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.http.post<any>(`${this.apiUrl}/api/request-otp`, { title: this.userData.title }).subscribe({
-      next: (res) => {
-        this.isLoading = false; // เริ่มแสดง Loading
-        this.openpopup("OTP sent to your email")
-        this.otpDigits = ['', '', '', '']; // ล้างช่องเก่า
-        this.timeLeft = 5 * 60; // รีเซ็ตเวลาเป็น 5 นาที
+    this.http.post(`${this.apiUrl}/api/request-otp`, { title: this.userData.title }).subscribe({
+      next: () => {
+        this.isLoading = false;
+        this.openpopup('OTP sent to your email');
+        this.otpDigits = new Array(OTP_LENGTH).fill('');
+        this.timeLeft = OTP_LIFETIME_SECONDS;
         this.startTimer();
       },
-      error: (err) => {
+      error: () => {
         this.isLoading = false;
-        this.openpopupnoti("OTP has Incorrect")
+        this.openpopupnoti('OTP has Incorrect');
       }
     });
   }
 
   ngOnDestroy() {
-    if (this.timer) {
-      clearInterval(this.timer);
-    }
+    clearInterval(this.timer);
   }
 }

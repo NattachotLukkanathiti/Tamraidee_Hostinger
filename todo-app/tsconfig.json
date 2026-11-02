@@ -22,5 +22,12 @@
     "strictInjectionParameters": true,
     "strictInputAccessModifiers": true,
     "strictTemplates": true
-  }
+  },
+  // ไฟล์นี้เป็นแค่ค่ากลาง: ให้ VS Code ใช้ config แยกตามชนิดไฟล์ (โค้ดแอป / unit test)
+  // ไม่งั้นไฟล์ *.spec.ts จะเห็น type ของ Cypress (chai expect) ทับ Jasmine จนขึ้นแดงทั้งไฟล์
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.spec.json" }
+  ]
 }

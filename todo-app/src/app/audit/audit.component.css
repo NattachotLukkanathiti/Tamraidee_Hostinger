@@ -368,6 +368,20 @@ input::placeholder{
     }
 }
 
+.form_noti{
+    animation: form_noti 1s ease-in-out !important;
+}
+@keyframes form_noti {
+    0% {
+        transform: translateY(500px);
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
 .fade-out2 {
     animation: Moveemployee 1s ease-in-out !important;
 }

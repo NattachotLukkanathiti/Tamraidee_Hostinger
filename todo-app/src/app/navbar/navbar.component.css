@@ -11,17 +11,17 @@
   animation: slide 1s ease-in-out;
   
   /* เพิ่ม 2 บรรทัดนี้ เพื่อให้เมาส์คลิกทะลุ Navbar ได้ */
-  pointer-events: none; 
+  pointer-events: none !important; 
   background: transparent; 
 }
 
 /* เพิ่มส่วนนี้: เพื่อให้ปุ่มเมนูและไอคอนต่างๆ ยังคงกดได้ตามปกติ */
 .con_nav, .container_bar, .hamburger, .headercompany {
   pointer-events: none;
-  pointer-events: auto;
+
 }
 .headercompany {
-  
+    pointer-events: auto;
     display: flex;
     margin-left: 20px;
     flex-direction: column;
@@ -29,6 +29,9 @@
     font-weight: 800;
     align-items: flex-start;
     font-family: 'Nicomoji', sans-serif; 
+}
+.text{
+  margin-left: 65px;
 }
 .consale{
     z-index: 4;
@@ -98,12 +101,54 @@
     cursor: pointer;
     z-index: 10;
 }
+.noti_in{
+  opacity: 1;
+  animation: noti_in 0.5s ease-in-out ;
+}
+.con_noti_in {
+  opacity: 0;
+  background-color: rgb(255, 255, 255);
+  position: fixed;
+  top: 70px;
+      pointer-events: none;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+     -webkit-mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 80%, transparent 100%);
+  
+  z-index: 9999;
+}
+@keyframes noti_in{
+    0% {
+    max-height: 0;
+    opacity: 0;
+  }
+  100% {
+    max-height: 100vh; 
+    opacity: 1;
+  }
+}
+.apple{
+   pointer-events: auto;
+}
+.applee {
+  position: absolute;
+   pointer-events: auto;
+  width: 70px;
+  transform: scaleX(1.2) translateY(-40px);
+  height: 90px;
+  
+  /* ชุดคำสั่ง filter เพื่อย้อมสีให้เป็น #69A957 */
+/*   filter: invert(63%) sepia(13%) saturate(1293%) hue-rotate(49deg) brightness(95%) contrast(85%); */
+}
+
 .time{
     font-size: 15px;
     z-index: 10;
     color: white;
     font-weight: 800;
-    background: #AD54F5;
+    background: #66BB6A;
     width: 100px;
     border-radius: 8px;
     height: 10px;
@@ -244,7 +289,7 @@
 }
 .red_noti {
   position: relative;
-  
+    pointer-events: auto;
   display: inline-block;
   box-sizing: border-box;
 }
@@ -254,6 +299,7 @@
 }
 .con_sound{
   border: none;
+    pointer-events: auto;
   padding: 9px;
   background-color: #F4F5FC;
   cursor: pointer;
@@ -332,6 +378,7 @@
 .hamburger {
     border: 0.5px solid #00000031;
     background-color: white;
+        pointer-events: auto;
     border-radius: 8px;
     display: flex !important; /* บังคับให้แสดงผลเป็น flex */
     align-items: center;

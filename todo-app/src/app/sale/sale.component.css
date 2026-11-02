@@ -1836,6 +1836,20 @@ select.sku_input {
     text-align: left; /* เปลี่ยนเป็น left เพื่อให้ข้อความชิดซ้าย */
     box-sizing: border-box;
 }
+.form_noti{
+    animation: form_noti 1s ease-in-out !important;
+}
+@keyframes form_noti {
+    0% {
+        transform: translateY(500px);
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
 .con_table{
     margin-top: 40px;
     display: flex;

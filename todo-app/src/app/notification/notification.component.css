@@ -1,30 +1,28 @@
-/* ==================== Layout & Navbar ==================== */
-:host { 
-    display: block; 
-    box-sizing: border-box; 
-    width: 100%; 
-    color: #2b2f38; 
-    font: 400 16px/1.5 -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-}
 
-* { 
-    box-sizing: border-box; 
-}
 .view{
     margin-right: 50px;
+    position: relative;
+    display: flex !important;
+    margin-left: auto !important;
     cursor: pointer;
 }
+
+
 .navbaar {
     display: flex;
-    align-items: center; 
+    /* กระจายองค์ประกอบให้เต็มพื้นที่ */
+    align-items: center;
+    /* จัดให้อยู่ตรงกลางตามแนวตั้ง */
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
-    z-index: 4;
+    z-index: 3;
+    /* ปรับให้มากกว่า sidebar เพื่อให้อยู่ด้านบนสุด */
     background-color: #FFF;
-    border: 1px solid #CED4DA;
+/*     border: 1px solid #CED4DA; */
     animation: slide 1s ease-in-out;
+
 }
 
 .con_nav {
@@ -38,7 +36,6 @@
     left: 50%;
     transform: translate(-50%, -50%);
 }
-
 .he {
     cursor: pointer;
     color: #1D1D1F;
@@ -60,6 +57,7 @@
 }
 
 .container_bar {
+
     gap: 10px;
     margin-left: auto;
     margin-right: 10px;
@@ -215,7 +213,9 @@
 }
 
 .card-list { 
+    background-color: white;
     display: grid; 
+    padding: 60px;
     gap: 12px; 
 }
 .pag-noti{
@@ -242,7 +242,9 @@
 .stat-card stat-card--blue{
     border-radius: 20px;
 }
+
 .notification-stats { 
+    margin-right: 40px;
     flex: 0 1 auto; /* เปลี่ยนเป็น auto เพื่อให้ขนาดพอดีกับการ์ดข้างใน */
     display: flex; 
     justify-content: flex-end; /* ดันการ์ดข้างในไปชิดขวา */
@@ -255,17 +257,46 @@
     color: #fff; 
     font: 700 32px/40px sans-serif; 
 }
+.animation{
+    animation: animation 1s ease-in-out;
+}
+@keyframes animation{
+    0%{
 
+    }
+    100%{
+        opacity: 0;
+        transform: translateY(-2000px);
+        
+    }
+}
 
-.stat-card { 
+.stat-card,.stat-card2,.stat-card3 { 
     flex: 1 1 200px; 
     padding: 16px 24px; 
-    border-radius: 4px; 
+    border-radius: 20px; 
     background: #fff; 
     box-shadow: 0 4px 12px rgba(0,0,0,.12); 
     display: flex; 
     align-items: center; 
-    gap: 16px; 
+    gap: 16px;
+        opacity: 0;
+    animation: wow 1s ease-in-out forwards;   
+}
+/* .stat-card { animation-delay: 0.2s; }
+.stat-card2 { animation-delay: 0.4s; }
+.stat-card3 { animation-delay: 0.6s; }
+
+ */
+ .stat-card,.stat-card2,.stat-card3 { animation-delay: 0.65s; }
+@keyframes wow{
+    0%{ 
+        opacity: 0;
+            transform: translateY(-500px);
+    }
+    100%{
+        opacity: 1;
+    }
 }
 
 .stat-card__icon { 
@@ -332,10 +363,9 @@
 
 /* ==================== Animations ==================== */
 .Animation_out { 
-    flex: 1; 
+    padding: 20px;
     width: 100%; 
-    padding: 20px; 
-    background: #F4F5FC; 
+    background: #fff; 
     z-index: 2; 
 }
 
@@ -361,28 +391,104 @@
     width: 100%;
     gap: 10px;
 }
-
+.sku{
+    width: 100%;
+    border: 1px solid black;
+}
 /* สั่งให้ .con และ .sku2 ที่เป็นลูกตรงๆ ของ .table_detail แบ่งพื้นที่เท่ากัน */
 .table_detail > .con,
 .table_detail > .sku2 {
     flex: 1;
     min-width: 0;
 }
-
+.sku9{
+    display: flex;
+}
+.container_view{
+    margin-left: 40px;
+}
 /* จัดการให้ title และ description ใน .con เรียงเป็นแนวตั้ง */
 .con {
     display: flex;
     flex-direction: column;
     gap: 4px;
 }
-
+.view:hover{
+    color: #2b2f3878;
+}
+.view:active{
+        color: #0f0f10;
+}
 .sku2 {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
+.over{
+    animation: open 1s ease-in-out;
+}
+@keyframes open{
+    0%{
+        opacity: 0;
+        transform: translateY(-1000px);
+    }
+    100%{
+        opacity: 1;
+    }
+}
+.header_Inventory {
+    font-size: 60px;
+    margin-left: 40px;
+    display: flex;
+    font-weight: 800;
+    justify-content: flex-start;
+    color: #ffffff;
+    transform: translateY(-200px);
+    animation-name: slidee;
+    animation-delay: 1s;
+    animation-duration: 1s; 
+    animation-fill-mode: forwards; 
+}
 
+@keyframes slidee {
+    0% {
+        transform: translateY(-200px);
+    }
+    100% {
 
+        transform: translateY(0);
+    }
+}
+.table_detail2 {
+    opacity: 0;
+    cursor: pointer;
+    animation-delay: 1s !important;
+    transform: translateX(-10px);
+    animation: showLine 2s ease-in-out forwards;
+    transition: 0.3s ease-in-out;
+  
+}
+.table_detail2:hover{
+    background-color: #F3FBF1;
+    transform: scale(1.1);
+    cursor: pointer;
+}
+.table_detail2:active{
+        background-color: #EDF9E9;
+}
+.profile_employee{
+    width: 30px;
+    height: 30px;
+}
+@keyframes showLine {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+
+    }
+}
 .sku3 {
     display: flex;
     justify-content: center; /* จัดกึ่งกลางแนวนอน */
@@ -399,4 +505,27 @@
     background-color: #3B86FF;
     box-shadow: 0px 0px 4px 0px #3B86FF;
     flex-shrink: 0; /* ป้องกันไม่ให้จุดสีฟ้าโดนบีบ */
+}
+
+
+.back{
+    background-color: #FFF;
+    position: fixed;
+    height: 100vh;
+    width: 100vw;
+    margin-top: 70px;
+    z-index: 23;
+    pointer-events: none;
+    top: 0;
+    left: 0;
+    
+    animation: eiei 1s ease-in-out forwards;
+}
+@keyframes eiei {
+    0%{
+
+    }
+    100%{
+       opacity: 0; 
+    }
 }

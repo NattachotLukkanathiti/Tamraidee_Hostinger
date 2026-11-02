@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-forgot',
@@ -16,7 +17,7 @@ export class ForgotComponent {
   private http = inject(HttpClient);
   private router = inject(Router);
 
-  private apiUrl = 'https://api.tamraidee.tech';
+  private apiUrl = environment.apiBase;
 
   title: string = '';
   isLoading: boolean = false;
@@ -109,16 +110,9 @@ export class ForgotComponent {
           })
         );
 
-        // จำว่า OTP มาจาก Forgot
-        sessionStorage.setItem(
-          'otpFrom',
-          'forget'
-        );
-
         // ไปหน้า OTP
         this.router.navigate(['/step'], {
           state: {
-            from: 'forget',
             userData: {
               title: this.title
             }

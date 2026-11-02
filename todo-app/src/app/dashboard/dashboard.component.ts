@@ -46,6 +46,7 @@ private productsList: { name: string; count: number; image?: string }[] = [];
   inhere = false;
   outs = false;
   out = false;
+  form_noti=false;
   todos: any[] = [];
   Max = false;
   loader = false
@@ -60,6 +61,7 @@ summary: any = {
     net_income: 0,
     products: 0
   };
+ 
     saleOrders: any[] = [];
   openpro = false;
   private timeSubscription!: Subscription;
@@ -85,7 +87,12 @@ this.loadTopProducts();
     this.inhere = true;
     this.loadSummary(); 
   }
-
+   if (state.form_noti === true) {
+    this.stan = false;
+    this.play_Return = false;
+    this.out = false;
+    this.form_noti = true; // ทำงานได้แน่นอนเพราะไม่มี Error แล้ว
+  } 
   // เข้ามาจาก Login
   else if (state.stan === true) {
     this.stan = true;
@@ -97,6 +104,7 @@ this.loadTopProducts();
     this.outs = true;
     
   }
+ 
 
     if(!this.username || !this.email){
       this.openpopupnoti("Session not found. Redirecting to login")
@@ -127,6 +135,7 @@ this.loadTopProducts();
     });
   }
   Animationa_out(){
+     this.form_noti = false;
     this.outs = false;
         this.out = true;
     this.play_Return = false;
@@ -137,7 +146,8 @@ this.loadTopProducts();
       })
     } ,300)
   }
-  Animation_out2(){
+  Animation_out2(){    
+    this.form_noti = false;
             this.out = true;
     this.play_Return = false;
     this.Animation_outsale = true;
@@ -148,6 +158,7 @@ this.loadTopProducts();
     } ,300)
   }
   Animation_out3(){
+     this.form_noti = false;
             this.out = true;
     this.play_Return = false;
     this.Animation_outsale = true;
@@ -158,6 +169,7 @@ this.loadTopProducts();
     } ,300)
   }
   Animation_out4(){
+     this.form_noti = false;
             this.out = true;
     this.play_Return = false;
     this.Animation_outsale = true;
@@ -168,6 +180,7 @@ this.loadTopProducts();
     } ,300)
   }
   Animation_out5(){
+     this.form_noti = false;
             this.out = false;
     this.play_Return = false;
     this.Animation_outsale = true;
@@ -178,6 +191,7 @@ this.loadTopProducts();
     } ,300)
   }
   Animation_out6(){
+     this.form_noti = false;
             this.out = true;
     this.play_Return = false;
     this.Animation_outsale = true;
@@ -234,6 +248,40 @@ this.loadTopProducts();
     error: (err) => console.error(err)
   });
 }
+
+currentWeekOffset: number = 0;
+currentWeekRange: string = '';
+
+changeWeek(offset: number) {
+  this.currentWeekOffset += offset;
+  this.updateWeeklySales();
+}
+
+updateWeeklySales() {
+  const now = new Date();
+  // 1. คำนวณหาวันจันทร์ของสัปดาห์ปัจจุบัน
+  const day = now.getDay();
+  const diffToMonday = now.getDate() - day + (day === 0 ? -6 : 1); 
+  
+  const startOfWeek = new Date(now.setDate(diffToMonday + (this.currentWeekOffset * 7)));
+  startOfWeek.setHours(0, 0, 0, 0); // เริ่มต้นที่ 00:00 ของวันจันทร์
+
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(startOfWeek.getDate() + 6);
+  endOfWeek.setHours(23, 59, 59, 999); // สิ้นสุดที่ 23:59 ของวันอาทิตย์
+
+  this.currentWeekRange = `${startOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${endOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+
+  // 2. กรองข้อมูลเฉพาะสัปดาห์ที่เลือก
+  const weeklyOrders = this.allSaleOrders.filter(order => {
+    if (!order.created_at) return false;
+    const orderDate = new Date(order.created_at);
+    return orderDate >= startOfWeek && orderDate <= endOfWeek;
+  });
+
+  this.processWeeklySales(weeklyOrders);
+}
+
 loadSaleOrders() {
   this.todoService.getSaleOrders().subscribe({
     next: (res) => {
@@ -243,7 +291,9 @@ loadSaleOrders() {
 
       this.processSaleOrdersForChart(this.saleOrders); */
          this.allSaleOrders = res.filter(order => order.status?.toLowerCase() === 'completed');
-      
+          
+    this.updateWeeklySales(); 
+
       // เรียกใช้การกรองตามค่าเริ่มต้น (เช่น 1Y)
       this.filterDataByRange(this.selectedRange); 
  
@@ -390,67 +440,125 @@ loadTopProducts() {
     error: (err) => console.error('Error loading top products from sale orders:', err)
   });
 }
-processSaleOrdersForChart(orders: any[]) {
-  const salesByMonth: { [key: string]: number } = {};
 
+processSaleOrdersForChart(orders: any[], range: string) {
+  const salesByPeriod: { [key: string]: number } = {};
+  const labels: string[] = [];
+  const now = new Date();
+
+  // รีเซ็ตยอดรวมทุกครั้งที่เปลี่ยนช่วงเวลา
+  this.totalSales = 0;
+  this.totalPurchase = 0; 
+
+  // 1. สร้าง Label เปล่าๆ ขึ้นมาก่อนตามช่วงเวลาที่เลือก
+  if (range === '1D') {
+    labels.push(now.toLocaleDateString('en-US', { day: 'numeric', month: 'short' }));
+  } else if (range === '1W') {
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(now.getDate() - i);
+      labels.push(d.toLocaleDateString('en-US', { weekday: 'short' }));
+    }
+  } else if (range === '1M' || range === '3M' || range === '6M') {
+    const monthsCount = range === '1M' ? 1 : range === '3M' ? 3 : 6;
+    for (let i = monthsCount - 1; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(now.getMonth() - i);
+      labels.push(d.toLocaleDateString('en-US', { month: 'short' }));
+    }
+  } else if (range === '1Y') {
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    labels.push(...monthNames);
+  }
+
+  // กำหนดค่าเริ่มต้นให้ทุก Label เป็น 0
+  labels.forEach(label => salesByPeriod[label] = 0);
+
+  // 2. นำยอดขายมาใส่ตาม Label ที่ตรงกัน และคำนวณยอดรวม
   orders.forEach(order => {
-  
-    if (order.status && order.status.toLowerCase() === 'completed' && order.created_at) {
-      
-  
-      const dateToUse = new Date(order.created_at);
-      const monthName = dateToUse.toLocaleString('en-US', { month: 'short' }); 
-      
-
+    if (order.status?.toLowerCase() === 'completed' && order.created_at) {
+      const date = new Date(order.created_at);
       const amount = Number(order.amount) || 0;
       
-      salesByMonth[monthName] = (salesByMonth[monthName] || 0) + amount;
+      // บวกยอดรวมสะสมสำหรับแสดงผลด้านบน
+      this.totalSales += amount;
+
+      let matchLabel = '';
+      if (range === '1D') {
+        matchLabel = date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+      } else if (range === '1W') {
+        matchLabel = date.toLocaleDateString('en-US', { weekday: 'short' });
+      } else if (range === '1Y') {
+        matchLabel = date.toLocaleDateString('en-US', { month: 'short' });
+      } else {
+        matchLabel = date.toLocaleDateString('en-US', { month: 'short' });
+      }
+
+      if (salesByPeriod.hasOwnProperty(matchLabel)) {
+        salesByPeriod[matchLabel] += amount;
+      }
     }
   });
 
-
-  if (this.data && this.data.length > 0) {
-    this.data = this.data.map(item => {
-      const newTotal = salesByMonth[item.month] || 0;
-      return { ...item, value: newTotal }; 
-    });
-  }
+  // 3. อัปเดตค่าลงตัวแปรสำหรับแสดงผลบนหน้าจอ
+  this.months = labels;
+  this.data = labels.map(label => ({
+    month: label,
+    value: salesByPeriod[label] || 0
+  }));
 }
-
-  weeklySalesData: { [key: string]: number } = {};
-
-  processWeeklySales(orders: any[]) {
-    this.weeklySalesData = {};
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-    orders.forEach(order => {
-      if (order.status?.toLowerCase() === 'completed' && order.created_at) {
-        const date = new Date(order.created_at);
-        const dayName = days[date.getDay()];
-        const hour = date.getHours();
-        
+formatK(value: number): string {
+  if (value === 0) return '0';
   
-        if (hour >= 10 && hour <= 17) {
-          const key = `${dayName}-${hour}`;
-          const amount = Number(order.amount) || 0;
-          this.weeklySalesData[key] = (this.weeklySalesData[key] || 0) + amount;
-        }
+  // สำหรับตัวเลขตั้งแต่ 1,000,000 ขึ้นไป ให้แสดงเป็น M
+  if (value >= 1000000) {
+    return (value / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+  }
+  
+  // สำหรับตัวเลขตั้งแต่ 1,000 ขึ้นไป ให้แสดงเป็น K
+  if (value >= 1000) {
+    return (value / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+  }
+  
+  return value.toString();
+}
+  weeklySalesData: { [key: string]: number } = {};
+totalPurchase: number = 0;
+totalSales: number = 0;
+
+processWeeklySales(orders: any[]) {
+  this.weeklySalesData = {};
+  // เปลี่ยนลำดับให้ตรงกับ getDay() ของ JavaScript (0 = Sunday, 1 = Monday, ...)
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  orders.forEach(order => {
+    if (order.status?.toLowerCase() === 'completed' && order.created_at) {
+      
+      const date = new Date(order.created_at);
+      const hour = date.getHours(); 
+      
+      // ใช้ getDay() ได้โดยตรง ไม่ต้องลบ 1
+      const dayIndex = date.getDay(); 
+      const dayName = days[dayIndex];
+      
+      if (hour >= 10 && hour <= 17) {
+        const key = `${dayName}-${hour}`;
+        const amount = Number(order.amount) || 0;
+        this.weeklySalesData[key] = (this.weeklySalesData[key] || 0) + amount;
       }
-    });
-  }
+    }
+  });
+}
+getHeatmapClass(day: string, slotIndex: number): number {
+  const hour = 10 + slotIndex; 
+  const key = `${day}-${hour}`;
+  const total = this.weeklySalesData[key] || 0;
 
-
-  getHeatmapClass(day: string, slotIndex: number): string {
-    const hour = 10 + slotIndex;
-    const key = `${day}-${hour}`;
-    const total = this.weeklySalesData[key] || 0;
-
-    if (total > 50000) return 'heatmap__cell--3';
-    if (total > 30000) return 'heatmap__cell--2';
-    if (total > 10000) return 'heatmap__cell--1';
-    return 'heatmap__cell--0';
-  }
-
+  if (total > 50000) return 3;
+  if (total > 30000) return 2;
+  if (total > 10000) return 1;
+  return 0;
+}
 
 
     printPage() {
@@ -549,9 +657,9 @@ filterDataByRange(range: string) {
       }
     });
 
-    // อัปเดตข้อมูลกราฟด้วยชุดข้อมูลที่กรองแล้ว
-    this.processSaleOrdersForChart(filtered);
-  }
+    // อัปเดตข้อมูลกราฟและแกน X
+    this.processSaleOrdersForChart(filtered, range);
+}
   currentPage: number = 1;
   itemsPerPage: number = 5;
 

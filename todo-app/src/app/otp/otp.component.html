@@ -2,32 +2,52 @@
   <div class="navbar">
 
     <div class="header">
-      Email OTP Verification
+      {{ title }}
     </div>
     <div class="subheader">
-      OTP sent to <strong>{{ userData.title || 'your Email Address' }}</strong>
+      @if (isReset) {
+        Enter the OTP sent to <strong>{{ userData.title || 'your Email Address' }}</strong> to confirm your account.
+      } @else {
+        OTP sent to <strong>{{ userData.title || 'your Email Address' }}</strong>
+      }
     </div>
 
     <div class="input-group">
-      <input #d1 type="text" maxlength="1" inputmode="numeric" 
+      <label class="visually-hidden" for="otp-digit-1">OTP digit 1</label>
+      <input #d1 id="otp-digit-1" type="text" maxlength="1" inputmode="numeric" 
              [(ngModel)]="otpDigits[0]" 
              (input)="onDigitInput($event, 0, d2)" 
              (keydown)="onKeyDown($event, 0, null)"> 
              
-      <input #d2 type="text" maxlength="1" inputmode="numeric" 
+      <label class="visually-hidden" for="otp-digit-2">OTP digit 2</label>
+      <input #d2 id="otp-digit-2" type="text" maxlength="1" inputmode="numeric" 
              [(ngModel)]="otpDigits[1]" 
              (input)="onDigitInput($event, 1, d3)" 
              (keydown)="onKeyDown($event, 1, d1)"> 
              
-      <input #d3 type="text" maxlength="1" inputmode="numeric" 
+      <label class="visually-hidden" for="otp-digit-3">OTP digit 3</label>
+      <input #d3 id="otp-digit-3" type="text" maxlength="1" inputmode="numeric" 
              [(ngModel)]="otpDigits[2]" 
              (input)="onDigitInput($event, 2, d4)" 
              (keydown)="onKeyDown($event, 2, d2)"> 
              
-      <input #d4 type="text" maxlength="1" inputmode="numeric" 
+      <label class="visually-hidden" for="otp-digit-4">OTP digit 4</label>
+      <input #d4 id="otp-digit-4" type="text" maxlength="1" inputmode="numeric" 
              [(ngModel)]="otpDigits[3]" 
-             (input)="onDigitInput($event, 3, null)" 
+             (input)="onDigitInput($event, 3, d5)" 
              (keydown)="onKeyDown($event, 3, d3)"> 
+             
+      <label class="visually-hidden" for="otp-digit-5">OTP digit 5</label>
+      <input #d5 id="otp-digit-5" type="text" maxlength="1" inputmode="numeric" 
+             [(ngModel)]="otpDigits[4]" 
+             (input)="onDigitInput($event, 4, d6)" 
+             (keydown)="onKeyDown($event, 4, d4)"> 
+             
+      <label class="visually-hidden" for="otp-digit-6">OTP digit 6</label>
+      <input #d6 id="otp-digit-6" type="text" maxlength="1" inputmode="numeric" 
+             [(ngModel)]="otpDigits[5]" 
+             (input)="onDigitInput($event, 5, null)" 
+             (keydown)="onKeyDown($event, 5, d5)"> 
     </div>
 
     <!-- แสดง Error กรณีรหัสผิดหรือหมดอายุ -->
@@ -46,8 +66,8 @@
         Didn't get the OTP? 
         <a href="javascript:void(0)" class="login" 
            (click)="resendOtp()" 
-           [style.pointer-events]="timeLeft > 295 ? 'none' : 'auto'"
-           [style.opacity]="timeLeft > 295 ? '0.5' : '1'">
+           [style.pointer-events]="canResend ? 'auto' : 'none'"
+           [style.opacity]="canResend ? '1' : '0.5'">
            Resend OTP
         </a>
       </div>
@@ -55,19 +75,19 @@
       <!-- ปุ่มยืนยันและส่งสมัครสมาชิก -->
       <div class="sihg">
         <button class="button" (click)="submitRegister()" [disabled]="isLoading">
-          {{ isLoading ? 'Processing...' : 'Verify & Proceed' }}
+          {{ isLoading ? 'Processing...' : submitLabel }}
         </button>
       </div>
     </div>
 
   </div>
 </div>
-
-<div class="ferni"></div>
-<div class="ferni2"></div>
-<div class="ferni3"></div>
-<div class="ferniback"></div>
-
+@if (isReset) {
+  <div class="ferni"></div>
+  <div class="ferni2"></div>
+  <div class="ferni3"></div>
+  <div class="ferniback"></div>
+}
 <div *ngIf="showpopup" class="backpop">
   <div *ngIf="showpopup" class="popupcontainer">
   <div class="popup-content">

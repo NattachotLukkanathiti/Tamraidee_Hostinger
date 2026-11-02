@@ -2,9 +2,9 @@
 <div class="connnn">
   <div class="navbaar">
 
-    <div class="headercompany">
+   <!--  <div class="headercompany">
         <img src="image/logo.svg" alt="">
-    </div>
+    </div> -->
     <!--   <div class="search">
         <input class="inputser"type="text" placeholder="Search" [(ngModel)]="search" (input)="filterS()">
         <img class="iconsearch" src="image/search.svg" alt="">
@@ -31,7 +31,7 @@
             </div>
         </div>
         <div class="lin"></div>
-        <img class="iconsetting1" src="image/Maximize Icon.svg" (click)="toggleFullScreen()"  alt="">
+        <img class="iconsetting1" src="image/Maximize Icon.svg"  (click)="toggleFullScreen();$event.stopPropagation()"  alt="">
         <!-- <img class="iconsetting2" src="image/Song.svg" alt=""> -->
      <div class="red_noti">
   <div
@@ -49,10 +49,10 @@
 </div>
 
 <div class="red_noti">
-  <!-- จุดสีแดง (แสดงเมื่อมีเงื่อนไขที่คุณกำหนด) -->
+
   <div class="red_notification" *ngIf="hasProfileUpdate"></div>
 
-  <!-- ปุ่มโปรไฟล์ที่รวมแล้ว -->
+ 
   <button 
     class="avatar-button" 
     type="button" 
@@ -100,7 +100,7 @@
     </div>
 }
 <div class="pos-shell" >
-  <div class="shell" [class.Return]="play_Return">
+  <div class="shell" [class.form_noti]="form_noti" [class.Return]="play_Return">
     <div class="container_all"  [class.fade-out-right]="Animation_out" >
 
     @if (openPanel === 'account') { <button class="nav-backdrop nav-backdrop--clear" type="button" aria-label="Close account menu" (click)="closePanel()"></button> }
@@ -120,7 +120,7 @@
             <div class="section-heading">
               <h1>Categories</h1>
               <div class="category-arrows" >
-                      <div class="buttonback" (click)="scrollLeft(categoryRow)"> <img class="icon" src="image/leftt.svg" alt=""></div>
+                      <div class="buttonnext" (click)="scrollLeft(categoryRow)"> <img class="icon" src="image/leftt.svg" alt=""></div>
       <div class="buttonnext" (click)="scrollRight(categoryRow)">
         <img class="icon" src="image/right.svg" alt="">
       </div>
@@ -145,6 +145,10 @@
             <div class="product-grid">
               @for (product of filteredProducts; track product.id) {
                 <button class="product-card" type="button" (click)="addToCart(product)">
+                      <div class="cart-badge" *ngIf="getCartQuantity(product.id) > 0">
+    {{ getCartQuantity(product.id) }}
+  </div>
+
                   <div class="product-card__image"><img [src]="product.image" [alt]="product.name" /></div>
                   <div class="product-card__content">
                     <div class="product-card__category">{{ product.category }}</div>
@@ -170,9 +174,9 @@
               </div>
             <div>Order Code : #{{ orderCode }}</div>
             </div>
-             <div class="X">
+            <!--  <div class="X">
               <img  src="image/trash-x-filled.svg" alt="">
-             </div>
+             </div> -->
           </div>
         </div>
 

@@ -6,7 +6,9 @@ import { Router, RouterLink } from '@angular/router';
 import { TodoService } from '../services/todo.service';
 import { interval, Subscription } from 'rxjs';
 import { createClient } from '@supabase/supabase-js'; 
-import { getAuth, GoogleAuthProvider, reauthenticateWithPopup } from 'firebase/auth';
+import { GoogleAuthProvider } from 'firebase/auth';
+import { FIREBASE_REAUTH_POPUP } from '../services/social-login.service';
+import { environment } from '../../environments/environment';
 @Component({
   selector: 'app-history',
   imports: [CommonModule, DatePipe, RouterLink,FormsModule],
@@ -52,10 +54,10 @@ export class HistoryComponent {
    Animation_outdash = false;
   return = false;
     stan = false;
+    form_noti = false;
+    noti_in = false;
    userRole: string = '';
-   private supabaseUrl = 'https://iemqkiftkhyoalyqpjzj.supabase.co'; 
-private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImllbXFraWZ0a2h5b2FseXFwanpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyNjExODMsImV4cCI6MjEwNzgzNzE4M30.zk_zlo7QSHuNlM943ikEfwS6eWWbRjTYlWEN94kxn7o';
-  private supabase = createClient(this.supabaseUrl, this.supabaseKey);
+  private supabase = createClient(environment.supabase.url, environment.supabase.anonKey);
 
 
 
@@ -91,6 +93,7 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
     this.email = state.email || '';
     this.userRole = state.role || 'user';
     this.profile = state.profile || '';
+
     
   const initialStatus = state.filterStatus || 'all';
 
@@ -103,6 +106,12 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
       this.play_Return = true;
     this.out = false;
   }
+    if (state.form_noti === true) {
+    this.stan = false;
+    this.play_Return = false;
+    this.out = false;
+    this.form_noti = true; // ทำงานได้แน่นอนเพราะไม่มี Error แล้ว
+  } 
   if (state.Move_returnH === true) {
     this.out = false;
   }
@@ -136,6 +145,7 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
     this.loadHistory();    
 }
   Animationa2_out(){
+      this.form_noti = false;
     this.Animation_outdash = true;
 
     setTimeout(() =>{
@@ -145,6 +155,7 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
     } ,300)
   }
   Animationa3_out(){
+      this.form_noti = false;
     this.Animation_outdash = true;
 
     setTimeout(() =>{
@@ -154,6 +165,7 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
     } ,300)
   }
   Animationa4_out(){
+      this.form_noti = false;
     this.Animation_out = true;
     
 
@@ -164,6 +176,7 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
     } ,300)
   }
   Animation_out5(){
+      this.form_noti = false;
               this.out = false;
     this.Animation_out = true;
     setTimeout(() =>{
@@ -173,6 +186,7 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
     } ,300)
   }
   Animationa6_out(){
+      this.form_noti = false;
  this.out = false;
     this.play_Return = false;
     this.Animation_out = true;
@@ -183,6 +197,7 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
     } ,300)
   }
   Animationa_out(){
+      this.form_noti = false;
     this.Animation_outdash = true;
 
     setTimeout(() =>{
@@ -261,10 +276,24 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
   }
 
   filterS() {
-    this.filteredItems = this.items.filter(item =>
-      item.toLowerCase().includes(this.search.toLowerCase())
-    );
+    if (!this.search || this.search.trim() === '') {
+      // ถ้าช่องค้นหาว่าง ให้กลับไปใช้การกรองตามสถานะและวันที่เหมือนเดิม
+      this.filterHistory();
+    } else {
+      const searchTerm = this.search.toLowerCase().trim();
+      
+      this.filteredHistory = this.history.filter(item => 
+        (item.sku && item.sku.toLowerCase().includes(searchTerm)) ||
+        (item.product_name && item.product_name.toLowerCase().includes(searchTerm)) ||
+        (item.created_by && item.created_by.toLowerCase().includes(searchTerm))
+      );
+      
+      // รีเซ็ตหน้ากลับไปที่หน้าแรก และอัปเดต Pagination
+      this.currentPage = 1;
+      this.updatePagination();
+    }
   }
+  
   detail(order: any) {
     this.isLoading = true;
    
@@ -466,10 +495,12 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
   const requestedQuantity = this.selectedProduct.requested_quantity;
 
   if (!selectedStatus) {
+    this.isLoading = false;
     this.openpopupnoti("Please select an Adjustment Status.");
     return;
   }
   if (!inputPassword) {
+    this.isLoading = false;
     this.openpopupnoti("Please enter your Confirm Password.");
     return;
   }
@@ -477,15 +508,29 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
   this.loader = true;
 
 if (this.isSocialLogin && inputPassword === "social_verified_success") {
-    this.processAdjustmentUpdate(currentId, currentSku, selectedStatus, adminNote, requestedQuantity);
-    return; 
+    // ให้ Backend ตรวจ Firebase token ที่ได้จากการ re-authenticate จริง ไม่เชื่อค่าจากหน้าจออย่างเดียว
+    this.todoService.verifyPassword(this.username, { firebaseToken: this.socialReauthToken }).subscribe({
+      next: (res) => {
+        if (!res.valid) {
+          this.loader = false;
+          this.isLoading = false;
+          this.openpopupnoti("Authentication expired. Please verify again.");
+          return;
+        }
+        this.processAdjustmentUpdate(currentId, currentSku, selectedStatus, adminNote, requestedQuantity);
+      },
+      error: (err) => {
+        this.loader = false;
+        this.isLoading = false;
+        this.openpopupnoti(err.error?.message || "Unable to verify identity. Please try again.");
+      }
+    });
+    return;
   }
   // --- โค้ดเดิมของคุณทั้งหมดด้านล่างนี้ (ไม่มีการแก้ไขใดๆ) ---
-  this.todoService.getTodoss().subscribe({
-    next: (users) => {
-      const currentUser = users.find((u: any) => u.username === this.username);
-
-      if (!currentUser || currentUser.password !== inputPassword) {
+  this.todoService.verifyPassword(this.username, { password: inputPassword }).subscribe({
+    next: (res) => {
+      if (!res.valid) {
         this.loader = false;
         this.isLoading = false;
         this.openpopupnoti("Incorrect password. Please try again.");
@@ -500,7 +545,6 @@ if (this.isSocialLogin && inputPassword === "social_verified_success") {
         admin_note: adminNote,
             ...(selectedStatus === 'Approved' && {
           approved_by: this.username,
-          approved_picture: this.profile || 'image/profileee.svg',
           approved_date: new Date().toISOString().split('T')[0],
           approved_time: new Date().toTimeString().split(' ')[0]
         })
@@ -540,6 +584,11 @@ if (this.isSocialLogin && inputPassword === "social_verified_success") {
           this.openpopupnoti("An error occurred while updating status.");
         }
       });
+    },
+    error: (err) => {
+      this.loader = false;
+      this.isLoading = false;
+      this.openpopupnoti(err.error?.message || "Unable to verify password. Please try again.");
     }
   });
  }
@@ -561,7 +610,6 @@ if (this.isSocialLogin && inputPassword === "social_verified_success") {
   // ถ้าสถานะเป็น Approved ให้เพิ่มข้อมูลผู้ที่อนุมัติ
   if (selectedStatus === 'Approved') {
     updatePayload.approved_by = this.username;
-    updatePayload.approved_picture = this.profile || 'image/profileee.svg';
     updatePayload.approved_date = now.toISOString().split('T')[0];
     updatePayload.approved_time = now.toTimeString().split(' ')[0];
   }
@@ -725,26 +773,29 @@ getUserProfileImage(username: string): string {
 
 
 
-reAuthenticateWithGoogle() {
-  const auth = getAuth();
-  const user = auth.currentUser;
-  const provider = new GoogleAuthProvider();
+// Firebase ID token จากการ re-authenticate ล่าสุด ส่งให้ Backend ตรวจก่อนอนุมัติรายการ
+socialReauthToken = '';
 
-  if (user) {
-    this.isLoading = true;
-    reauthenticateWithPopup(user, provider)
-      .then((result) => {
-        this.isLoading = false;
-        this.openpopup("Authentication successful");
-   
-        this.selectedProduct.confirm_password = "social_verified_success";
-      })
-      .catch((error) => {
-        this.isLoading = false;
-        console.error(error);
-        this.openpopupnoti("Authentication failed. Please try again.");
-      });
-  }
+private readonly reauthPopup = inject(FIREBASE_REAUTH_POPUP);
+
+reAuthenticateWithGoogle() {
+  this.isLoading = true;
+  this.reauthPopup(new GoogleAuthProvider())
+    .then(async (result) => {
+      // ไม่มีผู้ใช้ Firebase ค้างอยู่ (result = null) ก็ไม่ต้องทำอะไร
+      if (!result) return;
+
+      this.socialReauthToken = await result.user.getIdToken(true);
+      this.openpopup("Authentication successful");
+      this.selectedProduct.confirm_password = "social_verified_success";
+    })
+    .catch((error) => {
+      console.error(error);
+      this.openpopupnoti("Authentication failed. Please try again.");
+    })
+    .finally(() => {
+      this.isLoading = false;
+    });
 }
 
 selectedFile: File | null = null;

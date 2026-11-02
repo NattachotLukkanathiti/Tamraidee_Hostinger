@@ -1439,6 +1439,19 @@ input::placeholder{
   color: #71fa6a;
   animation: spin_4991 4s infinite;
 }
+.form_noti{
+    animation: form_noti 1s ease-in-out !important;
+}
+@keyframes form_noti {
+    0% {
+        transform: translateY(500px);
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
 
 @keyframes spin_4991 {
   10% {

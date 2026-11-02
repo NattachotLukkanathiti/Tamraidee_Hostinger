@@ -15,24 +15,23 @@ export class NotificationComponent implements OnInit, OnDestroy {
   private todoService = inject(TodoService);
   private router = inject(Router);
 
-  // --- Session & UI State ---
+
+
   username = ''; email = ''; userRole = ''; profile = '';
   isMenuOpen = false; isMenuOpenprofile = true; isTimeOpen = false;
   showpopupnoti = false; popup = '';
   currentTime = new Date();
   private timeSubscription!: Subscription;
 
-  // --- Loading State ---
   isLoading = false;
   loader = false;
 
-  // --- Animation State ---
+
   Animation_out = false; Animation_outsale = false; play_Return = false; 
   out = false; outs = false; stan = false; inhere = false;
 
-  // --- Dynamic Data ---
+  
 
-  // เปลี่ยนจาก Signal เป็น Array ธรรมดา เพื่อให้ใช้กับ HTML เดิมได้
   notifications: any[] = [];
 
   ngOnInit(): void {
@@ -89,7 +88,7 @@ loadNotifications() {
     });
   }
 
-  // --- Navigation & UI Functions ---
+
   navigateTo(path: string, extraState: any = {}) {
     this.out = true; this.play_Return = false; this.Animation_outsale = true;
     setTimeout(() => {
@@ -97,78 +96,88 @@ loadNotifications() {
     }, 300);
   }
   
-   Animationa2_out(){
-
-
-    setTimeout(() =>{
-      this.router.navigate(['/inventory'],{
-        state:{username: this.username , email: this.email, Move_return:true ,role:this.userRole ,profile:this.profile}
-      })
-    } ,300)
-  }
+   Animationa2_out() {
+  this.animation = true;
+  setTimeout(() => {
+    this.router.navigate(['/inventory'], {
+      state: {
+        username: this.username,
+        email: this.email,
+        role: this.userRole,
+        profile: this.profile,
+        
+        form_noti: true // ค่าที่ต้องการส่ง
+      }
+    });
+  }, 300);
+}
   Animation_out2(){
 
-
+   this.animation = true;
     setTimeout(() =>{
       this.router.navigate(['/sale'],{
-        state:{username: this.username , email: this.email, Move_return2:true ,role:this.userRole ,profile:this.profile }
+        state:{username: this.username , email: this.email, form_noti:true ,role:this.userRole ,profile:this.profile }
       })
     } ,300)
   }
   Animation_out3(){
-
+   this.animation = true;
 
     setTimeout(() =>{
       this.router.navigate(['/history'],{
-        state:{username: this.username , email: this.email, Move_return4:true ,role:this.userRole ,profile:this.profile}
+        state:{username: this.username , email: this.email, form_noti:true ,role:this.userRole ,profile:this.profile}
       })
     } ,300)
   }
   Animation_out5(){
+       this.animation = true;
             this.out = false;
     this.play_Return = false;
     this.Animation_out = true;
     setTimeout(() =>{
       this.router.navigate(['/suppliers'],{
-        state:{username: this.username , email: this.email, Move_return5:true ,Open_bar:true ,role:this.userRole ,profile:this.profile }
+        state:{username: this.username , email: this.email, form_noti:true ,Open_bar:true ,role:this.userRole ,profile:this.profile }
       })
     } ,300)
   }
   Animation_out6(){
+       this.animation = true;
  this.out = false;
     this.play_Return = false;
     this.Animation_out = true;
     setTimeout(() =>{
       this.router.navigate(['/audit'],{
-        state:{username: this.username , email: this.email, Move_return6:true ,role:this.userRole ,profile:this.profile}
+        state:{username: this.username , email: this.email, form_noti:true ,role:this.userRole ,profile:this.profile}
       })
     } ,300)
   }
   Animationa_out1(){
+       this.animation = true;
  this.out = false;
     this.play_Return = false;
     this.Animation_out = true;
     setTimeout(() =>{
       this.router.navigate(['/pos'],{
-        state:{username: this.username , email: this.email, Move_return6:true ,role:this.userRole ,profile:this.profile}
+        state:{username: this.username , email: this.email, form_noti:true ,role:this.userRole ,profile:this.profile}
       })
     } ,300)
   }
   Animation_out4(){
+       this.animation = true;
  this.out = false;
     this.play_Return = false;
     this.Animation_out = true;
     setTimeout(() =>{
       this.router.navigate(['/employee'],{
-        state:{username: this.username , email: this.email, Move_return6:true ,role:this.userRole ,profile:this.profile}
+        state:{username: this.username , email: this.email, form_noti:true ,role:this.userRole ,profile:this.profile}
       })
     } ,300)
   }
    inventory(){
-    
+    this.animation = true;
     setTimeout(() =>{
       this.router.navigate(['/inventory'],{
-        state:{username: this.username , email: this.email, Move_return:true ,role:this.userRole ,profile:this.profile }
+        state:{username: this.username , email: this.email, form_noti:true ,role:this.userRole ,profile:this.profile }
       })
     } ,300)
   }
@@ -176,10 +185,10 @@ loadNotifications() {
   
   Animationa_out(){
 
-    
+       this.animation = true;
     setTimeout(() =>{
       this.router.navigate(['/dashboard'],{
-        state:{username: this.username , email: this.email, Move_return:true ,role:this.userRole ,profile:this.profile }
+        state:{username: this.username , email: this.email, form_noti:true ,role:this.userRole ,profile:this.profile }
       })
     } ,300)
   }
@@ -233,11 +242,10 @@ loadNotifications() {
       }
     });
      if (item.title && item.title.includes('Pending Approvals')) {
-      this.Animation_out3(); // ฟังก์ชันสำหรับไปหน้า Stock History
+
     }
   }
-  
- goToHistory(item: any) {
+   goToInventory(item: any) {
     // 1. ทำการบันทึกว่าอ่านแล้ว
     this.markAsRead(item);
     
@@ -246,17 +254,52 @@ loadNotifications() {
   this.Animation_out = true;
   
   setTimeout(() => {
+    this.router.navigate(['/inventory'], {
+      state: {
+        username: this.username, 
+        email: this.email, 
+        role: this.userRole, 
+        profile: this.profile,
+        filterStatus: 'Low in Stock' // <--- ส่งค่าตัวกรองไปที่นี่
+      }
+    });
+  }, 300);
+
+}
+goToHistory(item: any) {
+  // 1. บันทึกสถานะการอ่าน
+  this.markAsRead(item);
+  
+  this.out = false;
+  this.play_Return = false;
+  this.Animation_out = true;
+  
+  let statusToSend = 'all'; // ค่าเริ่มต้นหากไม่ตรงเงื่อนไขใดๆ
+  const title = item.title ? item.title.toLowerCase() : '';
+  const message = item.message ? item.message.toLowerCase() : '';
+
+  // 2. ตรวจสอบคำเพื่อส่งตัวกรองที่ถูกต้อง
+  if (title.includes('approved') || message.includes('approved') || title.includes('accepted')) {
+    statusToSend = 'Approved';
+  } else if (title.includes('reject') || message.includes('reject')) {
+    statusToSend = 'Rejected';
+  } else if (title.includes('pending') || message.includes('pending')) {
+    statusToSend = 'Pending';
+  }
+
+  // 3. สั่งเปลี่ยนหน้าและส่งค่า state (ลบ Animation_out3 ออกแล้ว)
+  setTimeout(() => {
     this.router.navigate(['/history'], {
       state: {
         username: this.username, 
         email: this.email, 
         role: this.userRole, 
         profile: this.profile,
-        filterStatus: 'Pending' // <--- ส่งค่าตัวกรองไปที่นี่
+        filterStatus: statusToSend,
+        form_noti: true // ส่งค่านี้ไปเพื่อให้แอนิเมชันทำงานถูกต้อง
       }
     });
   }, 300);
-    this.Animation_out3();
 }
   get hasUnreadNotifications(): boolean {
     return this.notifications.some(item => !item.is_read);
@@ -287,11 +330,19 @@ loadNotifications() {
   }
   inventoryList: any[] = [];
   inventoryAlerts(): number {
-    return this.inventoryList.filter(item => 
-      item.status === 'Low Stock' || item.quantity < 10
-    ).length;
-  }
+    return this.inventoryList.filter(item => {
+      // ตรวจสอบว่ามีค่าทั้งสองตัว และ quantity น้อยกว่าหรือเท่ากับ quantity_alert
+      const isLowStock = item.quantity <= item.quantity_alert;
+      
+      // หรือถ้าคุณยังต้องการเช็คสถานะ 'Low Stock' จากฐานข้อมูลร่วมด้วย ให้ใช้บรรทัดนี้แทนค่ะ
+      // return item.status === 'Low Stock' || (item.quantity <= item.quantity_alert);
+      
+      return isLowStock;
+    }).length;
+}
 stockUpdates(): number {
   return this.notifications.filter(item => item.type === 'success').length;
 }
+animation = false;
+
 }

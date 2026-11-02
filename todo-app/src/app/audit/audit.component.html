@@ -83,8 +83,8 @@
             <div class="Logout" (click)="logout()"><img class="" src="/icon_manager/Logout.svg">Log Out</div>
         </div>
     </div>
-    <div class="Animation_out" [class.fade-out]="Animation_out" [class.fade-out2]="Animation_outdash" [class.Return]="play_Return" [class.Boom]="stan">
-        <div class="container" [class.fade-out]="Animation_out" [class.fade-out2]="Animation_outdash" [class.Return]="play_Return" [class.Boom]="stan">
+    <div class="Animation_out" [class.form_noti]="form_noti" [class.fade-out]="Animation_out" [class.fade-out2]="Animation_outdash" [class.Return]="play_Return" [class.Boom]="stan">
+        <div class="container" [class.form_noti]="form_noti" [class.fade-out]="Animation_out" [class.fade-out2]="Animation_outdash" [class.Return]="play_Return" [class.Boom]="stan">
             <div class="static">
                 <div class="header_in">
                     <div class="header_Inventory">Audit Log</div>
@@ -104,18 +104,23 @@
                             (input)="filterS()">
                         <img class="iconsearch" src="image/search.svg" alt="">
                     </div>
-                           <div class="custom-select">
-  <select class="text">
-    <option value="all">All <img class="icon_down"src="image/down.svg" alt=""></option>
-    <option value="option1">Option 1</option>
-    <option value="option2">Option 2</option>
+                   <div class="custom-select">
+  <select class="text" [(ngModel)]="selectedActivity" (change)="filterAudit()">
+    <option value="all">All Activities</option>
+    <option value="Login">Login</option>
+    <option value="Logout">Logout</option>
+    <option value="Create">Create / Add</option>
+    <option value="Edit">Edit / Update</option>
+    <option value="Delete">Delete / Cancel</option>
+    <option value="Import">Import</option>
   </select>
 </div>  
+
 <div class="custom-select">
-  <select>
-    <option value="all">Last 7 Days <img src="image/down.svg" alt=""></option>
-    <option value="option1">Option 1</option>
-    <option value="option2">Option 2</option>
+  <select [(ngModel)]="selectedDateRange" (change)="filterAudit()">
+    <option value="all">All Time</option>
+    <option value="7">Last 7 Days</option>
+    <option value="30">Last 30 Days</option>
   </select>
 </div>
                     <div class="con_btn">

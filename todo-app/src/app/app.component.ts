@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterOutlet, RouterLink, Router } from '@angular/router'; // <-- เพิ่ม Router ตรงนี้
@@ -9,7 +9,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatIconModule } from '@angular/material/icon';
 
-import { TodoService, Todo } from './services/todo.service';
 import { NavbarComponent } from './navbar/navbar.component';
 
 @Component({
@@ -30,52 +29,9 @@ import { NavbarComponent } from './navbar/navbar.component';
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
-export class AppComponent implements OnInit {
+export class AppComponent {
 
-  private todoService = inject(TodoService);
   private router = inject(Router); // <-- ย้ายขึ้นมาไว้ด้านบนเพื่อให้เป็นระเบียบ
-
-  username = '';
-  title = '';
-  password = '';
-  confirmPassword = '';
-  rememberMe = false;
-
-  todos: Todo[] = [];
-
-  ngOnInit(): void {
-    this.loadTodos();
-  }
-
-  loadTodos() {
-    this.todoService.getTodos().subscribe(data => {
-      this.todos = data;
-    });
-  }
-
-  addTodo() {
-    if (!this.title.trim()) return;
-
-    this.todoService.addTodo(this.username, this.title, this.password, this.confirmPassword).subscribe(() => {
-      this.username = '';
-      this.title = '';
-      this.password = '';
-      this.confirmPassword = '';
-      this.loadTodos();
-    });
-  }
-
-  deleteTodo(id: number) {
-    this.todoService.deleteTodo(id).subscribe(() => {
-      this.loadTodos();
-    });
-  }
-
-  toggleTodo(todo: Todo) {
-    this.todoService.updateTodo(todo).subscribe(() => {
-      this.loadTodos();
-    });
-  }
 
   isLoginPage(): boolean {
   const hiddenRoutes = ['/', '/register', '/otp', '/forgot', '/login', '/confirmemployee','/receipt','/step','/reset'];

@@ -513,6 +513,19 @@ input::placeholder {
     color: #212529;
     text-decoration: none;
 }
+.form_noti{
+    animation: form_noti 1s ease-in-out !important;
+}
+@keyframes form_noti {
+    0% {
+        transform: translateY(500px);
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
 
 .over {
 box-sizing: border-box;
@@ -670,7 +683,15 @@ box-sizing: border-box;
     display: flex;
     gap: 8px;
 }
+.consd{
+    margin-left: 10px;
 
+}
+.Total_sale{
+    font-size: 18px;
+    margin-top: 10px;
+    font-weight: 600;
+}
 .total {
     color: #646B72;
     font-weight: 300;
@@ -680,7 +701,7 @@ box-sizing: border-box;
     height: 50px;
     border-radius: 8px;
     border: 1px solid #E6EAED;
-
+    animation: wow 1s ease-in-out;
 }
 
 .point {
@@ -1796,7 +1817,7 @@ box-sizing: border-box;
     gap: 10px;
 }
 .ty{
-    height: 270px;
+    height:300px;
 }
 .con_sale_order {
     margin-top: 20px;
@@ -2034,7 +2055,25 @@ box-sizing: border-box;
     font: 400 12px/15px 'Montserrat', 'Inter', sans-serif;
     white-space: nowrap;
 }
+/* สีเริ่มต้น (0 - 10,000) */
+.heatmap__cell, .heatmap__cell--0 { 
+    background: #e8f5e97d !important; 
+}
 
+/* 10,001 - 30,000 */
+.heatmap__cell.heatmap__cell--1 { 
+    background: #A5D6A7 !important; 
+}
+
+/* 30,001 - 50,000 */
+.heatmap__cell.heatmap__cell--2 { 
+    background: #66BB6A !important; 
+}
+
+/* 50,001 ขึ้นไป */
+.heatmap__cell.heatmap__cell--3 { 
+    background: #2E7D32 !important; 
+}
 /* Heat levels, lightest to darkest. */
 .heatmap__cell {
     height: 40px;
@@ -2073,26 +2112,21 @@ box-sizing: border-box;
     white-space: nowrap;
 }
 
-.legend__dot {
-    flex: 0 0 auto;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: #b6cff2;
+.legend__dot--0 {
+    background: #E8F5E9; /* สีเขียวอ่อนมาก (0-10k) */
 }
 
 .legend__dot--1 {
-    background: #6197e3;
+    background: #A5D6A7; /* สีเขียวอ่อน (10k-30k) */
 }
 
 .legend__dot--2 {
-    background: #1364d5;
+    background: #66BB6A; /* สีเขียวกลาง (30k-50k) */
 }
 
 .legend__dot--3 {
-    background: #0d4797;
+    background: #2E7D32; /* สีเขียวเข้ม (50k+) */
 }
-
 .product-row__qty {
     margin-left: auto; /* ดันให้ไปอยู่ขวาสุด */
     font-weight: 600;
@@ -2365,11 +2399,10 @@ box-sizing: border-box;
 
 .btn-page{
     border: none;
-    padding: 20px;
+    padding: 10px;
     border-radius: 100px;
-    height: 20px;
-    width: 20px;
-    background-color: #84d46e;
+    background-color: #84D46E;
+    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.212);
     color: white;
     font-weight: 600;
     cursor: pointer;

@@ -3,7 +3,7 @@
         <img src="image/ham.svg" alt="">
     </button>
     <div class="headercompany">
-        <img src="image/logo.svg" alt="">
+<!--         <img src="image/logo.svg" alt=""> -->
     </div>
     <!--   <div class="search">
         <input class="inputser"type="text" placeholder="Search" [(ngModel)]="search" (input)="filterS()">
@@ -84,8 +84,8 @@
             <div class="Logout" (click)="logout()"><img class="" src="/icon_manager/Logout.svg">Log Out</div>
         </div>
     </div>
-    <div class="Animation_out" [class.fade-out]="Animation_out" [class.fade-out2]="Animation_outdash" [class.Return]="play_Return" [class.Boom]="stan">
-        <div class="container"  [class.fade-out]="Animation_out" [class.fade-out2]="Animation_outdash" [class.Return]="play_Return" [class.Boom]="stan">
+    <div class="Animation_out" [class.form_noti]="form_noti" [class.fade-out]="Animation_out" [class.fade-out2]="Animation_outdash" [class.Return]="play_Return" [class.Boom]="stan">
+        <div class="container" [class.form_noti]="form_noti"[class.fade-out]="Animation_out" [class.fade-out2]="Animation_outdash" [class.Return]="play_Return" [class.Boom]="stan">
             <div class="static">
                 <div class="header_in">
                     <div class="header_Inventory">Inventory</div>
@@ -200,7 +200,7 @@
     </div>
     <div class="sku2" data-label="Category">{{ item.category }}</div>
     <div class="sku2" data-label="Brand">{{ item.brand }}</div>
-    <div class="sku2" data-label="Price">{{ item.price }}</div>
+    <div class="sku2" data-label="Price">{{ item.price | number}}</div>
     <div class="sku2" data-label="Quantity" [ngClass]="{'text-alert': Number(item.quantity) < Number(item.quantity_alert)}">{{ item.quantity }}</div>
     <div class="sku2" data-label="Quantity Alert">{{ item.quantity_alert }}</div>
     
@@ -357,13 +357,31 @@
         </div>         
         
         <div class="con_sku_pro">             
-            <div class="sku_pro">             
-                <label class="label_import" for="">Catagory <span class="important">*</span></label>             
-                <input type="text" class="sku_input" [(ngModel)]="newProduct.category" name="category">         
-            </div>         
+           <div class="sku_pro">             
+    <label class="label_import" for="">Category <span class="important">*</span></label>             
+    <input type="text" 
+           class="sku_input" 
+           [(ngModel)]="newProduct.category" 
+           (input)="onCategoryChange()" 
+           name="category"
+           list="category-list"
+           placeholder="Select or type new category">
+           
+    <datalist id="category-list">
+        <option *ngFor="let cat of categories" [value]="cat"></option>
+    </datalist>
+</div>       
             <div class="sku_pro">             
     <label class="label_import" for="">Brand <span class="important">*</span></label>             
-    <input type="text" class="sku_input" [(ngModel)]="newProduct.brand" name="brand" list="supplier-list" autocomplete="off">
+    <select class="sku_input" [(ngModel)]="newProduct.brand" name="supplier">
+        <option value="" disabled selected>-- Select Supplier --</option>
+        
+        <ng-container *ngFor="let sup of suppliers">
+            <option *ngIf="sup.status === 'Active' || !sup.status" [value]="sup.supplier_name">
+                {{ sup.supplier_name }}
+            </option>
+        </ng-container>
+    </select>
     
     <datalist id="supplier-list">
         <option *ngFor="let sup of suppliers" [value]="sup.supplier_name"></option>
@@ -374,7 +392,11 @@
         <div class="con_sku_pro">             
             <div class="sku_pro">             
                 <label class="label_import" for="">Price <span class="important">*</span></label>             
-                <input type="number" class="sku_input" [(ngModel)]="newProduct.price" name="price">         
+                <input type="text" 
+       class="sku_input" 
+       [(ngModel)]="newProduct.price" 
+       (keypress)="$event.charCode >= 48 && $event.charCode <= 57"
+       name="price">      
             </div>         
             <div class="sku_pro">             
                 <label class="label_import" for="">Quantity Alert <span class="important">*</span></label>             
@@ -387,14 +409,23 @@
         </div>         
         
         <div class="con_sku_pro">             
-            <div class="sku_pro">             
+            <div class="sku_pro">            
     <label class="label_import" for="">Supplier <span class="important">*</span></label>             
-    <input type="text" class="sku_input" [(ngModel)]="newProduct.supplier" name="supplier" list="supplier-list" autocomplete="off">
+   <select class="sku_input" [(ngModel)]="newProduct.supplier" name="supplier">
+        <option value="" disabled selected>-- Select Supplier --</option>
+        
+        <ng-container *ngFor="let sup of suppliers">
+            <option *ngIf="sup.status === 'Active' || !sup.status" [value]="sup.supplier_name">
+                {{ sup.supplier_name }}
+            </option>
+        </ng-container>
+    </select>
 </div>     
             <div class="sku_pro">             
-                <label class="label_import" for="">Supplier Invoice No.<span class="important">*</span></label>             
-                <input type="text" class="sku_input" [(ngModel)]="newProduct.invoice_no" name="invoice_no">         
-            </div>         
+    <label class="label_import" for="">Supplier Invoice No.<span class="important">*</span></label>             
+    <input type="text" class="sku_input" [(ngModel)]="newProduct.invoice_no" name="invoice_no">         
+</div>
+                
         </div>         
         
         <div class="con_sku_pro">             
@@ -406,7 +437,7 @@
                 <label class="label_import" for="">Upload Invoice <span class="important">*</span></label>             
                  <input type="file" id="invoiceUploadAdd" (change)="onInvoiceFileSelected($event)" accept="image/*" style="display: none;">
     
-    <!-- แก้ไข input text เดิมให้เรียกใช้ฟังก์ชัน -->
+
     <input type="text" placeholder="Click to Upload Invoice" class="sku_input"
        [value]="importData.invoiceFile ? importData.invoiceFile.name : ''"
        (click)="triggerInvoiceUploadAdd()" readonly style="cursor: pointer;">
@@ -441,9 +472,15 @@
 
         <!-- ส่วนข้อมูลสินค้า (ดึงอัตโนมัติ) -->
         <div class="con_sku_pro">
-            <div class="sku_pro">
+         <div class="sku_pro">
     <label class="label_import" for="">SKU <span class="important">*</span></label>
-    <input type="text" class="sku_input" [(ngModel)]="selectedProduct.sku" (ngModelChange)="onSkuChange()">
+    <input type="text" class="sku_input" [(ngModel)]="selectedProduct.sku" (ngModelChange)="onSkuChange($event)" list="sku-list" placeholder="Select or Enter SKU">
+    
+    <datalist id="sku-list">
+        <option *ngFor="let item of Inventory" [value]="item.sku">
+            {{ item.sku }} - {{ item.product_name }}
+        </option>
+    </datalist>
 </div>
             <div class="sku_pro">
                 <label class="label_import" for="">Product Name</label>
@@ -457,17 +494,14 @@
             </div>
             <div class="sku_pro">
     <label class="label_import" for="">Brand</label>
-    <input type="text" 
-           class="sku_input" 
-           [(ngModel)]="selectedProduct.brand" 
-           name="search_brand" 
-           list="supplier-brand-list" 
-           autocomplete="off"
-           placeholder="Select or type a brand">
-           
-    <datalist id="supplier-brand-list">
-        <option *ngFor="let sup of suppliers" [value]="sup.supplier_name"></option>
-    </datalist>
+   <select class="sku_input" [(ngModel)]="selectedProduct.brand" name="selectedBrand" [disabled]="true">
+        <option value="" disabled selected>-- Select Brand --</option>
+        <ng-container *ngFor="let brand of brands">
+            <option [value]="brand">
+                {{ brand }}
+            </option>
+        </ng-container>
+    </select>
 </div>
         </div>
         <div class="con_sku_pro">
@@ -489,17 +523,15 @@
         <div class="con_sku_pro">
             <div class="sku_pro">
     <label class="label_import" for="">Supplier <span class="important">*</span></label>
-    <input type="text" 
-           class="sku_input" 
-           [(ngModel)]="importData.supplier" 
-           name="import_supplier" 
-           list="import-supplier-list" 
-           autocomplete="off"
-           placeholder="Select or type a supplier">
-           
-    <datalist id="import-supplier-list">
-        <option *ngFor="let sup of suppliers" [value]="sup.supplier_name"></option>
-    </datalist>
+   <select class="sku_input" [(ngModel)]="importData.supplier" name="supplier">
+        <option value="" disabled selected>-- Select Supplier --</option>
+        
+        <ng-container *ngFor="let sup of suppliers">
+            <option *ngIf="sup.status === 'Active' || !sup.status" [value]="sup.supplier_name">
+                {{ sup.supplier_name }}
+            </option>
+        </ng-container>
+    </select>
 </div>
             <div class="sku_pro">
                 <label class="label_import" for="">Supplier Invoice No.<span class="important">*</span></label>
@@ -509,7 +541,7 @@
         <div class="con_sku_pro">
             <div class="label_import" class="sku_pro">
                 <label for="">Import Quantity <span class="important">*</span></label>
-                <input type="number" class="sku_input" [(ngModel)]="importData.importQuantity">
+                <input type="number" class="sku_input" [(ngModel)]="importData.importQuantity ">
             </div>
             <div class="sku_pro">
                 <label class="label_import" for="">Upload Invoice <span class="important">*</span></label>

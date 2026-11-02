@@ -45,6 +45,7 @@ export class AuditComponent {
   currentView = 'dashboard';
   currentTime = new Date();
   isTimeOpen = false;
+  form_noti = false;
   Animation_out = false;
   out = true;
   history: any[] = []; 
@@ -77,6 +78,12 @@ export class AuditComponent {
     this.out = false;
     
   }
+   if (state.form_noti === true) {
+    this.stan = false;
+    this.play_Return = false;
+    this.out = false;
+    this.form_noti = true; // ทำงานได้แน่นอนเพราะไม่มี Error แล้ว
+  } 
    if (state.Move_return4 === true) {
         this.out = false
     this.play_Return = true;
@@ -307,6 +314,48 @@ export class AuditComponent {
     const startIndex = (this.currentPage - 1) * this.itemsPerPage;
     const endIndex = startIndex + this.itemsPerPage;
     this.paginatedAuditLogs = this.filteredAuditLogs.slice(startIndex, endIndex);
+  }
+
+
+
+  // 1. เพิ่มตัวแปรสำหรับเก็บค่าที่เลือก
+  selectedActivity: string = 'all';
+  selectedDateRange: string = 'all';
+
+  // 2. เพิ่มฟังก์ชันกรองข้อมูล
+  filterAudit() {
+    const now = new Date();
+
+    this.filteredAuditLogs = this.auditLogs.filter(log => {
+      // --- กรองตามประเภทกิจกรรม (Activity) ---
+      let matchActivity = true;
+      if (this.selectedActivity !== 'all') {
+        const activity = log.activity ? log.activity.toLowerCase() : '';
+        const selected = this.selectedActivity.toLowerCase();
+        
+        // ตรวจสอบคำที่เกี่ยวข้อง
+        if (selected === 'create' && !activity.includes('create') && !activity.includes('add')) matchActivity = false;
+        else if (selected === 'edit' && !activity.includes('edit') && !activity.includes('update')) matchActivity = false;
+        else if (selected === 'delete' && !activity.includes('delete') && !activity.includes('cancel')) matchActivity = false;
+        else if (!activity.includes(selected) && selected !== 'create' && selected !== 'edit' && selected !== 'delete') matchActivity = false;
+      }
+
+      // --- กรองตามวันที่ (Date Range) ---
+      let matchDate = true;
+      if (this.selectedDateRange !== 'all') {
+        const logDate = new Date(log.date); // ตรวจสอบให้แน่ใจว่า log.date เป็นรูปแบบที่แปลงเป็น Date ได้
+        const diffTime = now.getTime() - logDate.getTime();
+        const diffDays = diffTime / (1000 * 60 * 60 * 24);
+
+        if (this.selectedDateRange === '7' && diffDays > 7) matchDate = false;
+        if (this.selectedDateRange === '30' && diffDays > 30) matchDate = false;
+      }
+
+      return matchActivity && matchDate;
+    });
+
+    // รีเซ็ตหน้ากลับไปหน้าแรก และคำนวณ Pagination ใหม่
+    this.calculateTotalPages();
   }
 }
 

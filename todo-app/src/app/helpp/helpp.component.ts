@@ -6,6 +6,7 @@ import { interval, Subscription } from 'rxjs';
 import { Location } from '@angular/common';
 import { TodoService } from '../services/todo.service';
 import { createClient } from '@supabase/supabase-js';
+import { environment } from '../../environments/environment';
 declare var JitsiMeetExternalAPI: any;
 
 interface FaqItem { title: string; subtitle: string; }
@@ -35,9 +36,7 @@ type HeaderPanel = 'account' | null;
 })
 export class HelppComponent implements OnInit, OnDestroy {
 
-private supabaseUrl = 'https://iemqkiftkhyoalyqpjzj.supabase.co'; 
-private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImllbXFraWZ0a2h5b2FseXFwanpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyNjExODMsImV4cCI6MjEwNzgzNzE4M30.zk_zlo7QSHuNlM943ikEfwS6eWWbRjTYlWEN94kxn7o';
-private supabase = createClient(this.supabaseUrl, this.supabaseKey);
+private supabase = createClient(environment.supabase.url, environment.supabase.anonKey);
   private router = inject(Router);
   private changeDetector = inject(ChangeDetectorRef);
   private location = inject(Location);

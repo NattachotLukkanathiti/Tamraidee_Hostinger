@@ -6,6 +6,7 @@ import { TodoService } from '../services/todo.service';
 import { interval, Subscription } from 'rxjs';
 import { createClient } from '@supabase/supabase-js';
 import { create } from 'domain';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-inventory',
@@ -94,6 +95,7 @@ export class InventoryComponent {
   selectedFile: File | null = null;
   isEditMode = false;
   outedit = false;
+  form_noti= false;
 selectedProduct: any = {
   category: '',
   brand: '',
@@ -112,14 +114,15 @@ selectedProduct: any = {
     invoiceFile: null,
       upload: ''
   };
+
   selectedCategory: string = 'all';
 categories: string[] = [];
-  //  เพิ่มบรรทัดนี้เข้าไปค่ะ
+  brands: string[] = [];
+
   imagePreview: string | null = null;
- // แก้ไขเป็นโปรเจกต์ใหม่
-private supabaseUrl = 'https://iemqkiftkhyoalyqpjzj.supabase.co'; 
-private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImllbXFraWZ0a2h5b2FseXFwanpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIyNjExODMsImV4cCI6MjEwNzgzNzE4M30.zk_zlo7QSHuNlM943ikEfwS6eWWbRjTYlWEN94kxn7o';
-  private supabase = createClient(this.supabaseUrl, this.supabaseKey);
+
+ 
+  private supabase = createClient(environment.supabase.url, environment.supabase.anonKey);
   private timeSubscription!: Subscription;
   constructor(private router: Router, private ngZone: NgZone) {}
 
@@ -130,7 +133,7 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
       .on('postgres_changes', { event: '*', schema: 'public', table: 'inventory' }, (payload) => {
         console.log('ตรวจพบการเปลี่ยนแปลงข้อมูล:', payload);
         
-        // 2. ใช้ ngZone.run เพื่อให้ Angular อัปเดต UI ทันที
+
         this.ngZone.run(() => {
           this.loadInventory(); 
         });
@@ -141,18 +144,30 @@ private supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
     
     this.username = state.username || '';
     this.email = state.email || '';
-    this.userRole = state.role || 'user'; // เพิ่มเติม: รับค่า role (ค่าเริ่มต้นเป็น user)
+    this.userRole = state.role || 'user'; 
     this.profile = state.profile || '';
 
-    if (state.Move_return === true) {
-      this.stan = false;
-      this.play_Return = true;
-      this.out = false;
-    }
+  if (state.form_noti === true) {
+    this.stan = false;
+    this.play_Return = false;
+    this.out = false;
+    this.form_noti = true; // ทำงานได้แน่นอนเพราะไม่มี Error แล้ว
+  } 
+  // 2. ถ้าไม่ใช่ form_noti ค่อยไปเช็ค Move_return
+  else if (state.Move_return === true) {
+    this.stan = false;
+    this.play_Return = true;
+    this.out = false;
+  }
+
 
     if(!this.username || !this.email){
       this.openpopupnoti("Session not found. Redirecting to login")
       return;
+    }
+      if (state.filterStatus === 'Low in Stock') {
+      this.selectedStockFilter = 'low';
+      // เราจะเรียก filterByStockStatus() หลังจากโหลดข้อมูลเสร็จแล้วใน loadInventory()
     }
     this.loadInventory();
     this.timeSubscription = interval(1000).subscribe(() => {
@@ -224,6 +239,7 @@ filterByCategory() {
     
 }   
   Animationa_out(){
+        this.form_noti = false;
     this.Animation_out = true;
     this.Animation_outdash = true;
     setTimeout(() =>{
@@ -233,6 +249,7 @@ filterByCategory() {
     } ,300)
   }
   Animationa_out2(){
+    this.form_noti = false;
       this.out = false;
     this.Animation_out = true;
     setTimeout(() =>{
@@ -242,6 +259,7 @@ filterByCategory() {
     } ,300)
   }
   Animationa_out3(){
+        this.form_noti = false;
       this.out = false;
     this.Animation_out = true;
     setTimeout(() =>{
@@ -269,6 +287,7 @@ filterByCategory() {
     } ,300)
   }
   Animationa_out6(){
+        this.form_noti = false;
               this.out = false;
     this.Animation_out = true;
     setTimeout(() =>{
@@ -278,10 +297,12 @@ filterByCategory() {
     } ,300)
   }
     Animationa_out1(){
+          this.form_noti = false;
              this.Animation_out = true;      // สั่งให้เริ่มอนิเมชั่นหลัก
     this.Animation_outdash = true;  // <-- เพิ่มบรรทัดนี้ เพื่อบังคับให้ใช้คลาสที่เลื่อนไปทางซ้าย
     
     setTimeout(() =>{
+          this.form_noti = false;
       this.router.navigate(['/pos'],{
         state:{username: this.username , email: this.email, Move_return6:true ,role:this.userRole ,profile:this.profile}
       })
@@ -366,8 +387,12 @@ filterByCategory() {
       this.filteredInventory = [...this.Inventory]; 
          this.updatePagination();
             this.categories = [...new Set(res.map(item => item.category).filter(cat => cat))];
+                 this.brands = [...new Set(res.map(item => item.brand).filter(brand => brand))]; 
       this.isLoading = false;
-      this.loader = false;              
+      this.loader = false;   
+         if (this.selectedStockFilter === 'low') {
+          this.filterByStockStatus();
+        }           
     },
     error: (err) => {
       console.error('Error fetching sale order:', err);
@@ -425,17 +450,15 @@ triggerInvoiceUploadAdd2() {
 
  selectedFileName: string = '';
 
-// 2. อัปเดตฟังก์ชัน onFileSelected
 onFileSelected(event: any) {
   const file = event.target.files[0];
   if (file) {
-    // เก็บชื่อไฟล์ไว้สำหรับแสดงผลใน input
+    this.selectedFile = file; // เก็บไฟล์ไว้สำหรับอัปโหลดขึ้น Supabase
     this.selectedFileName = file.name;
 
     const reader = new FileReader();
     reader.onload = (e: any) => {
-      // นำ URL ของรูปภาพที่ได้ไปใส่ในตัวแปร เพื่อให้แสดงผลในหน้าเว็บ
-      this.selectedProduct.upload_ref = e.target.result;
+      this.imagePreview = e.target.result; // ใช้ imagePreview เพื่อแสดงผลรูปตัวอย่าง
     };
     reader.readAsDataURL(file);
   }
@@ -839,30 +862,28 @@ logout() {
       this.generateSKU(this.newProduct.category);
     }
   }
- onSkuChange() {
-    if (this.selectedProduct && this.selectedProduct.sku) {
-      const sku = this.selectedProduct.sku.trim();
-
-      // ตรวจสอบว่า SKU มีความยาวพอที่จะค้นหาหรือไม่ (เช่น 5 ตัวอักษรขึ้นไป)
+onSkuChange(newSku: string) {
+    if (newSku) {
+      const sku = newSku.trim();
+      
       if (sku.length >= 5) {
         const foundProduct = this.filteredInventory.find(item => item.sku.toLowerCase() === sku.toLowerCase());
-        
+                 
         if (foundProduct) {
           // ถ้าเจอข้อมูล ให้ดึงมาแสดงผลทันที
           this.selectedProduct = { ...foundProduct };
           this.imagePreview = foundProduct.picture || null;
         } else {
-          // ถ้าพิมพ์ครบแล้วแต่ไม่เจอ ให้ล้างข้อมูล (แต่ยังเก็บ SKU ที่พิมพ์ไว้)
-          this.selectedProduct = { sku: this.selectedProduct.sku };
+          // ถ้าไม่เจอ ให้ล้างข้อมูล (แต่เก็บ SKU ที่พิมพ์ไว้)
+          this.selectedProduct = { sku: newSku };
           this.imagePreview = null;
         }
       } else {
-        // ถ้าลบข้อความออก หรือพิมพ์ยังไม่ครบ ให้ล้างข้อมูลที่เคยแสดงออกไปก่อน
-        this.selectedProduct = { sku: this.selectedProduct.sku };
+        this.selectedProduct = { sku: newSku };
         this.imagePreview = null;
       }
     }
-  }
+}
 // เปลี่ยนชื่อฟังก์ชันเป็น saveAddToStock
  saveAddToStock() {
     if (!this.selectedProduct.sku || !this.importData.supplier || !this.importData.importQuantity) {
@@ -1078,5 +1099,15 @@ showInvoice(item: any) {
 
 closeInvoicePopup() {
     this.showInvoicePopup = false;
+}
+
+getSupplierStatus(supplierName: string): string {
+  if (!supplierName) return '';
+  
+  // ค้นหา Supplier จาก Array ที่มีอยู่
+  const foundSupplier = this.suppliers.find(sup => sup.supplier_name === supplierName);
+  
+  // คืนค่าสถานะ (สมมติว่าในตาราง Supplier มีฟิลด์ชื่อ status)
+  return foundSupplier ? foundSupplier.status : '';
 }
 }

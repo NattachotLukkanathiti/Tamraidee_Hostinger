@@ -1,9 +1,14 @@
+
+
 <div class="navbaar">
 <!--     <button class="hamburger" (click)="hambar()">
         <img src="image/ham.svg" alt="">
     </button> -->
-    <div class="headercompany"  *ngIf="router.url !== '/pos'">
-        <img src="image/logo.svg" alt="">
+    <div class="headercompany"  >
+     <!--    <img src="image/logo.svg" alt=""> -->
+       <div class="apple">   <img class="applee" src="image/logoo.svg" alt=""></div>
+
+          <img class="text" src="image/logo.svg" alt="">
     </div>
     <!--   <div class="search">
         <input class="inputser"type="text" placeholder="Search" [(ngModel)]="search" (input)="filterS()">
@@ -63,7 +68,7 @@
     aria-label="Open account menu" 
     [attr.aria-expanded]="openPanel === 'account'" 
     (click)="toggleAccountMenu()">
-    <img [src]="profile || 'image/profileee.svg'" alt="Profile" />
+    <img [src]="profile || 'image/profileee.svg'" (error)="$any($event.target).src = 'image/error.png'" alt="Profile" />
   </button>
 </div>
  <button class="hamburger" (click)="hambar()">
@@ -145,3 +150,6 @@
             </div>
         </div>
     </div>
+
+
+    <div [class.noti_in]="noti_in" class="con_noti_in"></div>

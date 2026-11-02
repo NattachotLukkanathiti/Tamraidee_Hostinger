@@ -3,7 +3,7 @@
         <img src="image/ham.svg" alt="">
     </button>
     <div class="headercompany">
-        <img src="image/logo.svg" alt="">
+<!--         <img src="image/logo.svg" alt=""> -->
     </div>
 
 
@@ -73,8 +73,8 @@
             <div class="Logout" (click)="logout()"><img class="" src="/icon_manager/Logout.svg">Log Out</div>
         </div>
     </div>
-    <div class="Animation_out" [class.fade-out]="Animation_out" [class.fade-out2]="Animation_outdash" [class.Return]="play_Return" [class.Boom]="stan">
-        <div class="container" [class.fade-out]="Animation_out" [class.fade-out2]="Animation_outdash" [class.Return]="play_Return" [class.Boom]="stan">
+    <div class="Animation_out"[class.noti_in]="noti_in" [class.form_noti]="form_noti" [class.fade-out]="Animation_out" [class.fade-out2]="Animation_outdash" [class.Return]="play_Return" [class.Boom]="stan">
+        <div class="container"[class.form_noti]="form_noti" [class.fade-out]="Animation_out" [class.fade-out2]="Animation_outdash" [class.Return]="play_Return" [class.Boom]="stan">
             <div class="static">
                 <div class="header_in">
                     <div class="header_Inventory">Stock History</div>
@@ -168,7 +168,7 @@
             </div>
             <div class="sku3" data-label="Created By">
                 <div class="connn">
-                    <img class="profile_employee" [src]="order.picture" alt="">
+                    <img class="profile_employee" [src]="order.picture || 'image/profileee.svg'" (error)="$any($event.target).src = 'image/error.png'" alt="">
                     {{ order.created_by }}
                 </div>
                 <img class="icon" *ngIf="userRole === 'admin' && order.status === 'Pending'" (click)="requestFromHistory(order); $event.stopPropagation()" src="image/file.svg" alt="">
@@ -271,7 +271,7 @@
   </div>
 </div> -->
 
-<div class="import_product"  [class.product1]="product1" [class.button_cancel]="button_cancel" >
+<div class="import_product"   [class.product1]="product1" [class.button_cancel]="button_cancel" >
     <div class="con_import_product" [class.out_comimport]="outimport" >
         
         <!-- Header -->

@@ -10,22 +10,11 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatIconModule } from '@angular/material/icon';
 
 import { TodoService } from '../services/todo.service';
-import { initializeApp } from 'firebase/app';
-import { getAuth, signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, OAuthProvider } from 'firebase/auth';
+import { AuthService, homeRouteFor } from '../services/auth.service';
+import { auditEntry } from '../services/audit';
+import { SocialLoginService, SocialProvider } from '../services/social-login.service';
 
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDX97-QwdseS6C9vYZ8PQTUFsLTn-3oxQU",
-  authDomain: "tamraidee.firebaseapp.com",
-  projectId: "tamraidee",
-  storageBucket: "tamraidee.firebasestorage.app",
-  messagingSenderId: "393168837647",
-  appId: "1:393168837647:web:35588c991e76a38b2ed77a",
-  measurementId: "G-VHEHJMBK45"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app); 
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -42,10 +31,17 @@ const auth = getAuth(app);
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
 
-  private todoService = inject(TodoService);
-  private router = inject(Router); // ใช้สำหรับเปลี่ยนหน้า
+  private readonly todoService = inject(TodoService);
+  private readonly authService = inject(AuthService);
+  private readonly socialLogin = inject(SocialLoginService);
+  private readonly router = inject(Router); // ใช้สำหรับเปลี่ยนหน้า
+
+  // เข้าหน้า Login = ออกจากระบบ (ทุกหน้าที่กด Logout จะพากลับมาที่นี่)
+  ngOnInit(): void {
+    this.authService.clearSession();
+  }
 
   title = ''; // เปลี่ยนจาก title เป็น username
   password = '';
@@ -67,8 +63,8 @@ export class LoginComponent {
     this.showpopupnoti = false;
     
     if(this.registersuccess === true){
-      this.router.navigate(['/login']); 
-            this.registersuccess = false;
+      void this.router.navigate(['/login']);
+      this.registersuccess = false;
     }
   }
   openpopupnoti(message:string){
@@ -90,62 +86,31 @@ export class LoginComponent {
     this.todoService.login(this.title, this.password).subscribe({
       next: (response) => {
         this.isLoading = false; // ซ่อน Loading
-        const profile = response.user.profile;
-        const role = response.user.role; // ปรับให้ตรงกับตัวแปร role จาก API ของคุณ
-                const status = response.user.status;
-        // --- ส่วนที่เพิ่ม: เตรียมข้อมูลสำหรับ Audit Log ---
-         const now = new Date();
-        const auditData = {
-          date: now.toISOString().split('T')[0], // จะได้รูปแบบ YYYY-MM-DD
-          time: now.toTimeString().split(' ')[0], // จะได้รูปแบบ HH:MM:SS
-          username: response.user.username,
-          email: response.user.title,
-          activity: 'Login',
-          role: response.user.role || 'Guest',
-          picture: profile
-        };
+        const user = response.user;
+        this.authService.setSession(response.token, user);
 
-        // --- ส่วนที่เพิ่ม: ส่งข้อมูลไปบันทึก ---
-        this.todoService.logAudit(auditData).subscribe({
+        this.todoService.logAudit(auditEntry(user, 'Login')).subscribe({
           next: () => console.log('Audit log saved successfully'),
           error: (err) => console.error('Failed to save audit log', err)
         });
-        const navigationState = {
+
+        // ส่งข้อมูลผู้ใช้ไปพร้อมกับการเปลี่ยนหน้า (รวมข้อมูลส่วนตัวให้หน้า Profile แสดงได้ทันที)
+        void this.router.navigate([homeRouteFor(user.role)], {
           state: {
-            id: response.user.id, // <--- เพิ่มบรรทัดนี้ (ส่ง ID ไปด้วย)
-            username: response.user.username,
-            email: response.user.title,
-            profile: profile,
+            id: user.id,
+            username: user.username,
+            email: user.title,
+            profile: user.profile,
             stan: true,
             inhere: true,
-            role: role,
-            status: status,
-            
-            // เพิ่มข้อมูลส่วนตัวไปด้วย เพื่อให้หน้า Profile แสดงผลได้ทันที
-            dob: response.user.dob,
-            national_id: response.user.national_id,
-            address: response.user.address,
-            emergency_contact: response.user.emergency_contact
+            role: user.role,
+            status: user.status,
+            dob: user.dob,
+            national_id: user.national_id,
+            address: user.address,
+            emergency_contact: user.emergency_contact
           }
-        };
-
-        if (!role) {
-          this.router.navigate(['/confirmemployee'], navigationState);
-        } else {
-          switch (role.toLowerCase()) {
-            case 'admin':
-              this.router.navigate(['/dashboard'], navigationState);
-              break;
-            case 'pos':
-              this.router.navigate(['/pos'], navigationState);
-              break;
-            case 'backend':
-              this.router.navigate(['/inventory'], navigationState);
-              break;
-            default:
-              this.router.navigate(['/dashboard'], navigationState);
-          }
-        }
+        });
       },
       error: (error) => {
         this.isLoading = false; // ซ่อน Loading เมื่อเกิดข้อผิดพลาด
@@ -155,103 +120,28 @@ export class LoginComponent {
     });
   }
 
-
-
-
-   signInWithGoogle() {
-    const provider = new GoogleAuthProvider();
-    this.handleSocialLogin(provider);
+  signInWithGoogle() {
+    this.socialSignIn('google');
   }
 
-  // ฟังก์ชันล็อกอินด้วย Facebook
   signInWithFacebook() {
-    const provider = new FacebookAuthProvider();
-    this.handleSocialLogin(provider);
+    this.socialSignIn('facebook');
   }
-// ฟังก์ชันล็อกอินด้วย GitHub
+
   signInWithGitHub() {
-    const provider = new OAuthProvider('github.com');
-    this.handleSocialLogin(provider);
+    this.socialSignIn('github');
   }
-private handleSocialLogin(provider: any) {
-  this.isLoading = true;
-  signInWithPopup(auth, provider)
-    .then((result) => {
-      const user = result.user
-      const email = user.email || '';
-      const username = user.displayName || user.email?.split('@')[0] || 'User';
-      const profile = user.photoURL || '';
 
-      const userData = { username, title: email, password: user.uid, profile, status: 'Active' };
-
-        localStorage.setItem('isSocialLogin', 'true');
-      
-
-      if (provider instanceof GoogleAuthProvider) {
-        localStorage.setItem('socialProvider', 'google');
-      } else if (provider instanceof FacebookAuthProvider) {
-        localStorage.setItem('socialProvider', 'facebook');
-      } else {
-        localStorage.setItem('socialProvider', 'github');
-      }
-
-      this.todoService.registerOrUpdateUser(userData).subscribe({
-        next: () => {
-          
-     
-          this.todoService.checkUserRole(email).subscribe({
-            next: (res) => {
-    
-              this.proceedAfterLogin(user, email, username, res.role);
-            },
-            error: () => {
-       
-              this.proceedAfterLogin(user, email, username, '');
-            }
-          });
-
-        },
-        error: (err) => {
-          console.error('Error saving to Supabase:', err);
-          this.proceedAfterLogin(user, email, username, '');
-        }
+  // เข้าสู่ระบบด้วย Google / Facebook / GitHub
+  socialSignIn(kind: SocialProvider) {
+    this.isLoading = true;
+    this.socialLogin.signIn(kind)
+      .catch((error) => {
+        console.error(error);
+        this.openpopupnoti(error?.error?.message || "การล็อกอินล้มเหลว กรุณาลองใหม่อีกครั้ง");
+      })
+      .finally(() => {
+        this.isLoading = false;
       });
-      
-    })
-    .catch((error) => {
-      this.isLoading = false;
-      console.error(error);
-      this.openpopupnoti("การล็อกอินล้มเหลว กรุณาลองใหม่อีกครั้ง");
-    });
-}private proceedAfterLogin(user: any, email: string, username: string, role: string) {
-  const profile = user.photoURL || '';
-  
-  const now = new Date();
-  const auditData = {
-    date: now.toISOString().split('T')[0],
-    time: now.toTimeString().split(' ')[0],
-    username: username,
-    email: email,
-    activity: 'Social Login',
-    role: role || 'Guest',
-    picture: profile
-  };
-
-  this.todoService.logAudit(auditData).subscribe();
-  this.isLoading = false;
-
-  const navigationState = { state: { username, email, profile, role, stan: true } };
-
-  // ตรวจสอบ Role เพื่อส่งไปหน้าที่ถูกต้อง
-  if (!role) {
-    this.router.navigate(['/confirmemployee'], navigationState);
-  } else {
-    switch (role.toLowerCase()) {
-      case 'admin': this.router.navigate(['/dashboard'], navigationState); break;
-      case 'pos': this.router.navigate(['/pos'], navigationState); break;
-      case 'backend': this.router.navigate(['/inventory'], navigationState); break;
-      default: this.router.navigate(['/dashboard'], navigationState);
-    }
   }
-}
 }

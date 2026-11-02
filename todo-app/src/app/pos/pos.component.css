@@ -6,22 +6,7 @@
   --topbar-height: 73px;
   --right-panel-width: clamp(440px, 33vw, 472px);
 }
-.navbaar {
-  display: flex;
-  align-items: center; 
-  position: fixed;
-  top: 0;
-  left: 0;
-  pointer-events: none;
-  width: 100vw;
-  z-index: 10;
-  border: 1px solid #CED4DA;
-  animation: slide 1s ease-in-out;
-  
-  /* เพิ่ม 2 บรรทัดนี้ เพื่อให้เมาส์คลิกทะลุ Navbar ได้ */
-  pointer-events: none; 
-  background: transparent; 
-}
+
 .fade-out-right {
     animation: Move_Right 0.3s ease-in-out forwards !important;
 }
@@ -59,8 +44,15 @@
 }
 /* เพิ่มส่วนนี้: เพื่อให้ปุ่มเมนูและไอคอนต่างๆ ยังคงกดได้ตามปกติ */
 .con_nav, .container_bar, .hamburger, .headercompany {
-  pointer-events: none;
-  pointer-events: auto;
+    pointer-events: auto !important; 
+  z-index: 99999; /* ดันกล่องแม่ขึ้นมาด้วย */
+  position: relative;
+}
+.iconsetting1 {
+  position: relative !important;
+  z-index: 999999 !important; /* ดันให้สูงกว่ากล่องแม่ */
+  pointer-events: auto !important;
+  cursor: pointer;
 }
 .headercompany {
   
@@ -145,7 +137,7 @@
     z-index: 10;
     color: white;
     font-weight: 800;
-    background: #AD54F5;
+    background: #66BB6A;
     width: 100px;
     border-radius: 8px;
     height: 10px;
@@ -160,11 +152,24 @@
     width: 1px;
     height: 35px;
 }
+.form_noti{
+    animation: form_noti 1s ease-in-out !important;
+}
+@keyframes form_noti {
+    0% {
+        transform: translateY(500px);
+        opacity: 0;
+    }
 
+    100% {
+        opacity: 1;
+    }
+}
 
 .container_bar{
     gap: 10px;
     
+    pointer-events: none; 
     margin-left: auto;
     margin-right: 10px;
     display: flex;
@@ -172,7 +177,7 @@
     align-items: center;
     text-align: center;
     width: 20%;
-    margin-right: 40px;
+    margin-right: 37px;
     height: 70px;
 }
 
@@ -208,18 +213,19 @@
   right: 0;
   transform: translate(30%, -30%); 
 }
+
 .navbaar {
-  display: flex;
-  align-items: center; 
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 70px; /* เพิ่มความสูง เพื่อให้มีพื้นที่แสดงพื้นหลัง */
-  z-index: 3;
-  background-color: #FFF;
-  border: 1px solid #CED4DA ;
-  animation: slide 1s ease-in-out;
+    display: flex;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+  border-bottom: 1px solid #CED4DA;
+    z-index: 3;
+    background-color: #FFF;
+    animation: slide 1s ease-in-out;
+
 }
 .con_nav {
     width: 100%;
@@ -365,7 +371,7 @@
   filter: brightness(0) invert(1);
 }
 
-/* The Figma icon ships white for the active (green) state, so darken it when idle. */
+
 .header-icon:not(.header-icon--active) img[src$="maximize-icon.svg"] {
   filter: brightness(0) saturate(100%) opacity(.8);
 }
@@ -374,6 +380,7 @@
   display: none;
 }
 .avatar-button {
+  visibility: hidden;
   flex: 0 0 auto;
   width: 32px;
   height: 32px;
@@ -748,7 +755,7 @@
 .pom {
   display: flex;
   margin-left: auto;
-  margin-right: 20px;
+  margin-right: 70px;
 }
 .pom2{
   display: flex;
@@ -893,13 +900,26 @@
   cursor: pointer;
   position: relative;
 }
-.buttonnext{
+.buttonback:hover{
   background:#84D46E;
+}
+.buttonback:active{
+  
+}
+.buttonnext{
+   border: 1px solid #E6EAED;
   padding: 10px;
   display: flex;
   position: relative;
   border-radius: 50%;
   cursor: pointer;
+  
+}
+.buttonnext img {
+  filter: brightness(0);
+}
+.buttonnext:hover img {
+  filter: brightness(0) invert(1);
 }
 .buttonback img, .buttonnext img {
   width: 15px !important;
@@ -953,6 +973,7 @@
 }
 
 .category-arrows button:hover {
+  background-color: #84d46e;
   box-shadow: 0 2px 7px rgba(100, 177, 79, .28);
 }
 
@@ -1113,6 +1134,7 @@
 
 /* Fluid card grid: 5 across next to the order panel, 7 in full screen. */
 .product-grid {
+  
   min-height: 0;
   flex: 1;
   display: grid;
@@ -1133,6 +1155,7 @@
   padding: 0 0 16px;
   border: 1px solid transparent;
   border-radius: 10px;
+  margin-top: 20px;
   background: #fff;
   text-align: left;
     transition: transform 0.2s ease, border-color 0.1s ease, box-shadow 0.1s ease;
@@ -2608,3 +2631,48 @@
 }
 
 
+
+
+
+
+
+
+
+
+.product-card {
+  min-width: 0;
+  cursor: pointer;
+  padding: 0 0 16px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: #fff;
+  text-align: left;
+  position: relative; /* เพิ่มตรงนี้เพื่อให้ Badge อ้างอิงตำแหน่งได้ถูกต้อง */
+  transition: transform 0.2s ease, border-color 0.1s ease, box-shadow 0.1s ease;
+  animation: wow 2s ease-in-out;
+}
+
+/* บังคับให้กรอบอยู่ค้างตลอดเวลาที่มีคลาส .selected */
+.product-card.selected {
+  border: 2px solid #84d46e !important;
+  box-shadow: 0 4px 12px rgba(132, 212, 110, 0.3) !important;
+  transform: none !important; 
+}
+
+/* ปรับให้ Badge อยู่ค้างและไม่โดนบัง */
+.cart-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: #84d46e;
+  color: white;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex !important; 
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 12px;
+  z-index: 9999 !important; 
+}
