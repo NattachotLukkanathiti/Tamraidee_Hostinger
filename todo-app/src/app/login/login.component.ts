@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router'; // เพิ่ม Router
+import { ActivatedRoute, Router, RouterLink } from '@angular/router'; // เพิ่ม Router
 
 import { MatCardModule } from '@angular/material/card';
 import { MatInputModule } from '@angular/material/input';
@@ -37,6 +37,12 @@ export class LoginComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly socialLogin = inject(SocialLoginService);
   private readonly router = inject(Router); // ใช้สำหรับเปลี่ยนหน้า
+  private readonly route = inject(ActivatedRoute);
+
+  // กดเข้าสู่ระบบมาจากหน้าร้าน (/login?from=shop) = login เสร็จแล้วกลับไปหน้าร้าน (พนักงานเลือกเข้าหลังร้านได้จากที่นั่น)
+  get fromShop(): boolean {
+    return this.route.snapshot.queryParamMap.get('from') === 'shop';
+  }
 
   // เข้าหน้า Login = ออกจากระบบ (ทุกหน้าที่กด Logout จะพากลับมาที่นี่)
   ngOnInit(): void {
@@ -95,7 +101,7 @@ export class LoginComponent implements OnInit {
         });
 
         // ส่งข้อมูลผู้ใช้ไปพร้อมกับการเปลี่ยนหน้า (รวมข้อมูลส่วนตัวให้หน้า Profile แสดงได้ทันที)
-        void this.router.navigate([homeRouteFor(user.role)], {
+        void this.router.navigate([this.fromShop ? '/shop' : homeRouteFor(user.role)], {
           state: {
             id: user.id,
             username: user.username,
@@ -135,7 +141,7 @@ export class LoginComponent implements OnInit {
   // เข้าสู่ระบบด้วย Google / Facebook / GitHub
   socialSignIn(kind: SocialProvider) {
     this.isLoading = true;
-    this.socialLogin.signIn(kind)
+    this.socialLogin.signIn(kind, { returnToShop: this.fromShop })
       .catch((error) => {
         console.error(error);
         this.openpopupnoti(error?.error?.message || "การล็อกอินล้มเหลว กรุณาลองใหม่อีกครั้ง");

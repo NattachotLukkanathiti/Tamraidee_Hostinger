@@ -3,13 +3,18 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AuthService, homeRouteFor } from '../services/auth.service';
+import { AuthService, canUseBackOffice, homeRouteFor } from '../services/auth.service';
 import { ShopOrderResult, ShopProduct, TodoService } from '../services/todo.service';
 import { ShopCartService } from './shop-cart.service';
+import { ShopNavbarComponent } from './shop-navbar/shop-navbar.component';
 
 export const LOW_STOCK = 5;
-const ALL = 'ทั้งหมด';
+// เวลาของแอนิเมชันปิดแผง / ออกจากหน้า (ตรงกับ CSS และหน้าอื่นในระบบที่รอ 300ms ก่อนเปลี่ยนหน้า)
+export const ANIMATION_MS = 300;
+const ALL = 'All';
 const PHONE_PATTERN = /^0\d{8,9}$/;
+// หน่วงการ์ดทีละใบตอนแสดง (แอนิเมชัน come) แต่ไม่เกินค่านี้ เพื่อไม่ให้รายการยาวต้องรอนาน
+const MAX_STAGGER_MS = 600;
 
 type StockLevel = 'out' | 'low' | 'ok';
 export type SortOption = 'name' | 'price-asc' | 'price-desc';
@@ -22,7 +27,7 @@ export interface CartItem {
 // หน้าร้านออนไลน์ (หน้าแรกของเว็บ): ดู/ค้นหาสินค้า ดูรายละเอียดที่ /shop/:sku ใส่ตะกร้า และสั่งซื้อ
 @Component({
   selector: 'app-shop',
-  imports: [FormsModule, NgTemplateOutlet],
+  imports: [FormsModule, NgTemplateOutlet, ShopNavbarComponent],
   templateUrl: './shop.component.html',
   styleUrl: './shop.component.css'
 })
@@ -47,15 +52,21 @@ export class ShopComponent implements OnInit {
   quantity = 1;
 
   cartOpen = false;
+  cartClosing = false;
   checkoutOpen = false;
   isSubmitting = false;
   orderError = '';
   orderResult: ShopOrderResult | null = null;
   customer = { customer_name: '', phone: '', address: '', note: '' };
   toast = '';
+  isLeaving = false;
   private toastTimer?: ReturnType<typeof setTimeout>;
 
-  private readonly priceFormat = new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' });
+  private readonly priceFormat = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'THB',
+    currencyDisplay: 'narrowSymbol'
+  });
 
   ngOnInit(): void {
     this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
@@ -84,7 +95,7 @@ export class ShopComponent implements OnInit {
     });
   }
 
-  // ---------- รายการสินค้า ----------
+  // ---------- Product list ----------
 
   get filteredProducts(): ShopProduct[] {
     const term = this.searchTerm.trim().toLowerCase();
@@ -108,6 +119,10 @@ export class ShopComponent implements OnInit {
     return this.products.filter(p => p.category === current.category && p.sku !== current.sku).slice(0, 4);
   }
 
+  staggerDelay(index: number): string {
+    return `${Math.min(index * 60, MAX_STAGGER_MS)}ms`;
+  }
+
   selectCategory(label: string): void {
     this.selectedCategory = label;
     if (this.selectedSku) this.backToList();
@@ -125,6 +140,7 @@ export class ShopComponent implements OnInit {
   }
 
   openProduct(product: ShopProduct): void {
+    this.closeCart();
     void this.router.navigate(['/shop', product.sku]);
   }
 
@@ -132,7 +148,7 @@ export class ShopComponent implements OnInit {
     void this.router.navigate(['/shop']);
   }
 
-  // ---------- สต็อก / ราคา ----------
+  // ---------- Stock / price ----------
 
   stock(product: ShopProduct): number {
     return Math.max(0, Number(product.quantity) || 0);
@@ -147,9 +163,9 @@ export class ShopComponent implements OnInit {
   stockLabel(product: ShopProduct): string {
     const qty = this.stock(product);
     return {
-      out: 'สินค้าหมด',
-      low: `เหลือ ${qty} ชิ้น`,
-      ok: 'มีสินค้า'
+      out: 'Out of stock',
+      low: `Only ${qty} left`,
+      ok: 'In stock'
     }[this.stockLevel(product)];
   }
 
@@ -172,7 +188,7 @@ export class ShopComponent implements OnInit {
     return (product.product_name || '?').trim().charAt(0).toUpperCase();
   }
 
-  // ---------- ตะกร้า ----------
+  // ---------- Cart ----------
 
   get cartItems(): CartItem[] {
     return this.cart.lines.flatMap(line => {
@@ -187,7 +203,7 @@ export class ShopComponent implements OnInit {
 
   addToCart(product: ShopProduct, quantity = 1): boolean {
     const added = this.cart.add(product.sku, quantity, this.stock(product));
-    this.showToast(added > 0 ? `เพิ่ม ${product.product_name} ลงตะกร้าแล้ว` : 'สินค้าในตะกร้าครบจำนวนที่มีในสต็อกแล้ว');
+    this.showToast(added > 0 ? `Added ${product.product_name} to cart` : 'You already have all available stock in your cart');
     this.quantity = 1;
     return added > 0;
   }
@@ -203,17 +219,32 @@ export class ShopComponent implements OnInit {
     this.cart.setQuantity(item.product.sku, next);
   }
 
-  toggleCart(open = !this.cartOpen): void {
-    this.cartOpen = open;
+  toggleCart(): void {
+    if (this.cartOpen) {
+      this.closeCart();
+    } else {
+      this.cartOpen = true;
+    }
   }
 
-  // ---------- สั่งซื้อ ----------
+  // เล่นแอนิเมชันปิด (slideOut) ให้จบก่อนค่อยเอาแผงออก
+  closeCart(): void {
+    if (!this.cartOpen || this.cartClosing) return;
+    this.cartClosing = true;
+    setTimeout(() => {
+      this.cartOpen = false;
+      this.cartClosing = false;
+    }, ANIMATION_MS);
+  }
+
+  // ---------- Checkout ----------
 
   openCheckout(): void {
     if (this.cartItems.length === 0) return;
     this.orderError = '';
     this.orderResult = null;
     this.cartOpen = false;
+    this.cartClosing = false;
     this.checkoutOpen = true;
   }
 
@@ -226,11 +257,11 @@ export class ShopComponent implements OnInit {
   submitOrder(): void {
     const phone = this.customer.phone.replace(/[\s-]/g, '');
     if (!this.customer.customer_name.trim() || !this.customer.address.trim()) {
-      this.orderError = 'กรุณากรอกชื่อและที่อยู่สำหรับจัดส่ง';
+      this.orderError = 'Please enter your name and delivery address.';
       return;
     }
     if (!PHONE_PATTERN.test(phone)) {
-      this.orderError = 'กรุณากรอกเบอร์โทรศัพท์ 9-10 หลัก ขึ้นต้นด้วย 0';
+      this.orderError = 'Please enter a valid 9-10 digit phone number starting with 0.';
       return;
     }
 
@@ -251,7 +282,7 @@ export class ShopComponent implements OnInit {
       },
       error: err => {
         this.isSubmitting = false;
-        this.orderError = err?.error?.message || 'สั่งซื้อไม่สำเร็จ กรุณาลองใหม่อีกครั้ง';
+        this.orderError = err?.error?.message || 'Your order could not be placed. Please try again.';
         if (err?.status === 409) this.loadProducts(); // สต็อกเปลี่ยน: ดึงจำนวนล่าสุดมาแสดง
       }
     });
@@ -260,21 +291,24 @@ export class ShopComponent implements OnInit {
   @HostListener('document:keydown.escape')
   closeOverlays(): void {
     this.closeCheckout();
-    this.cartOpen = false;
+    this.closeCart();
   }
 
-  // ---------- เข้าสู่ระบบหลังร้าน ----------
+  // ---------- Login / Back office ----------
 
-  get isStaffLoggedIn(): boolean {
-    return this.auth.isLoggedIn() && !!this.auth.user;
-  }
-
-  goToSystem(): void {
-    if (this.isStaffLoggedIn) {
-      void this.router.navigate([homeRouteFor(this.auth.user?.role)], { state: this.auth.navigationState() });
-    } else {
-      void this.router.navigate(['/login']);
-    }
+  // พนักงาน (admin / manager / pos / backend) ที่ login อยู่ = เข้าหลังร้าน / ยังไม่ login = ไปหน้า login แล้วกลับมาหน้าร้าน
+  // เล่นแอนิเมชันออกจากหน้า (Move_dashboard) ก่อนเปลี่ยนหน้า เหมือนหน้าอื่นในระบบ
+  enterBackOffice(): void {
+    if (this.isLeaving) return;
+    this.isLeaving = true;
+    const user = this.auth.user;
+    setTimeout(() => {
+      if (this.auth.isLoggedIn() && canUseBackOffice(user?.role)) {
+        void this.router.navigate([homeRouteFor(user?.role)], { state: this.auth.navigationState() });
+      } else {
+        void this.router.navigate(['/login'], { queryParams: { from: 'shop' } });
+      }
+    }, ANIMATION_MS);
   }
 
   private showToast(message: string): void {

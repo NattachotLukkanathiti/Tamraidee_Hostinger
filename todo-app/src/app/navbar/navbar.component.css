@@ -593,3 +593,8 @@ animation: fade_ber 0.5s ease-in-out;
 .buttonnoti:hover {
     background: #eb2d2d;
 }
+/* ไอคอนเมนู Online Shop (เฉพาะแอดมิน) ให้ขนาดเท่าไอคอนอื่นในเมนูบัญชี */
+.open-shop img {
+  width: 24px;
+  height: 24px;
+}

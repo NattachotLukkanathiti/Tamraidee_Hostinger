@@ -26,6 +26,7 @@ import { authGuard } from './services/auth.guard';
 
 
 const ADMIN = ['admin', 'manager'];
+const STAFF = [...ADMIN, 'pos', 'backend']; // คนอื่นเข้าได้เฉพาะหน้าร้าน
 
 export const routes: Routes = [
   { path: '', component: ShopComponent }, // หน้าแรกของเว็บ = หน้าร้าน (เข้าได้เลยไม่ต้อง login)
@@ -44,12 +45,12 @@ export const routes: Routes = [
   { path: 'confirmemployee', component: ConfirmemployeeComponent},
   { path: 'pos' , component: PosComponent, canActivate: [authGuard], data: { roles: [...ADMIN, 'pos'] } },
   { path: 'audit' ,component: AuditComponent, canActivate: [authGuard], data: { roles: ADMIN } },
-  { path: 'notification', component: NotificationComponent, canActivate: [authGuard] },
-  { path: 'profile', component: ProfileComponent, canActivate: [authGuard] },
-  { path: 'helpp', component: HelppComponent, canActivate: [authGuard] },
-  { path: 'edit' , component: EditComponent, canActivate: [authGuard] },
-  { path: 'setting' , component: SettingsPageComponent, canActivate: [authGuard] },
-  { path: 'receipt' , component: ReceiptComponent, canActivate: [authGuard] },
+  { path: 'notification', component: NotificationComponent, canActivate: [authGuard], data: { roles: STAFF } },
+  { path: 'profile', component: ProfileComponent, canActivate: [authGuard], data: { roles: STAFF } },
+  { path: 'helpp', component: HelppComponent, canActivate: [authGuard], data: { roles: STAFF } },
+  { path: 'edit' , component: EditComponent, canActivate: [authGuard], data: { roles: STAFF } },
+  { path: 'setting' , component: SettingsPageComponent, canActivate: [authGuard], data: { roles: STAFF } },
+  { path: 'receipt' , component: ReceiptComponent, canActivate: [authGuard], data: { roles: STAFF } },
   { path: 'privacy-policy' ,component:PrivacyPolicyComponent},
   { path: 'delete-data' ,component:DeleteDataComponent},
   // หน้าร้านสำหรับลูกค้า ไม่ต้อง login

@@ -12,6 +12,7 @@ const find = (path: string): Route => {
 };
 
 describe('app routes', () => {
+  const STAFF = ['admin', 'manager', 'pos', 'backend']; // คนอื่นที่ login อยู่ใช้ได้เฉพาะหน้าร้าน
   const protectedRoutes: [string, string[] | undefined][] = [
     ['dashboard', ['admin', 'manager']],
     ['inventory', ['admin', 'manager', 'backend']],
@@ -21,12 +22,12 @@ describe('app routes', () => {
     ['suppliers', ['admin', 'manager']],
     ['pos', ['admin', 'manager', 'pos']],
     ['audit', ['admin', 'manager']],
-    ['notification', undefined],
-    ['profile', undefined],
-    ['helpp', undefined],
-    ['edit', undefined],
-    ['setting', undefined],
-    ['receipt', undefined]
+    ['notification', STAFF],
+    ['profile', STAFF],
+    ['helpp', STAFF],
+    ['edit', STAFF],
+    ['setting', STAFF],
+    ['receipt', STAFF]
   ];
 
   for (const [path, roles] of protectedRoutes) {

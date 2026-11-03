@@ -10,6 +10,8 @@ type Case = [name: string, call: (service: TodoService) => Observable<unknown>, 
 const CASES: Case[] = [
   ['logAudit', (s) => s.logAudit({}), 'POST', '/audit'],
   ['getAudit', (s) => s.getAudit(), 'GET', '/audit'],
+  ['getShopCart', (s) => s.getShopCart(), 'GET', '/shop/cart'],
+  ['saveShopCart', (s) => s.saveShopCart([]), 'PUT', '/shop/cart'],
   ['getTodos', (s) => s.getTodos(), 'GET', '/todos'],
   ['addTodo', (s) => s.addTodo('u', 't', 'p', 'p'), 'POST', '/todos'],
   ['login', (s) => s.login('t', 'p'), 'POST', '/login'],

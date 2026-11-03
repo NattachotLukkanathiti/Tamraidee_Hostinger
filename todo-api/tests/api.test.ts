@@ -73,6 +73,7 @@ beforeEach(async () => {
   await pool.query(sql('migrations/002_constraints.sql'));
   await pool.query(sql('migrations/003_firebase_uid.sql'));
   await pool.query(sql('migrations/004_shop_orders.sql'));
+  await pool.query(sql('migrations/005_shop_cart.sql'));
   for (const key of Object.keys(firebaseTokens)) delete firebaseTokens[key];
   await pool.query(`
     INSERT INTO todos (username, title, password, completed, role, national_id) VALUES
@@ -142,6 +143,36 @@ test('shop order: ข้อมูลไม่ครบ / ของไม่พ�
 test('shop order: สั่งถี่เกินไปได้ 429', async () => {
   assert.equal((await shopOrder({ items: [] })).status, 400);
   assert.equal((await shopOrder({ items: [{ sku: 'SKU-A', quantity: 1 }] })).status, 429);
+});
+
+test('shop cart: ต้อง login และแต่ละบัญชีเห็นเฉพาะตะกร้าของตัวเอง', async () => {
+  assert.equal((await api('GET', '/api/shop/cart')).status, 401);
+  assert.equal((await api('PUT', '/api/shop/cart', { items: [] })).status, 401);
+
+  const admin = await login('admin@test.com', 'Admin@1234');
+  const pos = await login('pos@test.com', 'Pos@12345');
+  assert.deepEqual((await api('GET', '/api/shop/cart', undefined, admin)).body, { items: [] });
+
+  const saved = await api('PUT', '/api/shop/cart', {
+    items: [{ sku: 'SKU-A', quantity: 2 }, { sku: 'SKU-A', quantity: 98 }, { sku: 'SKU-B', quantity: 1 }]
+  }, admin);
+  assert.equal(saved.status, 200);
+  assert.deepEqual(saved.body.items, [{ sku: 'SKU-A', quantity: 99 }, { sku: 'SKU-B', quantity: 1 }]);
+
+  assert.deepEqual((await api('GET', '/api/shop/cart', undefined, admin)).body.items, saved.body.items);
+  assert.deepEqual((await api('GET', '/api/shop/cart', undefined, pos)).body, { items: [] });
+
+  await api('PUT', '/api/shop/cart', { items: [] }, admin);
+  assert.deepEqual((await api('GET', '/api/shop/cart', undefined, admin)).body, { items: [] });
+
+  // ข้อมูลไม่ถูกต้องถูกปฏิเสธ (รวมไว้ใน test เดียวกัน เพราะ login มี rate limit)
+  const put = (items: unknown) => api('PUT', '/api/shop/cart', { items }, admin);
+
+  assert.equal((await put('nope')).status, 400);
+  assert.equal((await put([{ sku: 'SKU-A', quantity: 0 }])).status, 400);
+  assert.equal((await put([{ sku: 'SKU-A', quantity: 1.5 }])).status, 400);
+  assert.equal((await put([{ sku: '', quantity: 1 }])).status, 400);
+  assert.equal((await put(Array.from({ length: 51 }, (_, i) => ({ sku: `S${i}`, quantity: 1 })))).status, 400);
 });
 
 test('reset-password: ไม่มี reset token ที่ได้จาก OTP ได้ 403', async () => {

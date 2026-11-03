@@ -105,6 +105,10 @@
   </svg>
   Help
 </button>
+      <button type="button" class="open-shop" *ngIf="canOpenShop" (click)="openShop()">
+        <img src="image/shop.svg" alt="">
+        Online Shop
+      </button>
        <button type="button" (click)="openSetting()">
         <img src="image/setting_bar.svg" alt="">
         Setting

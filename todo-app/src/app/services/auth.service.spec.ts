@@ -1,6 +1,6 @@
 import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { AuthService, SessionUser, homeRouteFor } from './auth.service';
+import { AuthService, SessionUser, canUseBackOffice, homeRouteFor } from './auth.service';
 
 const USER: SessionUser = {
   id: 7,
@@ -114,7 +114,8 @@ describe('homeRouteFor', () => {
     ['backend', '/inventory'],
     ['admin', '/dashboard'],
     ['manager', '/dashboard'],
-    ['guest', '/dashboard']
+    ['guest', '/shop'],
+    ['customer', '/shop']
   ];
 
   for (const [role, route] of cases) {
@@ -122,4 +123,18 @@ describe('homeRouteFor', () => {
       expect(homeRouteFor(role)).toBe(route);
     });
   }
+});
+
+describe('canUseBackOffice', () => {
+  it('admin / manager / pos / backend เข้าหลังร้านได้ (ไม่สนตัวพิมพ์)', () => {
+    for (const role of ['admin', 'Manager', 'POS', 'backend']) {
+      expect(canUseBackOffice(role)).withContext(role).toBeTrue();
+    }
+  });
+
+  it('role อื่นหรือยังไม่มี role ใช้ได้เฉพาะหน้าร้าน', () => {
+    for (const role of ['', null, undefined, 'customer']) {
+      expect(canUseBackOffice(role)).withContext(String(role)).toBeFalse();
+    }
+  });
 });

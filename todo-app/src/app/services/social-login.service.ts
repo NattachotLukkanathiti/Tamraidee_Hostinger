@@ -53,7 +53,8 @@ export class SocialLoginService {
   private readonly router = inject(Router);
   private readonly popupSignIn = inject(FIREBASE_POPUP_SIGN_IN);
 
-  async signIn(kind: SocialProvider): Promise<void> {
+  // returnToShop: เข้ามาจากหน้าร้าน ให้กลับไปหน้าร้านแทนหน้าแรกของ role
+  async signIn(kind: SocialProvider, options: { returnToShop?: boolean } = {}): Promise<void> {
     const credential = await this.popupSignIn(PROVIDERS[kind]());
     const idToken = await credential.user.getIdToken();
 
@@ -65,7 +66,7 @@ export class SocialLoginService {
     });
 
     const { username, title: email, profile, role } = res.user;
-    await this.router.navigate([homeRouteFor(role)], {
+    await this.router.navigate([options.returnToShop ? '/shop' : homeRouteFor(role)], {
       state: { username, email, profile, role, stan: true }
     });
   }

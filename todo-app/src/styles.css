@@ -6,3 +6,25 @@ body {
   padding: 0 !important;
   font-family: 'Smooch Sans', sans-serif !important;
 }
+
+
+/* เฟดเนื้อหาเข้ามาตอนเลื่อนลง (ScrollRevealService ใส่/เอา class ให้อัตโนมัติทุกหน้า)
+   ใช้ translate แยกจาก transform จึงไม่ไปทับตำแหน่ง/แอนิเมชันเดิมของ element
+   animation ของ element จะถูกพักไว้จนกว่าจะเลื่อนมาเห็น แล้วค่อยเล่น */
+.sr-hidden {
+  opacity: 0 !important;
+  translate: 0 32px;
+  animation: none !important;
+}
+
+.sr-reveal {
+  transition: opacity 0.7s ease, translate 0.7s ease !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sr-hidden {
+    opacity: 1 !important;
+    translate: none;
+    animation: none;
+  }
+}

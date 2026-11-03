@@ -1,0 +1,91 @@
+<header class="navbaar">
+  <button type="button" class="headercompany" (click)="home.emit()" aria-label="Tamraidee Shop home">
+    <img class="applee" src="image/logoo.svg" alt="" />
+    <img class="text" src="image/logo.svg" alt="Tamraidee" />
+    <span class="shop-tag">Shop</span>
+  </button>
+
+  <label class="search">
+    <span class="visually-hidden">Search products</span>
+    <img class="iconsearch" src="image/search.svg" alt="" />
+    <input
+      type="search"
+      class="inputser"
+      [ngModel]="search()"
+      (ngModelChange)="search.set($event)"
+      placeholder="Search by product, brand or SKU" />
+  </label>
+
+  <div class="container_bar">
+    <div class="time" aria-hidden="true">
+      <img class="icon_time" src="image/Time Icon.svg" alt="" />
+      <span>{{ currentTime | date: 'HH:mm:ss' }}</span>
+    </div>
+    <div class="lin"></div>
+
+    <div class="red_noti">
+      @if (cart.count) {
+        <span class="cart-count" aria-hidden="true">{{ cart.count }}</span>
+      }
+      <button
+        type="button"
+        class="header-icon cart-button"
+        [attr.aria-label]="'Cart, ' + cart.count + ' item(s)'"
+        aria-controls="cart-panel"
+        (click)="cartToggle.emit()">
+        <img src="image/u_shopping-cart.svg" alt="" />
+      </button>
+    </div>
+
+    @if (isLoggedIn) {
+      @if (isStaff) {
+        <button
+          type="button"
+          class="header-icon back-office"
+          aria-label="Back Office"
+          title="Back Office"
+          (click)="goBackOffice()">
+          <img src="image/dashboard.svg" alt="" />
+        </button>
+      }
+      <button
+        type="button"
+        class="avatar-button"
+        aria-label="Open account menu"
+        [attr.aria-expanded]="accountOpen"
+        (click)="toggleAccount()">
+        <img [src]="user?.profile || 'image/profileee.svg'" (error)="$any($event.target).src = 'image/error.png'" alt="Profile" />
+      </button>
+    } @else {
+      <button type="button" class="login-button" aria-label="Login" (click)="signIn.emit()">
+        <img class="login-icon" src="image/profileee.svg" alt="" />
+        <span class="login-label">Login</span>
+      </button>
+    }
+  </div>
+</header>
+
+@if (accountOpen) {
+  <button type="button" class="sidebar-backdrop" aria-label="Close account menu" (click)="closeAccount()"></button>
+  <aside class="account-sidebar" [class.closing]="isClosing" aria-label="Account menu">
+    <div class="account-sidebar__header">
+      <img [src]="user?.profile || 'image/profileee.svg'" alt="Profile" />
+      <div>
+        <div class="user">{{ user?.username }}</div>
+        <div class="role">{{ roleLabel }}</div>
+      </div>
+    </div>
+    @if (isStaff) {
+      <nav class="account-sidebar__menu">
+        <button type="button" (click)="goBackOffice()">
+          <img src="image/dashboard.svg" alt="" />
+          Back Office
+        </button>
+      </nav>
+    }
+    <button type="button" class="account-sidebar__logout" (click)="logout()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M15 4h-4.5A1.5 1.5 0 0 0 9 5.5v13A1.5 1.5 0 0 0 10.5 20H15"/><path d="M19 12H10m9 0-3-3m3 3-3 3"/></svg>
+      Log Out
+    </button>
+  </aside>
+}

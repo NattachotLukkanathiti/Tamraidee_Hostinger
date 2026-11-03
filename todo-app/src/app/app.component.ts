@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, ElementRef, afterNextRender, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterOutlet, RouterLink, Router } from '@angular/router'; // <-- เพิ่ม Router ตรงนี้
@@ -10,6 +10,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatIconModule } from '@angular/material/icon';
 
 import { NavbarComponent } from './navbar/navbar.component';
+import { ScrollRevealService } from './services/scroll-reveal.service';
 
 @Component({
   selector: 'app-root',
@@ -32,6 +33,13 @@ import { NavbarComponent } from './navbar/navbar.component';
 export class AppComponent {
 
   private router = inject(Router); // <-- ย้ายขึ้นมาไว้ด้านบนเพื่อให้เป็นระเบียบ
+
+  constructor() {
+    // ทุกหน้า: เนื้อหาที่อยู่ใต้ขอบจอค่อย ๆ เฟดเข้ามาตอนเลื่อนลง (ทำงานเฉพาะใน browser)
+    const host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
+    const scrollReveal = inject(ScrollRevealService);
+    afterNextRender(() => scrollReveal.start(host));
+  }
 
   isLoginPage(): boolean {
   const hiddenRoutes = ['/', '/register', '/otp', '/forgot', '/login', '/confirmemployee','/receipt','/step','/reset'];

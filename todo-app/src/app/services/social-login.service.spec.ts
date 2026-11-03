@@ -133,4 +133,13 @@ describe('SocialLoginService', () => {
 
     expect(typeof TestBed.inject(FIREBASE_POPUP_SIGN_IN)).toBe('function');
   });
+
+  it('returnToShop: ทุก role เข้าระบบได้ แล้วกลับไปหน้าร้านแทนหน้าแรกของ role', async () => {
+    setUp({ ...SERVER_USER, role: 'customer' });
+
+    await service.signIn('github', { returnToShop: true });
+
+    expect(TestBed.inject(AuthService).token).toBe('jwt-token');
+    expect(router.navigate).toHaveBeenCalledWith(['/shop'], jasmine.anything());
+  });
 });

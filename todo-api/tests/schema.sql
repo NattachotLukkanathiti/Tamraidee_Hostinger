@@ -1,5 +1,5 @@
 -- schema จำลองสำหรับ API test (เฉพาะตาราง/คอลัมน์ที่ test ใช้) - ห้ามรันกับฐานข้อมูลจริง
-DROP TABLE IF EXISTS todos, inventory, sale_order, notification, audit, history, shop_order CASCADE;
+DROP TABLE IF EXISTS todos, inventory, sale_order, notification, audit, history, shop_order, shop_cart CASCADE;
 
 CREATE TABLE todos (
   id serial PRIMARY KEY, username text, title text, password varchar(50), completed boolean,

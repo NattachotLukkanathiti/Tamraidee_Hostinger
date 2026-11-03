@@ -4,6 +4,7 @@ import { Component, OnInit, inject, ChangeDetectorRef, NgZone } from '@angular/c
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { TodoService } from '../services/todo.service';
+import { AuthService, canUseBackOffice } from '../services/auth.service';
 import { forkJoin,interval, Subscription } from 'rxjs';
 import { Output, EventEmitter } from '@angular/core';
 import { createClient } from '@supabase/supabase-js'; 
@@ -21,6 +22,7 @@ export class NavbarComponent implements OnInit {
   private todoService = inject(TodoService);
     private changeDetector = inject(ChangeDetectorRef);
     private ngZone = inject(NgZone); 
+  private readonly auth = inject(AuthService);
 
   private supabase = createClient(environment.supabase.url, environment.supabase.anonKey);
   search = '';
@@ -429,7 +431,7 @@ loadTodos() {
     this.todoService.logAudit(auditData).subscribe({
       next: () => {
         console.log('Logout audit saved');
-        this.router.navigate(['/login']);
+        void this.router.navigate(['/login']);
         this.closePanel
       },
       error: (err) => {
@@ -468,6 +470,17 @@ loadTodos() {
       }
     });
         this.closePanel();
+  }
+
+  // ไปมาระหว่างหลังร้านกับหน้าร้านได้เฉพาะพนักงาน (ยึด role จาก session ที่ได้ตอน login ไม่ใช่จาก history.state)
+  get canOpenShop(): boolean {
+    return this.auth.isLoggedIn() && canUseBackOffice(this.auth.user?.role);
+  }
+
+  openShop() {
+    if (!this.canOpenShop) return;
+    this.closePanel();
+    void this.router.navigate(['/shop']);
   }
 
   openHelp() {

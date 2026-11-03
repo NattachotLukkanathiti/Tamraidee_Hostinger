@@ -1,0 +1,411 @@
+/* ใช้หน้าตาและแอนิเมชันชุดเดียวกับ Navbar หลังร้าน (navbar.component.css) */
+:host {
+  display: block;
+  font-family: 'Nunito Sans', 'Montserrat', sans-serif;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ขนาด/ระยะทั้งหมดอ้างอิงค่าที่วัดจาก Navbar หลังร้านจริง:
+   สูง 70px, โลโก้ห่างซ้าย 20px, กลุ่มปุ่มห่างขวา 40px (≤1200px = 10px), ปุ่มไอคอน 32px, นาฬิกา 126x36 */
+.navbaar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  height: 70px;
+  box-sizing: border-box;
+  border-bottom: 1px solid #e6eaed;
+  background: #fff;
+  animation: slidee 0.7s ease-in-out;
+}
+
+@keyframes slidee {
+  0% {
+    transform: translateY(-200px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.headercompany {
+  display: flex;
+  flex: none;
+  align-items: center;
+  margin-left: 20px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #84d46e;
+  font-family: 'Nicomoji', sans-serif;
+  font-weight: 800;
+}
+
+/* มงกุฎ 70x90 ยืดแนวนอน 1.2 เท่า (ล้นขอบบน/ล่างของแถบเท่ากัน) เหมือน .applee หลังร้าน */
+.applee {
+  width: 70px;
+  height: 90px;
+  transform: scaleX(1.2);
+}
+
+.text {
+  height: 15px;
+  margin-left: -5px;
+}
+
+.shop-tag {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #edf9e9;
+  color: #212b36;
+  font-family: 'Nunito Sans', sans-serif;
+  font-size: 12px;
+}
+
+.search {
+  position: relative;
+  flex: 1 1 240px;
+  max-width: 480px;
+  margin: 0 24px;
+}
+
+.iconsearch {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  width: 16px;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.inputser {
+  width: 100%;
+  height: 36px;
+  box-sizing: border-box;
+  padding: 0 12px 0 36px;
+  border: 1px solid #e6eaed;
+  border-radius: 20px;
+  background: #f9fafb;
+  font: inherit;
+  font-size: 15px;
+}
+
+.inputser:focus {
+  outline: 2px solid #84d46e;
+  outline-offset: 1px;
+}
+
+.container_bar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  height: 70px;
+  margin-left: auto;
+  margin-right: 40px;
+}
+
+.time {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 126px;
+  height: 36px;
+  box-sizing: border-box;
+  padding: 0 13px;
+  border-radius: 20px;
+  background: #000;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.icon_time {
+  width: 15px;
+  height: 15px;
+}
+
+.lin {
+  width: 1px;
+  height: 35px;
+  background: #e6eaed;
+}
+
+.red_noti {
+  position: relative;
+  display: inline-block;
+}
+
+.cart-count {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
+  min-width: 16px;
+  padding: 0 4px;
+  box-sizing: border-box;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  background: #ff2222;
+  box-shadow: 0 0 4px 0 #ff2222b1;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 12px;
+  text-align: center;
+  transform: translate(30%, -30%);
+  animation: pop 0.3s ease-out;
+}
+
+@keyframes pop {
+  0% {
+    transform: translate(30%, -30%) scale(0);
+  }
+  70% {
+    transform: translate(30%, -30%) scale(1.25);
+  }
+  100% {
+    transform: translate(30%, -30%) scale(1);
+  }
+}
+
+.header-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 5px;
+  background: #f4f5fc;
+  transition: background 0.2s;
+}
+
+.header-icon:hover {
+  background: #cccdd4;
+}
+
+/* ไอคอนรูปภาพทั้งหมดใน navbar เป็นสีดำ */
+.header-icon img,
+.iconsearch,
+.login-icon,
+.account-sidebar__menu img {
+  filter: brightness(0);
+}
+
+.header-icon img {
+  width: 16px;
+  height: 16px;
+}
+
+.avatar-button {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+}
+
+.avatar-button img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.login-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px 0 6px;
+  border: 1px solid #84d46e;
+  border-radius: 20px;
+  background: #fff;
+  color: #212b36;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+
+.login-button:hover {
+  background: #edf9e9;
+}
+
+.login-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* ---------- เมนูบัญชี (slideIn / slideOut แบบเดียวกับหลังร้าน) ---------- */
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 49;
+  padding: 0;
+  border: 0;
+  background: rgba(0, 0, 0, 0.074);
+  cursor: default;
+}
+
+.account-sidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  width: clamp(280px, 26vw, 360px);
+  border-left: 1px solid #e6eaed;
+  background: #fff;
+  box-shadow: -16px 0 40px rgba(33, 43, 54, 0.1);
+  animation: slideIn 0.3s ease-out forwards;
+}
+
+.account-sidebar.closing {
+  animation: slideOut 0.3s ease-in forwards;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes slideOut {
+  from { transform: translateX(0); }
+  to { transform: translateX(100%); }
+}
+
+.account-sidebar__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 73px;
+  padding: 20px 40px;
+  border-bottom: 1px solid #e6eaed;
+}
+
+.account-sidebar__header img {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.user {
+  font-weight: 700;
+}
+
+.role {
+  color: #646b72;
+  font-size: 13px;
+}
+
+.account-sidebar__menu {
+  display: grid;
+  gap: 32px;
+  padding: 32px 40px 0;
+}
+
+.account-sidebar__menu button,
+.account-sidebar__logout {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #212b36;
+  font: 600 17px/24px 'Nunito Sans', sans-serif;
+}
+
+.account-sidebar__menu button:hover {
+  box-shadow: inset 0 -2px 0 #84d46e;
+}
+
+.account-sidebar__menu img,
+.account-sidebar__logout svg {
+  width: 24px;
+  height: 24px;
+}
+
+.account-sidebar__logout {
+  margin: auto 40px 40px;
+  width: auto;
+  color: #dc1818;
+}
+
+.account-sidebar__logout:hover {
+  color: #b81212;
+}
+
+/* ตรงกับ breakpoint ของ Navbar หลังร้าน */
+@media (max-width: 1200px) {
+  .container_bar {
+    margin-right: 10px;
+  }
+
+  .search {
+    margin: 0 16px;
+  }
+}
+
+@media (max-width: 960px) {
+  .shop-tag {
+    display: none;
+  }
+}
+
+/* จอเล็ก: ซ่อนนาฬิกาเหมือนหลังร้าน และย้ายช่องค้นหาไปไว้ในหน้า (แถบยังสูง 70px) */
+@media (max-width: 768px) {
+  .time,
+  .lin,
+  .search {
+    display: none;
+  }
+}
+
+/* มือถือ: ปุ่ม Login เหลือแค่ไอคอน 32px แบบปุ่มโปรไฟล์หลังร้าน */
+@media (max-width: 480px) {
+  .login-button {
+    justify-content: center;
+    width: 32px;
+    padding: 0;
+  }
+
+  .login-label {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navbaar,
+  .cart-count,
+  .account-sidebar,
+  .account-sidebar.closing {
+    animation: none;
+  }
+}

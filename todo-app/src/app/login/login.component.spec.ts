@@ -137,7 +137,7 @@ describe('LoginComponent', () => {
     expect(component.isLoading).toBeTrue();
     await fixture.whenStable();
 
-    expect(social.signIn).toHaveBeenCalledWith('github');
+    expect(social.signIn).toHaveBeenCalledWith('github', { returnToShop: false });
     expect(component.isLoading).toBeFalse();
     expect(component.showpopupnoti).toBeFalse();
   });
@@ -170,7 +170,33 @@ describe('LoginComponent', () => {
     component.signInWithFacebook();
     component.signInWithGitHub();
 
-    expect(social.signIn.calls.allArgs()).toEqual([['google'], ['facebook'], ['github']]);
+    expect(social.signIn.calls.allArgs().map(([kind]) => kind)).toEqual(['google', 'facebook', 'github']);
+  });
+
+  it('เข้ามาจากหน้าร้าน (?from=shop): ทุก role เข้าระบบได้ แล้วกลับไปหน้าร้าน', () => {
+    spyOnProperty(component, 'fromShop').and.returnValue(true);
+    todoService.login.and.returnValue(of({ token: 'jwt-token', user: { ...SERVER_USER, role: 'customer' } }));
+    component.title = 'somchai@test.com';
+    component.password = 'Passw0rd!';
+
+    component.login();
+
+    expect(auth.token).toBe('jwt-token');
+    expect(todoService.logAudit).toHaveBeenCalled();
+    expect(router.navigate).toHaveBeenCalledWith(['/shop'], jasmine.anything());
+  });
+
+  it('social login จากหน้าร้าน: บอก service ให้กลับไปหน้าร้าน', () => {
+    spyOnProperty(component, 'fromShop').and.returnValue(true);
+    social.signIn.and.resolveTo();
+
+    component.socialSignIn('google');
+
+    expect(social.signIn).toHaveBeenCalledWith('google', { returnToShop: true });
+  });
+
+  it('อ่านค่า from=shop จาก query string', () => {
+    expect(component.fromShop).toBeFalse();
   });
 
   it('popup: เปิด/ปิด และไปหน้า login เมื่อสมัครสำเร็จ', () => {

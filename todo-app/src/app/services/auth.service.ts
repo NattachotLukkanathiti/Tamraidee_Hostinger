@@ -90,12 +90,21 @@ export class AuthService {
   }
 }
 
+// ตำแหน่งที่เข้าระบบหลังร้านได้ (คนอื่นที่ login อยู่ใช้ได้เฉพาะหน้าร้าน /shop)
+export const BACK_OFFICE_ROLES = ['admin', 'manager', 'pos', 'backend'];
+
+export function canUseBackOffice(role?: string | null): boolean {
+  return BACK_OFFICE_ROLES.includes((role || '').toLowerCase());
+}
+
 // หน้าแรกของแต่ละ role (ตรงกับ logic เดิมในหน้า Login)
 export function homeRouteFor(role?: string | null): string {
   switch ((role || '').toLowerCase()) {
     case '': return '/confirmemployee';
     case 'pos': return '/pos';
     case 'backend': return '/inventory';
-    default: return '/dashboard';
+    case 'admin':
+    case 'manager': return '/dashboard';
+    default: return '/shop'; // ไม่ใช่พนักงาน = เข้าได้เฉพาะหน้าร้าน
   }
 }

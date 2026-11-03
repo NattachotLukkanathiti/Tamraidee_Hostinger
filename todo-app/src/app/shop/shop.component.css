@@ -1,16 +1,23 @@
-/* สีหลักเดียวกับหน้า POS */
+/* สีหลักของหน้าร้าน: เขียว #84D46E (ตัวอักษรบนพื้นเขียวใช้สีเข้ม --on-green ให้อ่านง่าย) */
 :host {
-  --green: #6fab23;
-  --green-dark: #4f8a10;
-  --green-soft: #eef7e4;
+  --green: #84d46e;
+  --green-hover: #6fc257;
+  --green-soft: #edf9e9;
+  --green-text: #2f6b1d;
+  --on-green: #1b3a0f;
   --navy: #092c4c;
   --text: #212b36;
   --muted: #5c636a;
   --line: #e6eaed;
   --bg: #f9fafb;
-  --header-h: 68px;
+  --header-h: 70px;
+  --radius: 20px;
+  /* body ของแอปเป็น flex จัดกลาง ต้องบังคับให้หน้าร้านกว้างเต็มจอ */
   display: block;
+  width: 100%;
   min-height: 100vh;
+  box-sizing: border-box;
+  padding-top: var(--header-h);
   background: var(--bg);
   color: var(--text);
   font-family: 'Nunito Sans', 'Montserrat', sans-serif;
@@ -38,19 +45,20 @@ button:disabled {
 .btn-primary,
 .btn-outline {
   padding: 9px 18px;
-  border-radius: 8px;
+  border-radius: var(--radius);
   font-weight: 700;
   white-space: nowrap;
 }
 
 .btn-primary {
-  border: 1px solid var(--green-dark);
-  background: var(--green-dark);
+  border: 1px solid var(--green);
+  background: var(--green);
   color: #fff;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #3f700b;
+  border-color: var(--green-hover);
+  background: var(--green-hover);
 }
 
 .btn-primary:disabled {
@@ -58,9 +66,9 @@ button:disabled {
 }
 
 .btn-outline {
-  border: 1px solid var(--green-dark);
+  border: 1px solid var(--green);
   background: #fff;
-  color: var(--green-dark);
+  color: var(--text);
 }
 
 .btn-outline:hover {
@@ -81,110 +89,13 @@ button:disabled {
   height: 36px;
   flex: none;
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--radius);
   background: none;
   color: var(--muted);
 }
 
 .icon-btn:hover {
   background: var(--bg);
-}
-
-/* ---------- Header ---------- */
-.shop-header {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px 24px;
-  min-height: var(--header-h);
-  box-sizing: border-box;
-  padding: 12px clamp(16px, 3vw, 40px);
-  background: #fff;
-  border-bottom: 1px solid var(--line);
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--green-dark);
-  font-family: 'Nicomoji', 'Montserrat', sans-serif;
-  font-size: 22px;
-  font-weight: 800;
-}
-
-.brand-logo {
-  width: 32px;
-  height: 32px;
-}
-
-.search {
-  flex: 1 1 280px;
-  max-width: 560px;
-}
-
-.search input,
-.sort select,
-.checkout-form input,
-.checkout-form textarea {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 10px 14px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #fff;
-  color: var(--text);
-  font: inherit;
-}
-
-.search input {
-  border-radius: 999px;
-  background: var(--bg);
-}
-
-.search input:focus,
-.sort select:focus,
-.checkout-form input:focus,
-.checkout-form textarea:focus {
-  outline: 2px solid var(--green);
-  outline-offset: 1px;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-left: auto;
-}
-
-.cart-toggle {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 9px 14px;
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #fff;
-  color: var(--text);
-}
-
-.badge {
-  min-width: 20px;
-  padding: 1px 6px;
-  box-sizing: border-box;
-  border-radius: 999px;
-  background: #c62828;
-  color: #fff;
-  font-size: 12px;
-  font-weight: 700;
-  text-align: center;
 }
 
 /* ---------- Layout ---------- */
@@ -207,7 +118,7 @@ button:disabled {
   gap: 4px;
   padding: 16px 12px;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--radius);
   background: #fff;
 }
 
@@ -223,7 +134,7 @@ button:disabled {
   gap: 8px;
   padding: 9px 12px;
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--radius);
   background: none;
   color: var(--text);
   text-align: left;
@@ -235,7 +146,8 @@ button:disabled {
 
 .category.active {
   background: var(--green-soft);
-  color: #3a630b;
+  box-shadow: inset 3px 0 0 var(--green);
+  color: var(--text);
   font-weight: 700;
 }
 
@@ -285,9 +197,67 @@ button:disabled {
   white-space: nowrap;
 }
 
+.sort select,
+.checkout-form input,
+.checkout-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+  color: var(--text);
+  font: inherit;
+}
+
+.sort select:focus,
+.checkout-form input:focus,
+.checkout-form textarea:focus {
+  outline: 2px solid var(--green);
+  outline-offset: 1px;
+}
+
 .sort select {
   width: auto;
   padding: 8px 12px;
+}
+
+/* จอเล็ก navbar ซ่อนช่องค้นหา (สูง 70px เท่าหลังร้าน) จึงแสดงช่องค้นหาในหน้าแทน */
+.mobile-search {
+  display: none;
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.mobile-search img {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  width: 16px;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.mobile-search input {
+  width: 100%;
+  height: 40px;
+  box-sizing: border-box;
+  padding: 0 12px 0 36px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+  font: inherit;
+}
+
+.mobile-search input:focus {
+  outline: 2px solid var(--green);
+  outline-offset: 1px;
+}
+
+@media (max-width: 768px) {
+  .mobile-search {
+    display: block;
+  }
 }
 
 .grid {
@@ -301,7 +271,7 @@ button:disabled {
   padding: 4px 12px;
   border-radius: 999px;
   background: var(--green-soft);
-  color: #3a630b;
+  color: var(--text);
   font-size: 13px;
 }
 
@@ -311,15 +281,28 @@ button:disabled {
   flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--radius);
   background: #fff;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
+/* การ์ดใช้แอนิเมชัน come (ค้าง transform ไว้) จึงขยายรูปแทนการยกการ์ดตอน hover */
 .card:hover,
 .card:focus-within {
-  transform: translateY(-2px);
+  border-color: var(--green);
   box-shadow: 0 8px 20px rgba(9, 44, 76, 0.08);
+}
+
+.card-image {
+  overflow: hidden;
+}
+
+.card-image img {
+  transition: transform 0.3s ease;
+}
+
+.card:hover .card-image img {
+  transform: scale(1.05);
 }
 
 .card-open {
@@ -355,7 +338,7 @@ button:disabled {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 12px 12px 4px;
+  padding: 12px;
 }
 
 .card-brand {
@@ -365,6 +348,7 @@ button:disabled {
 }
 
 .card-name {
+  font-size: 18px;
   font-weight: 700;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -373,28 +357,8 @@ button:disabled {
 
 .card-price {
   color: var(--navy);
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 800;
-}
-
-.add-btn {
-  margin: 8px 12px 12px;
-  padding: 8px;
-  border: 1px solid var(--green-dark);
-  border-radius: 8px;
-  background: #fff;
-  color: var(--green-dark);
-  font-weight: 700;
-}
-
-.add-btn:hover:not(:disabled) {
-  background: var(--green-dark);
-  color: #fff;
-}
-
-.add-btn:disabled {
-  border-color: var(--line);
-  color: var(--muted);
 }
 
 .placeholder {
@@ -404,7 +368,7 @@ button:disabled {
   width: 100%;
   height: 100%;
   background: var(--green-soft);
-  color: var(--green-dark);
+  color: var(--green);
   font-size: 48px;
   font-weight: 800;
 }
@@ -427,7 +391,7 @@ button:disabled {
 
 .stock-ok {
   background: var(--green-soft);
-  color: #3a630b;
+  color: var(--green-text);
 }
 
 .stock-low {
@@ -450,7 +414,7 @@ button:disabled {
 }
 
 .back:hover {
-  color: var(--green-dark);
+  color: var(--text);
 }
 
 .detail {
@@ -459,26 +423,26 @@ button:disabled {
   gap: 40px;
   padding: 28px;
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: var(--radius);
   background: #fff;
 }
 
 .detail-image {
   aspect-ratio: 1;
   overflow: hidden;
-  border-radius: 12px;
+  border-radius: var(--radius);
   background: var(--bg);
 }
 
 .detail-info h1 {
   margin: 12px 0 8px;
-  font-size: clamp(22px, 2.4vw, 32px);
+  font-size: clamp(28px, 3vw, 36px);
 }
 
 .detail-price {
   margin: 0 0 20px;
   color: var(--navy);
-  font-size: 30px;
+  font-size: clamp(24px, 2.5vw, 30px);
   font-weight: 800;
 }
 
@@ -511,7 +475,7 @@ button:disabled {
   width: 36px;
   height: 36px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--radius);
   background: #fff;
   font-size: 18px;
 }
@@ -568,7 +532,7 @@ button:disabled {
   font-size: 18px;
 }
 
-/* ---------- ตะกร้า (จอเล็ก/กลาง = แผงเลื่อนจากขวา) ---------- */
+/* ---------- ตะกร้า: แผงเลื่อนจากขวา เปิดจากไอคอนมุมขวาบน (slideIn / slideOut แบบเมนูบัญชีหลังร้าน) ---------- */
 .cart-panel {
   position: fixed;
   top: 0;
@@ -577,25 +541,35 @@ button:disabled {
   z-index: 40;
   display: flex;
   flex-direction: column;
-  width: min(380px, 100vw);
+  width: min(400px, 100vw);
   box-sizing: border-box;
-  padding: 20px;
+  padding: 20px 24px;
+  border-left: 1px solid var(--line);
   background: #fff;
-  box-shadow: -8px 0 24px rgba(9, 44, 76, 0.12);
-  transform: translateX(100%);
-  visibility: hidden;
-  transition: transform 0.2s ease, visibility 0.2s;
+  box-shadow: -16px 0 40px rgba(33, 43, 54, 0.1);
+  animation: slideIn 0.3s ease-out forwards;
 }
 
-.cart-panel.open {
-  transform: none;
-  visibility: visible;
+.cart-panel.closing {
+  animation: slideOut 0.3s ease-in forwards;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes slideOut {
+  from { transform: translateX(0); }
+  to { transform: translateX(100%); }
 }
 
 .cart-head {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
 }
 
 .cart-head h2 {
@@ -605,7 +579,7 @@ button:disabled {
 
 .cart-list {
   flex: 1;
-  margin: 16px 0;
+  margin: 8px 0 16px;
   padding: 0;
   overflow-y: auto;
   list-style: none;
@@ -625,7 +599,7 @@ button:disabled {
   padding: 0;
   overflow: hidden;
   border: 0;
-  border-radius: 8px;
+  border-radius: var(--radius);
   background: var(--bg);
 }
 
@@ -638,6 +612,7 @@ button:disabled {
 }
 
 .cart-name {
+  font-size: 16px;
   font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -646,7 +621,12 @@ button:disabled {
 
 .cart-price {
   color: var(--navy);
+  font-size: 14px;
   font-weight: 700;
+}
+
+.remove img {
+  width: 18px;
 }
 
 .cart-foot {
@@ -667,9 +647,16 @@ button:disabled {
 }
 
 .cart-empty {
-  padding: 32px 0;
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 0;
   color: var(--muted);
+}
+
+.cart-empty img {
+  width: 48px;
+  opacity: 0.5;
 }
 
 .backdrop {
@@ -678,7 +665,7 @@ button:disabled {
   z-index: 30;
   padding: 0;
   border: 0;
-  background: rgba(9, 44, 76, 0.35);
+  background: rgba(0, 0, 0, 0.074);
   cursor: default;
 }
 
@@ -703,7 +690,7 @@ button:disabled {
   padding: 24px;
   overflow-y: auto;
   border: 0;
-  border-radius: 16px;
+  border-radius: var(--radius);
   background: #fff;
   color: var(--text);
   box-shadow: 0 24px 48px rgba(9, 44, 76, 0.2);
@@ -751,14 +738,14 @@ button:disabled {
 .error {
   margin: 0;
   padding: 10px 12px;
-  border-radius: 8px;
+  border-radius: var(--radius);
   background: #fdecec;
   color: #b71c1c;
 }
 
 .summary {
   padding: 16px;
-  border-radius: 12px;
+  border-radius: var(--radius);
   background: var(--bg);
 }
 
@@ -797,8 +784,8 @@ button:disabled {
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: var(--green-soft);
-  color: var(--green-dark);
+  background: var(--green);
+  color: var(--on-green);
   font-size: 32px;
   font-weight: 800;
 }
@@ -819,33 +806,6 @@ button:disabled {
   color: #fff;
   box-shadow: 0 8px 20px rgba(9, 44, 76, 0.25);
   transform: translateX(-50%);
-}
-
-/* ---------- คอมพิวเตอร์: 3 คอลัมน์ หมวดหมู่ | สินค้า | ตะกร้า ---------- */
-@media (min-width: 1100px) {
-  .layout {
-    grid-template-columns: 220px minmax(0, 1fr) 340px;
-  }
-
-  .cart-panel {
-    position: sticky;
-    top: calc(var(--header-h) + 24px);
-    z-index: auto;
-    width: auto;
-    max-height: calc(100vh - var(--header-h) - 48px);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    box-shadow: none;
-    transform: none;
-    visibility: visible;
-    transition: none;
-  }
-
-  .cart-toggle,
-  .close-cart,
-  .drawer-backdrop {
-    display: none;
-  }
 }
 
 /* ---------- มือถือ ---------- */
@@ -875,14 +835,6 @@ button:disabled {
     background: #fff;
   }
 
-  .header-actions {
-    margin-left: 0;
-  }
-
-  .cart-toggle-label {
-    display: none;
-  }
-
   .detail,
   .checkout {
     grid-template-columns: 1fr;
@@ -898,14 +850,165 @@ button:disabled {
   }
 }
 
+/* ---------- แอนิเมชันชุดเดียวกับหน้าอื่นในระบบ ---------- */
+
+/* หมวดหมู่เลื่อนเข้าจากซ้าย (Boom) */
+.categories {
+  animation: Boom 0.7s ease-in-out;
+}
+
+@keyframes Boom {
+  0% {
+    transform: translateX(-500px);
+    opacity: 0;
+  }
+}
+
+/* การ์ด / รายการค่อย ๆ ลอยขึ้น (come) */
+.come {
+  opacity: 0;
+  animation: come 1.2s ease forwards;
+}
+
+@keyframes come {
+  0% {
+    opacity: 0;
+    transform: translateY(100px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* หน้ารายละเอียดเลื่อนเข้าจากขวา (Move_Return) */
+.Return {
+  animation: Move_Return 1s ease-in-out forwards;
+}
+
+@keyframes Move_Return {
+  0% {
+    transform: translateX(500px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* หน้าต่างสั่งซื้อ / ข้อความแจ้งเตือนเด้งขึ้นจากล่าง (form_noti) */
+.form_noti {
+  animation: form_noti 1s ease-in-out;
+}
+
+.toast {
+  animation: form_noti 0.6s ease-in-out;
+}
+
+@keyframes form_noti {
+  0% {
+    transform: translateY(500px);
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* ออกจากหน้าร้านไปหลังร้าน (Move_dashboard) */
+.fade-out {
+  animation: Move_dashboard 1s ease-in-out forwards;
+}
+
+@keyframes Move_dashboard {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(2000px);
+    opacity: 0;
+  }
+}
+
+/* จอโหลดเต็มหน้าจอ (ทับ navbar) ขนาดและสีเดียวกับหน้าอื่นในระบบ: โลโก้กะพริบ + แท่งเด้ง */
+.loading-container {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.8);
+}
+
+.logo_loading {
+  width: 300px;
+  height: 300px;
+  transform: scaleX(1.2);
+  animation: expandLogo 2s linear infinite alternate;
+}
+
+@keyframes expandLogo {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.loading {
+  display: flex;
+  gap: 8px;
+  width: 100px;
+}
+
+.loading > div {
+  flex: 1;
+  height: 16px;
+  background: #203e18;
+  transform: scaleY(0.1);
+  animation: loading 0.5s ease-in-out infinite alternate;
+}
+
+.loading .loader1 { animation-delay: 0.1s; }
+.loading .loader2 { animation-delay: 0.2s; }
+.loading .loader3 { animation-delay: 0.3s; }
+.loading .loader4 { animation-delay: 0.4s; }
+
+@keyframes loading {
+  0% {
+    opacity: 0.2;
+    transform: scaleY(0.1);
+  }
+  100% {
+    opacity: 1;
+    transform: scaleY(2.8);
+    background: #84d46e;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .card,
-  .cart-panel {
+  .categories,
+  .come,
+  .Return,
+  .form_noti,
+  .toast,
+  .fade-out,
+  .cart-panel,
+  .cart-panel.closing,
+  .logo_loading,
+  .loading > div {
+    animation: none;
     transition: none;
+    opacity: 1;
   }
 
-  .card:hover,
-  .card:focus-within {
+  .card:hover .card-image img {
     transform: none;
   }
 }

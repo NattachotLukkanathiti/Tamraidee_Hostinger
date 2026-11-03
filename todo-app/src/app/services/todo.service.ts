@@ -40,6 +40,11 @@ export interface ShopOrderRequest {
   items: { sku: string; quantity: number }[];
 }
 
+export interface ShopCartItem {
+  sku: string;
+  quantity: number;
+}
+
 export interface ShopOrderResult {
   success: boolean;
   order_code: string;
@@ -126,6 +131,15 @@ export class TodoService {
 
   createShopOrder(order: ShopOrderRequest) {
     return this.http.post<ShopOrderResult>(`${this.apiUrl}/shop/orders`, order, { headers: this.headers });
+  }
+
+  // ตะกร้าของบัญชีที่ login อยู่ (Backend ยึดผู้ใช้จาก token)
+  getShopCart() {
+    return this.http.get<{ items: ShopCartItem[] }>(`${this.apiUrl}/shop/cart`, { headers: this.headers });
+  }
+
+  saveShopCart(items: ShopCartItem[]) {
+    return this.http.put<{ items: ShopCartItem[] }>(`${this.apiUrl}/shop/cart`, { items }, { headers: this.headers });
   }
 
   getHistory() {

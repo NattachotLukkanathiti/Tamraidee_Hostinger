@@ -1,4 +1,5 @@
-import { fakeAsync, tick } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { AuthService } from '../services/auth.service';
 import { animationMethods, setUpPage } from '../../testing/page-test-utils';
 import { NavbarComponent } from './navbar.component';
 
@@ -40,5 +41,41 @@ describe('NavbarComponent', () => {
         expect(router.navigate).toHaveBeenCalled();
       }));
     }
+  });
+
+  describe('ปุ่มไปหน้าร้าน (เฉพาะพนักงาน)', () => {
+    afterEach(() => localStorage.clear());
+
+    const login = (role: string) =>
+      TestBed.inject(AuthService).setSession('t', { id: 1, username: 'boss', title: 'b@test.com', role });
+
+    it('แอดมิน: เมนูบัญชีมี Online Shop กดแล้วไปหน้า /shop', () => {
+      const { component, router, fixture } = setUpPage(NavbarComponent);
+      login('admin');
+
+      expect(component.canOpenShop).toBeTrue();
+      component.toggleAccountMenu();
+      fixture.detectChanges();
+      (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('.open-shop')!.click();
+
+      expect(router.navigate).toHaveBeenCalledWith(['/shop']);
+    });
+
+    it('pos / backend: เห็นปุ่มไปหน้าร้านเหมือนกัน', () => {
+      const { component } = setUpPage(NavbarComponent);
+      login('pos');
+
+      expect(component.canOpenShop).toBeTrue();
+    });
+
+    it('ไม่ใช่พนักงาน (แม้ history.state จะบอกว่าเป็น admin): ไม่เห็นปุ่มและไปหน้าร้านไม่ได้', () => {
+      const { component, router } = setUpPage(NavbarComponent);
+      login('customer');
+
+      component.openShop();
+
+      expect(component.canOpenShop).toBeFalse();
+      expect(router.navigate).not.toHaveBeenCalledWith(['/shop']);
+    });
   });
 });
