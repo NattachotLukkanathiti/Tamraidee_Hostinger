@@ -2,5 +2,5 @@ projectKey=tamraidee
 serverUrl=http://localhost:9000
 serverVersion=26.10.0.133078
 dashboardUrl=http://localhost:9000/dashboard?id=tamraidee
-ceTaskId=bd864d45-1571-4d55-9421-a3afd34af534
-ceTaskUrl=http://localhost:9000/api/ce/task?id=bd864d45-1571-4d55-9421-a3afd34af534
+ceTaskId=b238c9ee-5f2a-4556-ba0e-4bf2ad74c8e3
+ceTaskUrl=http://localhost:9000/api/ce/task?id=b238c9ee-5f2a-4556-ba0e-4bf2ad74c8e3

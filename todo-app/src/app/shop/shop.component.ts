@@ -1,4 +1,4 @@
-import { Component, DestroyRef, HostListener, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, ElementRef, HostListener, Injector, OnInit, ViewChild, afterNextRender, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -6,7 +6,10 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService, canUseBackOffice, homeRouteFor } from '../services/auth.service';
 import { ShopOrderResult, ShopProduct, TodoService } from '../services/todo.service';
 import { ShopCartService } from './shop-cart.service';
-import { ShopNavbarComponent } from './shop-navbar/shop-navbar.component';
+import { ShopCategory, ShopNavbarComponent } from './shop-navbar/shop-navbar.component';
+import { formatPrice } from './shop-format';
+import { ShopOrdersComponent } from './shop-orders/shop-orders.component';
+import { ShopPaymentComponent } from './shop-payment/shop-payment.component';
 
 export const LOW_STOCK = 5;
 // เวลาของแอนิเมชันปิดแผง / ออกจากหน้า (ตรงกับ CSS และหน้าอื่นในระบบที่รอ 300ms ก่อนเปลี่ยนหน้า)
@@ -15,6 +18,8 @@ const ALL = 'All';
 const PHONE_PATTERN = /^0\d{8,9}$/;
 // หน่วงการ์ดทีละใบตอนแสดง (แอนิเมชัน come) แต่ไม่เกินค่านี้ เพื่อไม่ให้รายการยาวต้องรอนาน
 const MAX_STAGGER_MS = 600;
+// สินค้าขายดีอันดับต้น ๆ แสดงเป็นแผ่นใหญ่ (showcase) ที่เหลือไปอยู่ในแถบเลื่อน
+export const FEATURED_COUNT = 3;
 
 type StockLevel = 'out' | 'low' | 'ok';
 export type SortOption = 'name' | 'price-asc' | 'price-desc';
@@ -27,9 +32,9 @@ export interface CartItem {
 // หน้าร้านออนไลน์ (หน้าแรกของเว็บ): ดู/ค้นหาสินค้า ดูรายละเอียดที่ /shop/:sku ใส่ตะกร้า และสั่งซื้อ
 @Component({
   selector: 'app-shop',
-  imports: [FormsModule, NgTemplateOutlet, ShopNavbarComponent],
+  imports: [FormsModule, NgTemplateOutlet, ShopNavbarComponent, ShopOrdersComponent, ShopPaymentComponent],
   templateUrl: './shop.component.html',
-  styleUrl: './shop.component.css'
+  styleUrls: ['./shop-ui.css', './shop.component.css']
 })
 export class ShopComponent implements OnInit {
   private readonly todoService = inject(TodoService);
@@ -37,11 +42,16 @@ export class ShopComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly auth = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly injector = inject(Injector);
   readonly cart = inject(ShopCartService);
 
   readonly allLabel = ALL;
+  readonly featuredCount = FEATURED_COUNT;
   products: ShopProduct[] = [];
-  categories: { label: string; count: number }[] = [];
+  private bestSellerSkus: string[] = [];
+  bestAtStart = true;
+  bestAtEnd = false;
+  categories: ShopCategory[] = [];
   selectedCategory = ALL;
   searchTerm = '';
   sortBy: SortOption = 'name';
@@ -56,17 +66,13 @@ export class ShopComponent implements OnInit {
   checkoutOpen = false;
   isSubmitting = false;
   orderError = '';
-  orderResult: ShopOrderResult | null = null;
+  orderResult: ShopOrderResult | null = null; // สั่งแล้ว รอชำระเงิน (แสดง QR พร้อมเพย์)
+  paymentSent = false; // แนบสลิปแล้ว รอพนักงานตรวจ
+  ordersOpen = false;
   customer = { customer_name: '', phone: '', address: '', note: '' };
   toast = '';
   isLeaving = false;
   private toastTimer?: ReturnType<typeof setTimeout>;
-
-  private readonly priceFormat = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'THB',
-    currencyDisplay: 'narrowSymbol'
-  });
 
   ngOnInit(): void {
     this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
@@ -76,6 +82,15 @@ export class ShopComponent implements OnInit {
     });
     this.destroyRef.onDestroy(() => clearTimeout(this.toastTimer));
     this.loadProducts();
+    this.loadBestSellers();
+  }
+
+  // แถบสินค้าขายดีเป็นส่วนเสริม: โหลดไม่ได้ก็แค่ไม่แสดง
+  loadBestSellers(): void {
+    this.todoService.getShopBestSellers().subscribe({
+      next: res => (this.bestSellerSkus = res?.skus ?? []),
+      error: err => console.error('Error loading best sellers:', err)
+    });
   }
 
   loadProducts(): void {
@@ -108,6 +123,63 @@ export class ShopComponent implements OnInit {
     return [...list].sort((a, b) => (Number(a.price) - Number(b.price)) * direction);
   }
 
+  // เรียงตามยอดขายจาก Backend ข้ามสินค้าที่ไม่มีในร้านแล้ว
+  get bestSellers(): ShopProduct[] {
+    const bySku = new Map(this.products.map(p => [p.sku, p]));
+    return this.bestSellerSkus.flatMap(sku => bySku.get(sku) ?? []);
+  }
+
+  // แสดงเฉพาะหน้ารวมที่ยังไม่ได้ค้นหา / กรองหมวด
+  get showBestSellers(): boolean {
+    return this.selectedCategory === ALL && !this.searchTerm.trim() && this.bestSellers.length > 0;
+  }
+
+  // แผ่นใหญ่ด้านบนสุด: แผ่นแรกเต็มความกว้าง ถัดไปเป็นสองคอลัมน์ (แบบหน้าแรก Apple)
+  // ยังไม่มียอดขาย / โหลดยอดขายไม่ได้: แสดงสินค้าแนะนำ (มีของ มีรูปก่อน) โดยไม่อ้างว่าขายดี
+  get featuredProducts(): ShopProduct[] {
+    if (this.hasBestSellers) return this.bestSellers.slice(0, FEATURED_COUNT);
+    const inStock = this.products.filter(p => this.stock(p) > 0);
+    return [...inStock.filter(p => p.picture), ...inStock.filter(p => !p.picture)].slice(0, FEATURED_COUNT);
+  }
+
+  get hasBestSellers(): boolean {
+    return this.bestSellers.length > 0;
+  }
+
+  featuredLabel(index: number): string {
+    return this.hasBestSellers ? `#${index + 1} Best Seller` : 'Featured';
+  }
+
+  get carouselProducts(): ShopProduct[] {
+    return this.bestSellers.slice(FEATURED_COUNT);
+  }
+
+  get showShowcase(): boolean {
+    return !this.selectedSku && this.selectedCategory === ALL && !this.searchTerm.trim() && this.featuredProducts.length > 0;
+  }
+
+  // คำโปรยใต้ชื่อสินค้า: ไม่มีข้อมูลก็ใช้ข้อความกลาง
+  tagline(product: ShopProduct): string {
+    return [product.brand, product.category].filter(Boolean).join(' · ') || 'Available now';
+  }
+
+  @ViewChild('bestTrack')
+  set bestTrack(ref: ElementRef<HTMLElement> | undefined) {
+    // แถบเพิ่งแสดง: รอ layout เสร็จแล้วค่อยดูว่าเลื่อนไปขวาได้ไหม
+    if (ref) setTimeout(() => this.updateBestArrows(ref.nativeElement));
+  }
+
+  // ปุ่มลูกศรเลื่อนทีละประมาณหนึ่งหน้าจอของแถบ
+  scrollBestSellers(track: HTMLElement, direction: 1 | -1): void {
+    const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    track.scrollBy({ left: direction * track.clientWidth * 0.8, behavior: reducedMotion ? 'auto' : 'smooth' });
+  }
+
+  updateBestArrows(track: HTMLElement): void {
+    this.bestAtStart = track.scrollLeft <= 1;
+    this.bestAtEnd = track.scrollLeft + track.clientWidth >= track.scrollWidth - 1;
+  }
+
   get selectedProduct(): ShopProduct | undefined {
     return this.products.find(p => p.sku === this.selectedSku);
   }
@@ -128,6 +200,14 @@ export class ShopComponent implements OnInit {
     if (this.selectedSku) this.backToList();
   }
 
+  // เลือกจากเมนูประเภทบน navbar: รอให้หน้าวาดใหม่ก่อน (แผ่นสินค้าขายดีหาย/กลับมา) แล้วค่อยเลื่อนไปที่รายการ
+  // (จากหน้ารายละเอียด selectCategory พากลับหน้ารวมให้แล้ว)
+  pickCategory(label: string): void {
+    const fromDetail = !!this.selectedSku;
+    this.selectCategory(label);
+    if (!fromDetail) afterNextRender(() => this.scrollToProducts(), { injector: this.injector });
+  }
+
   // พิมพ์ค้นหาตอนอยู่หน้ารายละเอียด ให้กลับไปหน้ารวมเพื่อเห็นผลการค้นหา
   onSearchChange(): void {
     if (this.selectedSku) this.backToList();
@@ -146,6 +226,13 @@ export class ShopComponent implements OnInit {
 
   backToList(): void {
     void this.router.navigate(['/shop']);
+  }
+
+  // ปุ่ม Learn more ในแถบประกาศ: เลื่อนลงไปที่รายการสินค้าทั้งหมด
+  scrollToProducts(): void {
+    if (this.selectedSku) this.backToList();
+    const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    document.getElementById('all-products')?.scrollIntoView({ behavior: reducedMotion ? 'auto' : 'smooth', block: 'start' });
   }
 
   // ---------- Stock / price ----------
@@ -181,7 +268,7 @@ export class ShopComponent implements OnInit {
   }
 
   formatPrice(value: number | string): string {
-    return this.priceFormat.format(Number(value) || 0);
+    return formatPrice(value);
   }
 
   initial(product: ShopProduct): string {
@@ -239,19 +326,39 @@ export class ShopComponent implements OnInit {
 
   // ---------- Checkout ----------
 
+  // สั่งซื้อต้อง login (ออเดอร์ผูกกับบัญชี ดูสถานะได้ใน My Orders) ตะกร้าของ guest จะรวมเข้าบัญชีหลัง login
   openCheckout(): void {
     if (this.cartItems.length === 0) return;
+    if (!this.auth.isLoggedIn()) {
+      this.showToast('Please log in to place your order');
+      this.enterBackOffice();
+      return;
+    }
     this.orderError = '';
     this.orderResult = null;
+    this.paymentSent = false;
     this.cartOpen = false;
     this.cartClosing = false;
+    if (!this.customer.customer_name) this.customer.customer_name = this.auth.user?.username ?? '';
     this.checkoutOpen = true;
   }
 
+  // ปิดได้แม้ยังไม่จ่าย ออเดอร์ยังรอชำระเงินอยู่ จ่ายต่อได้จาก My Orders
   closeCheckout(): void {
     if (this.isSubmitting) return;
     this.checkoutOpen = false;
     this.orderResult = null;
+    this.paymentSent = false;
+  }
+
+  onCheckoutPaid(): void {
+    this.paymentSent = true;
+  }
+
+  openOrders(): void {
+    this.closeCheckout();
+    this.closeCart();
+    this.ordersOpen = true;
   }
 
   submitOrder(): void {
@@ -317,7 +424,7 @@ export class ShopComponent implements OnInit {
     this.toastTimer = setTimeout(() => (this.toast = ''), 2500);
   }
 
-  private buildCategories(products: ShopProduct[]): { label: string; count: number }[] {
+  private buildCategories(products: ShopProduct[]): ShopCategory[] {
     const counts = new Map<string, number>();
     for (const p of products) {
       if (p.category) counts.set(p.category, (counts.get(p.category) ?? 0) + 1);

@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 
 // rate limit แบบ in-memory แยกตาม IP + อีเมล/username (กันเดา OTP/รหัสผ่าน และกันยิงอีเมลรัว ๆ)
-export function rateLimit(windowMs: number, max: number) {
+// keyOf: เปลี่ยนตัวแยกได้ เช่น endpoint ที่ต้อง login ให้นับแยกตามบัญชี
+export function rateLimit(windowMs: number, max: number, keyOf: (req: Request) => string = defaultKey) {
   const hits = new Map<string, { count: number; resetAt: number }>();
   setInterval(() => {
     const now = Date.now();
@@ -9,8 +10,7 @@ export function rateLimit(windowMs: number, max: number) {
   }, windowMs).unref();
 
   return (req: Request, res: Response, next: NextFunction) => {
-    const who = req.body?.title || req.body?.username || '';
-    const key = `${req.ip}|${who}`;
+    const key = keyOf(req);
     const now = Date.now();
     const entry = hits.get(key);
 
@@ -23,6 +23,10 @@ export function rateLimit(windowMs: number, max: number) {
     }
     next();
   };
+}
+
+function defaultKey(req: Request) {
+  return `${req.ip}|${req.body?.title || req.body?.username || ''}`;
 }
 
 export const otpRequestLimit = rateLimit(15 * 60 * 1000, 5);

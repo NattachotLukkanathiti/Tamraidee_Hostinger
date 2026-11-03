@@ -45,10 +45,38 @@ export interface ShopCartItem {
   quantity: number;
 }
 
+// สถานะคำสั่งซื้อหน้าร้าน: จ่ายผ่าน PromptPay แล้วแนบสลิป พนักงานตรวจแล้วจึงนับว่าสำเร็จ (ตัดสต็อก)
+export type ShopOrderStatus = 'Awaiting Payment' | 'Verifying' | 'Completed' | 'Rejected' | 'Canceled';
+
+export interface ShopOrderLine {
+  sku: string;
+  product_name: string;
+  price: number;
+  quantity: number;
+}
+
+export interface ShopOrder {
+  id: number;
+  order_code: string;
+  customer_name: string;
+  phone: string;
+  address: string;
+  note: string | null;
+  items: ShopOrderLine[];
+  total: number;
+  status: ShopOrderStatus;
+  created_at: string;
+  has_slip: boolean;
+  slip_uploaded_at: string | null;
+  reject_reason: string | null;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+}
+
 export interface ShopOrderResult {
   success: boolean;
-  order_code: string;
-  total: number;
+  order: ShopOrder;
+  promptpay_id: string;
 }
 
 @Injectable({
@@ -129,8 +157,46 @@ export class TodoService {
     return this.http.get<ShopProduct[]>(`${this.apiUrl}/shop/products`, { headers: this.headers });
   }
 
+  // สั่งซื้อ (ต้อง login) ได้ออเดอร์สถานะรอชำระเงิน + เบอร์ PromptPay ของร้านสำหรับสร้าง QR
   createShopOrder(order: ShopOrderRequest) {
     return this.http.post<ShopOrderResult>(`${this.apiUrl}/shop/orders`, order, { headers: this.headers });
+  }
+
+  getMyShopOrders() {
+    return this.http.get<{ orders: ShopOrder[]; promptpay_id: string | null }>(`${this.apiUrl}/shop/orders/mine`, { headers: this.headers });
+  }
+
+  // slip = รูปสลิปแบบ data URL (base64)
+  uploadShopSlip(orderId: number, slip: string) {
+    return this.http.post<{ order: ShopOrder }>(`${this.apiUrl}/shop/orders/${orderId}/slip`, { slip }, { headers: this.headers });
+  }
+
+  cancelShopOrder(orderId: number) {
+    return this.http.post<{ order: ShopOrder }>(`${this.apiUrl}/shop/orders/${orderId}/cancel`, {}, { headers: this.headers });
+  }
+
+  // ---------- หลังร้าน: ตรวจสลิปออเดอร์ออนไลน์ (admin / manager / pos) ----------
+
+  getOnlineOrders(status = '') {
+    const query = status ? `?status=${encodeURIComponent(status)}` : '';
+    return this.http.get<{ orders: ShopOrder[] }>(`${this.apiUrl}/shop/admin/orders${query}`, { headers: this.headers });
+  }
+
+  getOnlineOrderSlip(orderId: number) {
+    return this.http.get<{ slip: string }>(`${this.apiUrl}/shop/admin/orders/${orderId}/slip`, { headers: this.headers });
+  }
+
+  confirmOnlineOrder(orderId: number) {
+    return this.http.post<{ order: ShopOrder }>(`${this.apiUrl}/shop/admin/orders/${orderId}/confirm`, {}, { headers: this.headers });
+  }
+
+  rejectOnlineOrder(orderId: number, reason: string) {
+    return this.http.post<{ order: ShopOrder }>(`${this.apiUrl}/shop/admin/orders/${orderId}/reject`, { reason }, { headers: this.headers });
+  }
+
+  // SKU สินค้าขายดีเรียงจากมากไปน้อย (ไม่มียอดขาย)
+  getShopBestSellers() {
+    return this.http.get<{ skus: string[] }>(`${this.apiUrl}/shop/best-sellers`, { headers: this.headers });
   }
 
   // ตะกร้าของบัญชีที่ login อยู่ (Backend ยึดผู้ใช้จาก token)

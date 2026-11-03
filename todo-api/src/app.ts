@@ -48,7 +48,7 @@ const PUBLIC_API_ROUTES = new Set([
   'POST /api/check-email',
   'PUT /api/reset-password',
   'GET /api/shop/products',
-  'POST /api/shop/orders',
+  'GET /api/shop/best-sellers',
 ]);
 
 app.use('/api', (req, res, next) => {

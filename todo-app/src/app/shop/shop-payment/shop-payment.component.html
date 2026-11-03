@@ -1,0 +1,58 @@
+<section class="pay" [attr.aria-label]="'Pay for order ' + order().order_code">
+  <div class="pay-qr">
+    <p class="pay-brand">Thai QR Payment · PromptPay</p>
+    <div class="qr-frame">
+      @if (qrUrl) {
+        <img [src]="qrUrl" [alt]="'PromptPay QR code for ' + formatPrice(order().total)" />
+      } @else if (qrError) {
+        <p class="error" role="alert">{{ qrError }}</p>
+      } @else {
+        <p class="hint">Creating QR code…</p>
+      }
+    </div>
+    <p class="pay-amount">{{ formatPrice(order().total) }}</p>
+    <p class="hint">
+      Order {{ order().order_code }}
+      @if (maskedId) {
+        · PromptPay {{ maskedId }}
+      }
+    </p>
+    @if (qrUrl) {
+      <a class="btn-outline save-qr" [href]="qrUrl" [download]="order().order_code + '-promptpay.png'">Save QR code</a>
+    }
+  </div>
+
+  <div class="pay-steps">
+    <ol>
+      <li>Scan the QR code with any Thai banking app, or save it and open it from your photos.</li>
+      <li>Pay exactly <strong>{{ formatPrice(order().total) }}</strong>.</li>
+      <li>Attach your payment slip and send it to us.</li>
+    </ol>
+
+    @if (order().reject_reason) {
+      <p class="error" role="alert">Your previous slip was not accepted: {{ order().reject_reason }}</p>
+    }
+
+    @if (slip) {
+      <figure class="slip-preview">
+        <img [src]="slip" alt="Selected payment slip" />
+        <button type="button" class="icon-btn" aria-label="Remove payment slip" (click)="removeSlip()">✕</button>
+      </figure>
+    } @else {
+      <label class="slip-drop" [class.busy]="isReading">
+        <input type="file" class="visually-hidden" [accept]="accept" (change)="onSlipSelected($event)" [disabled]="isReading" />
+        <span class="slip-drop__title">{{ isReading ? 'Reading image…' : 'Attach payment slip' }}</span>
+        <span class="hint">PNG, JPEG or WebP</span>
+      </label>
+    }
+
+    @if (slipError) {
+      <p class="error" role="alert">{{ slipError }}</p>
+    }
+
+    <button type="button" class="btn-primary large block" [disabled]="!slip || isUploading" (click)="submit()">
+      {{ isUploading ? 'Sending…' : 'Send payment slip' }}
+    </button>
+    <p class="hint">Your order is confirmed only after our staff verify your payment.</p>
+  </div>
+</section>

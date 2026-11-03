@@ -1,10 +1,16 @@
 import { ComponentFixture, TestBed, discardPeriodicTasks, fakeAsync, tick } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
+import { ApplicationRef } from '@angular/core';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { BehaviorSubject, of, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 import { ShopProduct, TodoService } from '../services/todo.service';
 import { ShopCartService } from './shop-cart.service';
 import { ANIMATION_MS, LOW_STOCK, ShopComponent } from './shop.component';
+import { ShopNavbarComponent } from './shop-navbar/shop-navbar.component';
+import { ShopOrdersComponent } from './shop-orders/shop-orders.component';
+import { ShopPaymentComponent } from './shop-payment/shop-payment.component';
+import { shopOrder } from '../../testing/shop-order-fixtures';
 
 const PRODUCTS: ShopProduct[] = [
   { sku: 'A1', product_name: 'Apple', category: 'Fruit', brand: 'FarmA', price: '25.50', quantity: 20, picture: 'a.png' },
@@ -12,6 +18,8 @@ const PRODUCTS: ShopProduct[] = [
   { sku: 'C1', product_name: 'Cola', category: 'Drink', brand: 'Fizz', price: 15, quantity: 0, picture: null },
   { sku: 'D1', product_name: 'Durian', category: null, brand: null, price: 300, quantity: null, picture: null }
 ];
+
+const ORDER = shopOrder();
 
 describe('ShopComponent', () => {
   let fixture: ComponentFixture<ShopComponent>;
@@ -39,6 +47,10 @@ describe('ShopComponent', () => {
     fixture.detectChanges();
   };
 
+  // สั่งซื้อต้อง login (ออเดอร์ผูกกับบัญชี)
+  const loginCustomer = () =>
+    TestBed.inject(AuthService).setSession('t', { id: 2, username: 'somchai', title: 'c@test.com', role: 'customer' });
+
   const el = () => fixture.nativeElement as HTMLElement;
   const text = () => el().textContent ?? '';
   const cards = () => el().querySelectorAll<HTMLButtonElement>('.card-open');
@@ -48,15 +60,152 @@ describe('ShopComponent', () => {
 
   beforeEach(() => {
     localStorage.clear();
-    todoService = jasmine.createSpyObj<TodoService>('TodoService', ['getShopProducts', 'createShopOrder', 'logAudit', 'getShopCart', 'saveShopCart']);
+    todoService = jasmine.createSpyObj<TodoService>('TodoService', ['getShopProducts', 'createShopOrder', 'logAudit', 'getShopCart', 'saveShopCart', 'getShopBestSellers', 'getMyShopOrders', 'uploadShopSlip', 'cancelShopOrder']);
     todoService.getShopProducts.and.returnValue(of(PRODUCTS));
+    todoService.getShopBestSellers.and.returnValue(of({ skus: [] }));
     todoService.getShopCart.and.returnValue(of({ items: [] }));
     todoService.saveShopCart.and.callFake(items => of({ items }));
+    todoService.getMyShopOrders.and.returnValue(of({ orders: [], promptpay_id: '0811112222' }));
   });
 
   afterEach(() => localStorage.clear());
 
   // ---------- รายการสินค้า ----------
+
+  it('แถบประกาศแบบหน้าอื่น: Learn more เลื่อนไปรายการสินค้า', () => {
+    setUp();
+    const target = el().querySelector<HTMLElement>('#all-products')!;
+    spyOn(target, 'scrollIntoView');
+
+    expect(el().querySelector('.tab_con .tab')?.textContent).toContain('Introducing Tamraidee');
+    el().querySelector<HTMLButtonElement>('.tab .lern')!.click();
+
+    expect(target.scrollIntoView).toHaveBeenCalled();
+  });
+
+  it('Learn more จากหน้ารายละเอียด: กลับไปหน้ารวมก่อน', () => {
+    setUp('A1');
+
+    component.scrollToProducts();
+
+    expect(router.navigate).toHaveBeenCalledWith(['/shop']);
+  });
+
+  describe('สินค้าขายดี', () => {
+    const bestCards = () => el().querySelectorAll<HTMLButtonElement>('.best-card');
+
+    const tiles = () => el().querySelectorAll<HTMLElement>('.tile');
+
+    it('3 อันดับแรกเป็นแผ่นใหญ่ (แผ่นแรกเต็มกว้าง แผ่นที่ 3 พื้นมืด) ข้าม SKU ที่ไม่มีในร้าน', () => {
+      todoService.getShopBestSellers.and.returnValue(of({ skus: ['C1', 'GONE', 'A1', 'B1', 'D1'] }));
+      setUp();
+
+      expect(component.featuredProducts.map(p => p.sku)).toEqual(['C1', 'A1', 'B1']);
+      expect(tiles()).toHaveSize(3);
+      expect(tiles()[0].classList).toContain('tile-hero');
+      expect(tiles()[2].classList).toContain('tile-dark');
+      expect(tiles()[0].textContent).toContain('#1 Best Seller');
+      expect(tiles()[1].textContent).toContain('FarmA · Fruit');
+      expect(tiles()[2].textContent).toContain('Fruit');
+    });
+
+    it('อันดับที่เหลือไปอยู่ในแถบเลื่อน และนับอันดับต่อจากแผ่นใหญ่', () => {
+      todoService.getShopBestSellers.and.returnValue(of({ skus: ['A1', 'B1', 'C1', 'D1'] }));
+      setUp();
+
+      expect(bestCards()).toHaveSize(1);
+      expect(bestCards()[0].textContent).toContain('#4 Best Seller');
+      bestCards()[0].click();
+      expect(router.navigate).toHaveBeenCalledWith(['/shop', 'D1']);
+    });
+
+    it('มีไม่เกิน 3 อันดับ: ไม่แสดงแถบเลื่อน', () => {
+      todoService.getShopBestSellers.and.returnValue(of({ skus: ['A1'] }));
+      setUp();
+
+      expect(tiles()).toHaveSize(1);
+      expect(el().querySelector('.best-sellers')).toBeNull();
+    });
+
+    it('Learn more ไปหน้ารายละเอียด / Buy ใส่ตะกร้าแล้วเปิดหน้าชำระเงิน / ของหมดแสดงสถานะแทนปุ่ม Buy', () => {
+      todoService.getShopBestSellers.and.returnValue(of({ skus: ['A1', 'C1'] }));
+      setUp();
+      loginCustomer();
+
+      tiles()[0].querySelector<HTMLButtonElement>('.btn-primary')!.click();
+      expect(router.navigate).toHaveBeenCalledWith(['/shop', 'A1']);
+
+      tiles()[0].querySelector<HTMLButtonElement>('.btn-outline')!.click();
+      expect(cart.quantityOf('A1')).toBe(1);
+      expect(component.checkoutOpen).toBeTrue();
+
+      expect(tiles()[1].querySelector('.btn-outline')).toBeNull();
+      expect(tiles()[1].textContent).toContain('Out of stock');
+    });
+
+    it('ไม่มีข้อมูลยี่ห้อ / หมวด: ใช้คำโปรยกลาง และไม่แสดงในหน้ารายละเอียด', () => {
+      todoService.getShopBestSellers.and.returnValue(of({ skus: ['D1'] }));
+      setUp('D1');
+
+      expect(component.tagline(PRODUCTS[3])).toBe('Available now');
+      expect(tiles()).toHaveSize(0);
+    });
+
+    it('ซ่อนเมื่อค้นหา / เลือกหมวด / ยังไม่มียอดขาย', () => {
+      todoService.getShopBestSellers.and.returnValue(of({ skus: ['A1'] }));
+      setUp();
+      expect(component.showShowcase).toBeTrue();
+
+      component.searchTerm = 'app';
+      expect(component.showBestSellers).toBeFalse();
+      component.searchTerm = '';
+      component.selectedCategory = 'Fruit';
+      expect(component.showBestSellers).toBeFalse();
+    });
+
+    it('ไม่มียอดขายเลย: แผ่นใหญ่แสดงสินค้าแนะนำ (มีของ มีรูปก่อน) ป้าย Featured และไม่มีแถบเลื่อน', () => {
+      setUp();
+
+      expect(component.featuredProducts.map(p => p.sku)).toEqual(['A1', 'B1']); // C1, D1 ของหมด
+      expect(tiles()).toHaveSize(2);
+      expect(tiles()[0].textContent).toContain('Featured');
+      expect(tiles()[0].textContent).not.toContain('Best Seller');
+      expect(el().querySelector('.best-sellers')).toBeNull();
+    });
+
+    it('โหลดไม่ได้: ไม่แสดงแถบ แต่รายการสินค้ายังใช้ได้', () => {
+      todoService.getShopBestSellers.and.returnValue(throwError(() => new Error('down')));
+      spyOn(console, 'error');
+      setUp();
+
+      expect(el().querySelector('.best-sellers')).toBeNull();
+      expect(tiles()[0].textContent).toContain('Featured');
+      expect(cards()).toHaveSize(4);
+      expect(console.error).toHaveBeenCalled();
+    });
+
+    it('ปุ่มลูกศรเลื่อนแถบ และปิดปุ่มเมื่อสุดทาง', fakeAsync(() => {
+      todoService.getShopBestSellers.and.returnValue(of({ skus: ['A1', 'B1', 'C1', 'D1'] }));
+      setUp();
+      tick();
+      const track = { scrollLeft: 0, clientWidth: 500, scrollWidth: 1200, scrollBy: jasmine.createSpy('scrollBy') };
+
+      component.scrollBestSellers(track as unknown as HTMLElement, 1);
+      expect(track.scrollBy).toHaveBeenCalledWith(jasmine.objectContaining({ left: 400 }));
+      component.scrollBestSellers(track as unknown as HTMLElement, -1);
+      expect(track.scrollBy).toHaveBeenCalledWith(jasmine.objectContaining({ left: -400 }));
+
+      component.updateBestArrows(track as unknown as HTMLElement);
+      expect(component.bestAtStart).toBeTrue();
+      expect(component.bestAtEnd).toBeFalse();
+
+      track.scrollLeft = 700;
+      component.updateBestArrows(track as unknown as HTMLElement);
+      expect(component.bestAtStart).toBeFalse();
+      expect(component.bestAtEnd).toBeTrue();
+      discardPeriodicTasks();
+    }));
+  });
 
   it('แสดงสินค้าทุกชิ้นพร้อมราคาและสถานะสต็อก', () => {
     setUp();
@@ -80,6 +229,37 @@ describe('ShopComponent', () => {
     component.selectCategory('Fruit');
     expect(component.filteredProducts.map(p => p.sku)).toEqual(['A1', 'B1']);
     expect(router.navigate).not.toHaveBeenCalled();
+  });
+
+  it('เมนูประเภทใน navbar: ได้รายการหมวด เลือกแล้วกรองและเลื่อนไปที่รายการสินค้า', () => {
+    setUp();
+    const target = el().querySelector<HTMLElement>('#all-products')!;
+    spyOn(target, 'scrollIntoView');
+    const navbar = fixture.debugElement.query(By.directive(ShopNavbarComponent)).componentInstance as ShopNavbarComponent;
+
+    expect(navbar.categories()).toEqual(component.categories);
+    expect(navbar.selectedCategory()).toBe(component.allLabel);
+
+    navbar.categorySelect.emit('Fruit');
+    expect(target.scrollIntoView).not.toHaveBeenCalled(); // รอหน้าวาดใหม่ก่อน
+    fixture.detectChanges();
+    TestBed.inject(ApplicationRef).tick();
+
+    expect(component.selectedCategory).toBe('Fruit');
+    expect(navbar.selectedCategory()).toBe('Fruit');
+    expect(target.scrollIntoView).toHaveBeenCalled();
+  });
+
+  it('เมนูประเภทจากหน้ารายละเอียด: กลับหน้ารวมครั้งเดียว ไม่เลื่อนซ้ำ', () => {
+    setUp('A1');
+    spyOn(component, 'scrollToProducts');
+
+    component.pickCategory('Drink');
+    TestBed.inject(ApplicationRef).tick();
+
+    expect(component.selectedCategory).toBe('Drink');
+    expect(router.navigate).toHaveBeenCalledOnceWith(['/shop']);
+    expect(component.scrollToProducts).not.toHaveBeenCalled();
   });
 
   it('ค้นหาได้จากชื่อ แบรนด์ หรือรหัสสินค้า และแจ้งเมื่อไม่พบ', () => {
@@ -251,6 +431,7 @@ describe('ShopComponent', () => {
 
   it('หน้ารายละเอียด: ใส่ครบสต็อกแล้วแสดงปุ่มไปชำระเงินแทน', () => {
     setUp('B1');
+    loginCustomer();
     cart.add('B1', LOW_STOCK, LOW_STOCK);
     fixture.detectChanges();
 
@@ -322,6 +503,7 @@ describe('ShopComponent', () => {
 
   it('ซื้อเลย: ใส่ตะกร้าแล้วเปิดหน้าสั่งซื้อทันที (กดซ้ำไม่เพิ่มจำนวน)', () => {
     setUp('A1');
+    loginCustomer();
     component.changeQuantity(1);
 
     component.buyNow(PRODUCTS[0]);
@@ -335,6 +517,7 @@ describe('ShopComponent', () => {
 
   it('สั่งซื้อ: ตรวจชื่อ ที่อยู่ และเบอร์โทรก่อนส่ง', () => {
     setUp();
+    loginCustomer();
     component.addToCart(PRODUCTS[0]);
     component.openCheckout();
 
@@ -347,9 +530,10 @@ describe('ShopComponent', () => {
     expect(todoService.createShopOrder).not.toHaveBeenCalled();
   });
 
-  it('สั่งซื้อสำเร็จ: ส่งข้อมูลที่ตัดช่องว่างแล้ว ล้างตะกร้า และแสดงเลขคำสั่งซื้อ', () => {
-    todoService.createShopOrder.and.returnValue(of({ success: true, order_code: 'WEB-000007', total: 51 }));
+  it('สั่งซื้อสำเร็จ: ส่งข้อมูลที่ตัดช่องว่างแล้ว ล้างตะกร้า แล้วไปหน้าชำระเงินด้วย QR พร้อมเพย์', () => {
+    todoService.createShopOrder.and.returnValue(of({ success: true, order: ORDER, promptpay_id: '0811112222' }));
     setUp();
+    loginCustomer();
     component.addToCart(PRODUCTS[0], 2);
     component.openCheckout();
     fillCustomer();
@@ -365,10 +549,66 @@ describe('ShopComponent', () => {
       items: [{ sku: 'A1', quantity: 2 }]
     });
     expect(cart.count).toBe(0);
+    expect(el().querySelector('#checkout-title')?.textContent).toContain('Pay with PromptPay');
+    const payment = fixture.debugElement.query(By.directive(ShopPaymentComponent)).componentInstance as ShopPaymentComponent;
+    expect(payment.order()).toEqual(ORDER);
+    expect(payment.promptpayId()).toBe('0811112222');
+    expect(text()).toContain('Pay later from My Orders');
+
+    // แนบสลิปแล้ว: แจ้งว่ารอตรวจ และไปดู My Orders ได้
+    payment.paid.emit({ ...ORDER, status: 'Verifying' });
+    fixture.detectChanges();
+    expect(el().querySelector('#checkout-title')?.textContent).toContain('Payment slip sent');
     expect(text()).toContain('WEB-000007');
 
-    el().querySelector<HTMLButtonElement>('.success .btn-primary')!.click();
+    el().querySelector<HTMLButtonElement>('.success .btn-outline')!.click();
+    fixture.detectChanges();
     expect(component.checkoutOpen).toBeFalse();
+    expect(component.ordersOpen).toBeTrue();
+    expect(el().querySelector('app-shop-orders')).not.toBeNull();
+  });
+
+  it('ยังไม่ login: กดสั่งซื้อแล้วพาไป login ก่อน (ตะกร้ายังอยู่)', fakeAsync(() => {
+    setUp();
+    component.addToCart(PRODUCTS[0]);
+
+    component.openCheckout();
+    expect(component.checkoutOpen).toBeFalse();
+    expect(component.toast).toContain('log in');
+
+    tick(ANIMATION_MS);
+    expect(router.navigate).toHaveBeenCalledWith(['/login'], { queryParams: { from: 'shop' } });
+    expect(cart.count).toBe(1);
+    discardPeriodicTasks();
+  }));
+
+  it('login แล้ว: เติมชื่อจากบัญชีให้ / ปิดหน้าชำระเงินได้แม้ยังไม่จ่าย', () => {
+    setUp();
+    loginCustomer();
+    component.addToCart(PRODUCTS[0]);
+    component.openCheckout();
+    expect(component.customer.customer_name).toBe('somchai');
+
+    component.orderResult = { success: true, order: ORDER, promptpay_id: '0811112222' };
+    component.closeCheckout();
+    expect(component.checkoutOpen).toBeFalse();
+    expect(component.orderResult).toBeNull();
+  });
+
+  it('My Orders จากเมนูโปรไฟล์: ปิดตะกร้าแล้วเปิดแผงคำสั่งซื้อ และปิดได้', () => {
+    setUp();
+    loginCustomer();
+    component.cartOpen = true;
+    const navbar = fixture.debugElement.query(By.directive(ShopNavbarComponent)).componentInstance as ShopNavbarComponent;
+
+    navbar.ordersOpen.emit();
+    fixture.detectChanges();
+    expect(el().querySelector('app-shop-orders')).not.toBeNull();
+
+    const orders = fixture.debugElement.query(By.directive(ShopOrdersComponent)).componentInstance as ShopOrdersComponent;
+    orders.closed.emit();
+    fixture.detectChanges();
+    expect(el().querySelector('app-shop-orders')).toBeNull();
   });
 
   it('สั่งซื้อไม่สำเร็จเพราะของไม่พอ: แสดงข้อความจากระบบและโหลดสต็อกใหม่', () => {
@@ -376,6 +616,7 @@ describe('ShopComponent', () => {
       throwError(() => ({ status: 409, error: { message: 'สินค้า Apple คงเหลือไม่พอ' } }))
     );
     setUp();
+    loginCustomer();
     component.addToCart(PRODUCTS[0]);
     component.openCheckout();
     fillCustomer();
@@ -391,6 +632,7 @@ describe('ShopComponent', () => {
   it('สั่งซื้อไม่สำเร็จด้วยเหตุอื่น: แสดงข้อความมาตรฐาน', () => {
     todoService.createShopOrder.and.returnValue(throwError(() => ({ status: 500 })));
     setUp();
+    loginCustomer();
     component.addToCart(PRODUCTS[0]);
     component.openCheckout();
     fillCustomer();

@@ -4,7 +4,7 @@ import { Component, OnInit, inject, ChangeDetectorRef, NgZone } from '@angular/c
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { TodoService } from '../services/todo.service';
-import { AuthService, canUseBackOffice } from '../services/auth.service';
+import { AuthService, canReviewOnlineOrders, canUseBackOffice } from '../services/auth.service';
 import { forkJoin,interval, Subscription } from 'rxjs';
 import { Output, EventEmitter } from '@angular/core';
 import { createClient } from '@supabase/supabase-js'; 
@@ -481,6 +481,17 @@ loadTodos() {
     if (!this.canOpenShop) return;
     this.closePanel();
     void this.router.navigate(['/shop']);
+  }
+
+  // ตรวจสลิป PromptPay ของออเดอร์หน้าร้าน (admin / manager / pos)
+  get canReviewOrders(): boolean {
+    return this.auth.isLoggedIn() && canReviewOnlineOrders(this.auth.user?.role);
+  }
+
+  openOnlineOrders() {
+    if (!this.canReviewOrders) return;
+    this.closePanel();
+    void this.router.navigate(['/online-orders'], { state: this.auth.navigationState() });
   }
 
   openHelp() {

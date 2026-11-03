@@ -18,7 +18,7 @@ const { app } = require('../src/app') as typeof import('../src/app');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { pool } = require('../src/database/db') as typeof import('../src/database/db');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const { setFirebaseVerifierForTests } = require('../src/middleware/auth') as typeof import('../src/middleware/auth');
+const { setFirebaseVerifierForTests, signToken } = require('../src/middleware/auth') as typeof import('../src/middleware/auth');
 
 // Firebase ID token ปลอม: token -> ข้อมูลผู้ใช้ที่ Firebase จะยืนยันให้
 const firebaseTokens: Record<string, { uid: string; email: string; email_verified: boolean; name?: string; auth_time?: number }> = {};
@@ -74,11 +74,15 @@ beforeEach(async () => {
   await pool.query(sql('migrations/003_firebase_uid.sql'));
   await pool.query(sql('migrations/004_shop_orders.sql'));
   await pool.query(sql('migrations/005_shop_cart.sql'));
+  await pool.query(sql('migrations/006_shop_payment.sql'));
   for (const key of Object.keys(firebaseTokens)) delete firebaseTokens[key];
   await pool.query(`
     INSERT INTO todos (username, title, password, completed, role, national_id) VALUES
       ('admin1', 'admin@test.com', 'Admin@1234', false, 'admin', '1111'),
-      ('pos1', 'pos@test.com', 'Pos@12345', false, 'pos', '2222');
+      ('pos1', 'pos@test.com', 'Pos@12345', false, 'pos', '2222'),
+      ('cust1', 'cust@test.com', 'Cust@1234', false, 'user', '3333'),
+      ('cust2', 'cust2@test.com', 'Cust@1234', false, 'user', '4444');
+    INSERT INTO settings (email, phone, address) VALUES ('shop@test.com', '081-111-2222', 'Bangkok');
     INSERT INTO inventory (sku, product_name, category, brand, price, quantity, quantity_alert, supplier, invoice_no) VALUES
       ('SKU-A', 'Apple', 'Fruit', 'B1', 100, 5, 2, 'SupplierX', 'INV-1'),
       ('SKU-B', 'Banana', 'Fruit', 'B2', 50, 1, 0, 'SupplierY', 'INV-2');
@@ -114,35 +118,164 @@ test('shop: ดูสินค้าได้โดยไม่ต้อง logi
 });
 
 // rate limit ของการสั่งซื้อคือ 5 ครั้ง / 15 นาที / IP นับรวมทุก test ในไฟล์นี้
-const shopOrder = (body: Record<string, unknown>) => api('POST', '/api/shop/orders', {
-  customer_name: 'ลูกค้า ทดสอบ', phone: '081-234-5678', address: 'กรุงเทพฯ', ...body
+test('shop best sellers: เรียงตามจำนวนที่ขายได้ ไม่นับที่ยกเลิก เปิดได้โดยไม่ต้อง login และไม่ส่งยอดขาย', async () => {
+  await pool.query(`
+    INSERT INTO sale_order (order_code, product_name, quantity, amount, status) VALUES
+      ('O1', 'Apple', 2, 200, 'Completed'),
+      ('O2', 'Banana', 3, 150, 'Completed'),
+      ('O3', 'Apple', 5, 500, 'Canceled'),
+      ('O4', 'Deleted product', 9, 900, 'Completed');
+  `);
+
+  const res = await api('GET', '/api/shop/best-sellers');
+
+  assert.equal(res.status, 200);
+  assert.deepEqual(res.body, { skus: ['SKU-B', 'SKU-A'] });
 });
 
-test('shop order: สั่งได้โดยไม่ login คิดราคาจาก DB ไม่ตัดสต็อก และแจ้งเตือนพนักงาน', async () => {
-  const res = await shopOrder({ items: [{ sku: 'SKU-A', quantity: 2, price: 1 }, { sku: 'SKU-A', quantity: 1 }] });
+// token ของผู้ใช้ตาม username (ไม่ผ่าน /api/login เพื่อไม่ชน rate limit ของการ login)
+const tokenFor = async (username: string) =>
+  signToken({ id: (await pool.query('SELECT id FROM todos WHERE username = $1', [username])).rows[0].id });
+
+const shopOrder = (body: Record<string, unknown>, token?: string) => api('POST', '/api/shop/orders', {
+  customer_name: 'ลูกค้า ทดสอบ', phone: '081-234-5678', address: 'กรุงเทพฯ', ...body
+}, token);
+
+const SLIP = 'data:image/png;base64,iVBORw0KGgo=';
+
+test('shop order: ต้อง login คิดราคาจาก DB ไม่ตัดสต็อก รอชำระเงิน และส่งเบอร์ PromptPay ของร้าน', async () => {
+  assert.equal((await shopOrder({ items: [{ sku: 'SKU-A', quantity: 1 }] })).status, 401);
+
+  const cust = await tokenFor('cust1');
+  const res = await shopOrder({ items: [{ sku: 'SKU-A', quantity: 2, price: 1 }, { sku: 'SKU-A', quantity: 1 }] }, cust);
 
   assert.equal(res.status, 201);
-  assert.match(res.body.order_code, /^WEB-\d{6}$/);
-  assert.equal(res.body.total, 300);
+  assert.match(res.body.order.order_code, /^WEB-\d{6}$/);
+  assert.equal(res.body.order.total, 300);
+  assert.equal(res.body.order.status, 'Awaiting Payment');
+  assert.equal(res.body.promptpay_id, '0811112222');
   assert.equal(await stock('SKU-A'), 5);
 
-  const order = (await pool.query('SELECT phone, status, items FROM shop_order')).rows[0];
-  assert.deepEqual([order.phone, order.status, order.items[0].quantity], ['0812345678', 'Pending', 3]);
-  const notice = (await pool.query('SELECT title, description FROM notification')).rows[0];
-  assert.ok(notice.title.includes(res.body.order_code));
-  assert.ok(notice.description.includes('Apple x3'));
+  const order = (await pool.query('SELECT phone, items, user_id FROM shop_order')).rows[0];
+  assert.deepEqual([order.phone, order.items[0].quantity], ['0812345678', 3]);
+  assert.ok(order.user_id);
+  // ยังไม่จ่าย ยังไม่ต้องแจ้งพนักงาน
+  assert.equal((await pool.query('SELECT count(*)::int AS n FROM notification')).rows[0].n, 0);
 });
 
-test('shop order: ข้อมูลไม่ครบ / ของไม่พอ / ไม่มีสินค้า ถูกปฏิเสธและไม่สร้างออเดอร์', async () => {
-  assert.equal((await shopOrder({ phone: '12', items: [{ sku: 'SKU-A', quantity: 1 }] })).status, 400);
-  assert.equal((await shopOrder({ items: [{ sku: 'SKU-B', quantity: 2 }] })).status, 409);
-  assert.equal((await shopOrder({ items: [{ sku: 'NOPE', quantity: 1 }] })).status, 409);
+test('shop order: ข้อมูลไม่ครบ / ของไม่พอ / ไม่มีสินค้า / ร้านยังไม่ตั้ง PromptPay ถูกปฏิเสธและไม่สร้างออเดอร์', async () => {
+  const cust = await tokenFor('cust1');
+  assert.equal((await shopOrder({ phone: '12', items: [{ sku: 'SKU-A', quantity: 1 }] }, cust)).status, 400);
+  assert.equal((await shopOrder({ items: [{ sku: 'SKU-B', quantity: 2 }] }, cust)).status, 409);
+  assert.equal((await shopOrder({ items: [{ sku: 'NOPE', quantity: 1 }] }, cust)).status, 409);
+  await pool.query("UPDATE settings SET phone = ''");
+  assert.equal((await shopOrder({ items: [{ sku: 'SKU-A', quantity: 1 }] }, cust)).status, 503);
   assert.equal((await pool.query('SELECT count(*)::int AS n FROM shop_order')).rows[0].n, 0);
 });
 
-test('shop order: สั่งถี่เกินไปได้ 429', async () => {
-  assert.equal((await shopOrder({ items: [] })).status, 400);
-  assert.equal((await shopOrder({ items: [{ sku: 'SKU-A', quantity: 1 }] })).status, 429);
+test('shop order: สั่งถี่เกินไปได้ 429 (นับแยกตามบัญชี)', async () => {
+  const cust = await tokenFor('cust2');
+  for (let i = 0; i < 5; i++) assert.equal((await shopOrder({ items: [] }, cust)).status, 400);
+  assert.equal((await shopOrder({ items: [{ sku: 'SKU-A', quantity: 1 }] }, cust)).status, 429);
+  assert.equal((await shopOrder({ items: [] }, await tokenFor('admin1'))).status, 400); // บัญชีอื่นยังสั่งได้
+});
+
+test('shop payment: แนบสลิป -> พนักงานยืนยัน -> ตัดสต็อกและบันทึกยอดขาย / แต่ละบัญชีเห็นเฉพาะออเดอร์ตัวเอง', async () => {
+  const cust = await tokenFor('cust1');
+  const other = await tokenFor('cust2');
+  const pos = await tokenFor('pos1');
+  const created = (await api('GET', '/api/shop/orders/mine', undefined, cust)).body;
+  assert.deepEqual(created, { orders: [], promptpay_id: '0811112222' });
+
+  // ใส่ออเดอร์ตรง ๆ (endpoint สั่งซื้อมี rate limit)
+  const id = (await pool.query(
+    `INSERT INTO shop_order (user_id, customer_name, phone, address, items, total)
+     VALUES ((SELECT id FROM todos WHERE username = 'cust1'), 'ลูกค้า', '0812345678', 'กรุงเทพฯ', $1, 300) RETURNING id`,
+    [JSON.stringify([{ sku: 'SKU-A', product_name: 'Apple', price: 100, quantity: 3 }])]
+  )).rows[0].id;
+
+  const mine = await api('GET', '/api/shop/orders/mine', undefined, cust);
+  assert.deepEqual(mine.body.orders.map((o: any) => [o.id, o.status, o.has_slip]), [[id, 'Awaiting Payment', false]]);
+  assert.equal(mine.body.orders[0].slip, undefined);
+  assert.deepEqual((await api('GET', '/api/shop/orders/mine', undefined, other)).body.orders, []);
+
+  // ยังไม่จ่าย พนักงานยืนยันไม่ได้ (ต้องมีสลิปก่อน)
+  assert.equal((await api('POST', `/api/shop/admin/orders/${id}/confirm`, {}, pos)).status, 409);
+
+  // คนอื่นแนบสลิปแทนไม่ได้ / ไฟล์ที่ไม่ใช่รูปไม่รับ
+  assert.equal((await api('POST', `/api/shop/orders/${id}/slip`, { slip: SLIP }, other)).status, 409);
+  assert.equal((await api('POST', `/api/shop/orders/${id}/slip`, { slip: 'data:text/html;base64,PGh0bWw+' }, cust)).status, 400);
+
+  const paid = await api('POST', `/api/shop/orders/${id}/slip`, { slip: SLIP }, cust);
+  assert.equal(paid.status, 200);
+  assert.equal(paid.body.order.status, 'Verifying');
+  const notice = (await pool.query('SELECT title FROM notification')).rows[0];
+  assert.ok(notice.title.includes(paid.body.order.order_code));
+  // ส่งสลิปแล้วยกเลิกเองไม่ได้
+  assert.equal((await api('POST', `/api/shop/orders/${id}/cancel`, {}, cust)).status, 409);
+
+  // ลูกค้าเข้า endpoint ของพนักงานไม่ได้
+  assert.equal((await api('GET', '/api/shop/admin/orders', undefined, cust)).status, 403);
+  assert.equal((await api('POST', `/api/shop/admin/orders/${id}/confirm`, {}, cust)).status, 403);
+
+  const list = await api('GET', '/api/shop/admin/orders?status=Verifying', undefined, pos);
+  assert.deepEqual(list.body.orders.map((o: any) => o.id), [id]);
+  assert.equal((await api('GET', '/api/shop/admin/orders?status=Nope', undefined, pos)).status, 400);
+  assert.equal((await api('GET', `/api/shop/admin/orders/${id}/slip`, undefined, pos)).body.slip, SLIP);
+
+  const confirmed = await api('POST', `/api/shop/admin/orders/${id}/confirm`, {}, pos);
+  assert.equal(confirmed.status, 200);
+  assert.equal(confirmed.body.order.status, 'Completed');
+  assert.equal(confirmed.body.order.reviewed_by, 'pos1');
+  assert.equal(await stock('SKU-A'), 2);
+  const sale = (await pool.query('SELECT order_code, quantity, amount, status, create_by FROM sale_order')).rows;
+  assert.deepEqual(sale.map(r => [r.order_code, r.quantity, Number(r.amount), r.status, r.create_by]),
+    [[confirmed.body.order.order_code, 3, 300, 'Completed', 'pos1']]);
+  // สต็อกเหลือ 2 ถึงเกณฑ์แจ้งเตือน (2)
+  assert.equal((await pool.query("SELECT count(*)::int AS n FROM notification WHERE type = 'warning'")).rows[0].n, 1);
+
+  // ยืนยันซ้ำไม่ตัดสต็อกซ้ำ
+  assert.equal((await api('POST', `/api/shop/admin/orders/${id}/confirm`, {}, pos)).status, 409);
+  assert.equal(await stock('SKU-A'), 2);
+  assert.equal((await api('GET', '/api/shop/orders/mine', undefined, cust)).body.orders[0].status, 'Completed');
+});
+
+test('shop payment: สลิปไม่ผ่าน -> ลูกค้าเห็นเหตุผล แนบใหม่หรือยกเลิกได้ / ของไม่พอตอนยืนยันไม่ตัดสต็อก', async () => {
+  const cust = await tokenFor('cust1');
+  const admin = await tokenFor('admin1');
+  const insert = async (items: unknown[], total: number) => (await pool.query(
+    `INSERT INTO shop_order (user_id, customer_name, phone, address, items, total)
+     VALUES ((SELECT id FROM todos WHERE username = 'cust1'), 'ลูกค้า', '0812345678', 'กรุงเทพฯ', $1, $2) RETURNING id`,
+    [JSON.stringify(items), total]
+  )).rows[0].id;
+
+  const id = await insert([{ sku: 'SKU-A', product_name: 'Apple', price: 100, quantity: 1 }], 100);
+  await api('POST', `/api/shop/orders/${id}/slip`, { slip: SLIP }, cust);
+  assert.equal((await api('POST', `/api/shop/admin/orders/${id}/reject`, { reason: ' ' }, admin)).status, 400);
+  const rejected = await api('POST', `/api/shop/admin/orders/${id}/reject`, { reason: 'Amount does not match' }, admin);
+  assert.equal(rejected.body.order.status, 'Rejected');
+  assert.equal((await api('GET', '/api/shop/orders/mine', undefined, cust)).body.orders[0].reject_reason, 'Amount does not match');
+  assert.equal((await api('POST', `/api/shop/admin/orders/${id}/confirm`, {}, admin)).status, 409);
+
+  const again = await api('POST', `/api/shop/orders/${id}/slip`, { slip: SLIP }, cust);
+  assert.deepEqual([again.body.order.status, again.body.order.reject_reason], ['Verifying', null]);
+
+  const toCancel = await insert([{ sku: 'SKU-A', product_name: 'Apple', price: 100, quantity: 1 }], 100);
+  const canceled = await api('POST', `/api/shop/orders/${toCancel}/cancel`, {}, cust);
+  assert.equal(canceled.body.order.status, 'Canceled');
+  assert.equal((await api('POST', `/api/shop/orders/${toCancel}/slip`, { slip: SLIP }, cust)).status, 409);
+
+  // ของไม่พอ: ยกเลิกทั้งออเดอร์ ไม่ตัดสินค้าอื่น และออเดอร์ยังรอตรวจอยู่
+  const short = await insert([
+    { sku: 'SKU-A', product_name: 'Apple', price: 100, quantity: 1 },
+    { sku: 'SKU-B', product_name: 'Banana', price: 50, quantity: 2 }
+  ], 200);
+  await api('POST', `/api/shop/orders/${short}/slip`, { slip: SLIP }, cust);
+  const failed = await api('POST', `/api/shop/admin/orders/${short}/confirm`, {}, admin);
+  assert.equal(failed.status, 409);
+  assert.match(failed.body.message, /Banana/);
+  assert.deepEqual([await stock('SKU-A'), await stock('SKU-B')], [5, 1]);
+  assert.equal((await pool.query('SELECT status FROM shop_order WHERE id = $1', [short])).rows[0].status, 'Verifying');
 });
 
 test('shop cart: ต้อง login และแต่ละบัญชีเห็นเฉพาะตะกร้าของตัวเอง', async () => {

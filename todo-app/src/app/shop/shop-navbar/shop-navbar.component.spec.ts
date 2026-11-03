@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed, discardPeriodicTasks, fakeAsync, tick } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
+import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { TodoService } from '../../services/todo.service';
 import { ShopCartService } from '../shop-cart.service';
@@ -54,7 +55,40 @@ describe('ShopNavbarComponent', () => {
     el().querySelector<HTMLButtonElement>('.avatar-button')!.click();
     fixture.detectChanges();
     expect(el().querySelector('.account-sidebar .role')?.textContent).toContain('Customer');
-    expect(el().querySelector('.account-sidebar__menu')).toBeNull();
+    expect(el().querySelector('.menu-back-office')).toBeNull();
+    expect(el().querySelector('.menu-online-orders')).toBeNull(); // ตรวจสลิปได้เฉพาะพนักงาน
+  });
+
+  it('เมนูบัญชี -> My Orders: ปิดเมนูแล้วส่ง event เปิดแผงคำสั่งซื้อ', fakeAsync(() => {
+    loginAs('customer');
+    const opened = jasmine.createSpy('ordersOpen');
+    component.ordersOpen.subscribe(opened);
+    fixture.detectChanges();
+
+    component.toggleAccount();
+    fixture.detectChanges();
+    el().querySelector<HTMLButtonElement>('.menu-orders')!.click();
+
+    expect(opened).toHaveBeenCalled();
+    tick(300);
+    expect(component.accountOpen).toBeFalse();
+    discardPeriodicTasks();
+  }));
+
+  it('pos: เมนูบัญชีมี Online Orders ไปหน้าตรวจสลิปพร้อมข้อมูลผู้ใช้ (backend ไม่มี)', () => {
+    const navigate = spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+    loginAs('pos');
+    fixture.detectChanges();
+    component.toggleAccount();
+    fixture.detectChanges();
+
+    el().querySelector<HTMLButtonElement>('.menu-online-orders')!.click();
+
+    expect(navigate).toHaveBeenCalledWith(['/online-orders'], { state: jasmine.objectContaining({ role: 'pos' }) });
+    expect(component.accountOpen).toBeFalse();
+
+    loginAs('backend');
+    expect(component.canReviewOrders).toBeFalse();
   });
 
   it('login เป็นพนักงาน pos / backend: มีไอคอน Back Office และแสดงตำแหน่ง', () => {
@@ -76,7 +110,7 @@ describe('ShopNavbarComponent', () => {
     fixture.detectChanges();
     expect(el().querySelector('.account-sidebar')?.textContent).toContain('boss');
 
-    el().querySelector<HTMLButtonElement>('.account-sidebar__menu button')!.click();
+    el().querySelector<HTMLButtonElement>('.menu-back-office')!.click();
 
     expect(signIn).toHaveBeenCalled();
     expect(component.accountOpen).toBeFalse();
@@ -166,6 +200,126 @@ describe('ShopNavbarComponent', () => {
 
     expect(home).toHaveBeenCalled();
     expect(component.search()).toBe('cola');
+  });
+
+  describe('เมนูประเภทสินค้า (ปุ่มเปลี่ยนหน้าแบบหลังร้าน)', () => {
+    const items = () => el().querySelectorAll<HTMLButtonElement>('.con_ber .h');
+    const openMenu = () => {
+      el().querySelector<HTMLButtonElement>('.hamburger')!.click();
+      fixture.detectChanges();
+    };
+
+    beforeEach(() => {
+      fixture.componentRef.setInput('categories', [
+        { label: 'All products', count: 4 },
+        { label: 'Fruit', count: 2 }
+      ]);
+      fixture.componentRef.setInput('selectedCategory', 'Fruit');
+      fixture.detectChanges();
+    });
+
+    it('แถบกลาง navbar แบบ Dashboard: แสดงเท่าที่พอดีแถวเดียว ที่ล้นซ่อนไว้ในปุ่ม More', () => {
+      const links = () => el().querySelectorAll<HTMLButtonElement>('.nav-links .he');
+      expect(Array.from(links(), b => b.textContent?.trim())).toEqual(['All products', 'Fruit']);
+      expect(el().querySelector('.he.more')).toBeNull(); // ยังไม่วัด = พอดีทั้งหมด
+
+      // จำลองแถบกว้าง 150px: All products (100) พอดี แต่ Fruit (60) ต้องเผื่อที่ให้ More (40) จึงไม่พอ
+      const nav = el().querySelector<HTMLElement>('.con_nav')!;
+      Object.defineProperty(nav, 'clientWidth', { value: 150, configurable: true });
+      Object.defineProperty(links()[0], 'offsetWidth', { value: 100 });
+      Object.defineProperty(links()[1], 'offsetWidth', { value: 60 });
+      el().querySelector<HTMLElement>('.nav-links')!.style.columnGap = '0px';
+      component.fitLinks();
+      fixture.detectChanges();
+      Object.defineProperty(el().querySelector('.he.more')!, 'offsetWidth', { value: 40 });
+      component.fitLinks();
+      fixture.detectChanges();
+
+      expect(component.fitCount()).toBe(1);
+      expect(links()[1].classList).toContain('overflowed');
+      expect(links()[1].getAttribute('tabindex')).toBe('-1');
+      const more = el().querySelector<HTMLButtonElement>('.he.more')!;
+      expect(more.classList).toContain('active'); // ประเภทที่เลือก (Fruit) อยู่ในส่วนที่ซ่อน
+
+      Object.defineProperty(nav, 'clientWidth', { value: 400 }); // จอกว้างขึ้นจนพอดีทั้งหมด
+      component.fitLinks();
+      fixture.detectChanges();
+      expect(el().querySelector('.he.more')).toBeNull();
+      component.fitCount.set(1);
+      fixture.detectChanges();
+
+      el().querySelector<HTMLButtonElement>('.he.more')!.click();
+      fixture.detectChanges();
+      expect(el().querySelector('.he.more')?.getAttribute('aria-expanded')).toBe('true');
+      expect(items().length).toBe(2);
+    });
+
+    it('กดลิงก์ประเภทบนแถบกลาง: ส่ง event ประเภทนั้น', () => {
+      const picked = jasmine.createSpy('categorySelect');
+      component.categorySelect.subscribe(picked);
+
+      el().querySelector<HTMLButtonElement>('.nav-links .he')!.click();
+
+      expect(picked).toHaveBeenCalledWith('All products');
+    });
+
+    it('กดปุ่มแล้วแสดงทุกประเภทพร้อมจำนวน และไฮไลต์ประเภทที่เลือกอยู่', () => {
+      expect(el().querySelector('.con_ber')).toBeNull();
+
+      openMenu();
+
+      expect(el().querySelector('.hamburger')?.getAttribute('aria-expanded')).toBe('true');
+      expect(Array.from(items(), b => b.textContent?.replace(/\s+/g, ' ').trim())).toEqual(['All products 4', 'Fruit 2']);
+      expect(items()[1].classList).toContain('active');
+      expect(items()[1].getAttribute('aria-current')).toBe('page');
+      expect(items()[0].classList).not.toContain('active');
+    });
+
+    it('เลือกประเภท: ส่ง event แล้วปิดเมนูด้วยแอนิเมชัน fade_out', fakeAsync(() => {
+      const picked = jasmine.createSpy('categorySelect');
+      component.categorySelect.subscribe(picked);
+      openMenu();
+
+      items()[0].click();
+      fixture.detectChanges();
+
+      expect(picked).toHaveBeenCalledWith('All products');
+      expect(el().querySelector('.con_ber')?.classList).toContain('closing');
+      tick(300);
+      fixture.detectChanges();
+      expect(el().querySelector('.con_ber')).toBeNull();
+      discardPeriodicTasks();
+    }));
+
+    it('ปิดได้ด้วยปุ่มเดิม พื้นหลัง และ Esc / เปิดเมนูบัญชีแล้วเมนูประเภทปิด', fakeAsync(() => {
+      openMenu();
+      el().querySelector<HTMLButtonElement>('.hamburger')!.click();
+      tick(300);
+      expect(component.menuOpen).toBeFalse();
+
+      openMenu();
+      el().querySelector<HTMLButtonElement>('.menu-backdrop')!.click();
+      tick(300);
+      expect(component.menuOpen).toBeFalse();
+
+      openMenu();
+      document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+      tick(300);
+      expect(component.menuOpen).toBeFalse();
+
+      loginAs('user');
+      openMenu();
+      component.toggleAccount();
+      tick(300);
+      expect(component.menuOpen).toBeFalse();
+      expect(component.accountOpen).toBeTrue();
+
+      component.toggleMenu(); // เปิดเมนูประเภท ก็ปิดเมนูบัญชี
+      tick(300);
+      expect(component.accountOpen).toBeFalse();
+      expect(component.menuOpen).toBeTrue();
+      discardPeriodicTasks();
+    }));
   });
 
   it('นาฬิกาเดินทุกวินาที', fakeAsync(() => {

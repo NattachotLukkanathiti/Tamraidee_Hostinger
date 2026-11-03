@@ -1,0 +1,116 @@
+/* ส่วนประกอบที่ใช้ร่วมกันในหน้าร้าน (shop / ชำระเงิน / คำสั่งซื้อของฉัน): ปุ่ม ข้อความแจ้ง และโฟกัส
+   ใช้ token จาก :host ของ shop.component.css (custom property สืบทอดไปถึง component ลูก) */
+button {
+  font: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+/* โฟกัสจากคีย์บอร์ดต้องมองเห็นเสมอ (คลิกเมาส์ไม่แสดง) */
+:host :focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---------- ปุ่ม ---------- */
+.btn-primary,
+.btn-outline {
+  min-height: 36px;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-sm);
+  font-weight: 400;
+  white-space: nowrap;
+  transition: background-color var(--motion-fast) ease, color var(--motion-fast) ease,
+    transform var(--motion-instant) ease;
+}
+
+.btn-primary {
+  border: 1px solid var(--color-action);
+  background: var(--color-action);
+  color: var(--color-on-action);
+}
+
+.btn-primary:hover:not(:disabled) {
+  border-color: var(--color-action-hover);
+  background: var(--color-action-hover);
+}
+
+.btn-outline {
+  border: 1px solid var(--color-action);
+  background: transparent;
+  color: var(--color-text);
+}
+
+.btn-outline:hover:not(:disabled) {
+  background: var(--color-action);
+  color: var(--color-on-action);
+}
+
+.btn-primary:active:not(:disabled),
+.btn-outline:active:not(:disabled),
+.icon-btn:active {
+  transform: scale(0.97);
+}
+
+.btn-primary:disabled,
+.btn-outline:disabled {
+  opacity: 0.42;
+}
+
+.large {
+  min-height: 48px;
+  padding: var(--space-3) var(--space-5);
+  font-size: var(--font-md);
+}
+
+.block {
+  width: 100%;
+}
+
+.icon-btn {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-strong);
+  color: var(--color-text-muted);
+  font-size: var(--font-sm);
+  transition: background-color var(--motion-fast) ease, transform var(--motion-instant) ease;
+}
+
+.icon-btn:hover {
+  background: var(--color-line);
+  color: var(--color-text);
+}
+
+.error {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+  font-size: var(--font-sm);
+}
+
+.hint {
+  max-width: 420px;
+  color: var(--color-text-muted);
+  font-size: var(--font-sm);
+}

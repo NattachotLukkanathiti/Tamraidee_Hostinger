@@ -3,9 +3,47 @@
   (searchChange)="onSearchChange()"
   (home)="goHome()"
   (cartToggle)="toggleCart()"
-  (signIn)="enterBackOffice()" />
+  (signIn)="enterBackOffice()"
+  [categories]="categories"
+  [selectedCategory]="selectedSku ? '' : selectedCategory"
+  (categorySelect)="pickCategory($event)"
+  (ordersOpen)="openOrders()" />
 
 <div class="shop" [class.fade-out]="isLeaving">
+  <!-- แถบประกาศใต้ navbar แบบเดียวกับหน้าอื่นในระบบ (Dashboard / Inventory / ...) -->
+  <div class="tab_con">
+    <div class="tab">Introducing Tamraidee. The best products from top-tier suppliers, available 24/7. Whatever you need, whenever you need it.<button type="button" class="lern" (click)="scrollToProducts()">Learn more</button></div>
+  </div>
+
+  <!-- สินค้าขายดีอันดับต้น ๆ แบบแผ่นใหญ่: ชื่อ คำโปรย ปุ่ม Learn more / Buy และรูปด้านล่าง -->
+  @if (showShowcase) {
+    <section class="showcase" aria-label="Featured best sellers">
+      @for (item of featuredProducts; track item.sku; let i = $index) {
+        <article class="tile come" [class.tile-hero]="i === 0" [class.tile-dark]="i === 2" [style.animation-delay]="staggerDelay(i)">
+          <p class="tile-eyebrow">{{ featuredLabel(i) }}</p>
+          <h2>{{ item.product_name }}</h2>
+          <p class="tile-sub">{{ tagline(item) }}</p>
+          <p class="tile-price">{{ formatPrice(item.price) }}</p>
+          <div class="tile-actions">
+            <button type="button" class="btn-primary" [attr.aria-label]="'Learn more about ' + item.product_name" (click)="openProduct(item)">Learn more</button>
+            @if (available(item) > 0) {
+              <button type="button" class="btn-outline" [attr.aria-label]="'Buy ' + item.product_name" (click)="buyNow(item)">Buy</button>
+            } @else {
+              <span [class]="'stock stock-' + stockLevel(item)">{{ stockLabel(item) }}</span>
+            }
+          </div>
+          <div class="tile-image">
+            @if (item.picture) {
+              <img [src]="item.picture" [alt]="item.product_name" />
+            } @else {
+              <span class="placeholder">{{ initial(item) }}</span>
+            }
+          </div>
+        </article>
+      }
+    </section>
+  }
+
   <div class="layout">
     <nav class="categories" aria-label="Product categories">
       <h2 class="side-title">Categories</h2>
@@ -116,7 +154,37 @@
           <img src="image/search.svg" alt="" />
           <input type="search" [(ngModel)]="searchTerm" placeholder="Search by product, brand or SKU" />
         </label>
-        <div class="toolbar">
+        @if (showBestSellers && carouselProducts.length) {
+          <section class="best-sellers" aria-labelledby="best-sellers-title">
+            <div class="best-head">
+              <h2 id="best-sellers-title">More Best Sellers</h2>
+              <div class="best-arrows">
+                <button type="button" class="icon-btn" aria-label="Scroll best sellers left" [disabled]="bestAtStart" (click)="scrollBestSellers(bestTrack, -1)">‹</button>
+                <button type="button" class="icon-btn" aria-label="Scroll best sellers right" [disabled]="bestAtEnd" (click)="scrollBestSellers(bestTrack, 1)">›</button>
+              </div>
+            </div>
+            <ul class="best-track" #bestTrack (scroll)="updateBestArrows(bestTrack)">
+              @for (item of carouselProducts; track item.sku; let i = $index) {
+                <li class="best-item come" [style.animation-delay]="staggerDelay(i)">
+                  <button type="button" class="best-card" (click)="openProduct(item)">
+                    <span class="best-rank">#{{ i + featuredCount + 1 }} Best Seller</span>
+                    <span class="best-name">{{ item.product_name }}</span>
+                    <span class="best-price">{{ formatPrice(item.price) }}</span>
+                    <span class="best-image">
+                      @if (item.picture) {
+                        <img [src]="item.picture" [alt]="item.product_name" loading="lazy" />
+                      } @else {
+                        <span class="placeholder">{{ initial(item) }}</span>
+                      }
+                    </span>
+                  </button>
+                </li>
+              }
+            </ul>
+          </section>
+        }
+
+        <div class="toolbar" id="all-products">
           <h1>{{ selectedCategory }} <span class="result-count">{{ filteredProducts.length }} items</span></h1>
           <label class="sort">
             Sort by
@@ -190,6 +258,10 @@
   </aside>
 }
 
+@if (ordersOpen) {
+  <app-shop-orders (closed)="ordersOpen = false" />
+}
+
 @if (toast && !cartOpen) {
   <output class="toast">{{ toast }}</output>
 }
@@ -198,15 +270,24 @@
   <div class="modal-layer">
     <button type="button" class="backdrop" aria-label="Close checkout" (click)="closeCheckout()"></button>
     <dialog class="modal form_noti" open aria-modal="true" aria-labelledby="checkout-title">
-      @if (orderResult) {
+      @if (orderResult && paymentSent) {
         <div class="success">
           <span class="success-icon" aria-hidden="true">✓</span>
-          <h2 id="checkout-title">Order placed!</h2>
-          <p>Order number <strong>{{ orderResult.order_code }}</strong></p>
-          <p>Total {{ formatPrice(orderResult.total) }}</p>
-          <p class="hint">We will call you to confirm your order and payment.</p>
-          <button type="button" class="btn-primary large" (click)="closeCheckout()">Continue Shopping</button>
+          <h2 id="checkout-title">Payment slip sent</h2>
+          <p>Order number <strong>{{ orderResult.order.order_code }}</strong></p>
+          <p class="hint">We will confirm your order as soon as our staff verify your payment. You can follow its status in My Orders.</p>
+          <div class="success-actions">
+            <button type="button" class="btn-outline large" (click)="openOrders()">View My Orders</button>
+            <button type="button" class="btn-primary large" (click)="closeCheckout()">Continue Shopping</button>
+          </div>
         </div>
+      } @else if (orderResult) {
+        <div class="modal-head">
+          <h2 id="checkout-title">Pay with PromptPay</h2>
+          <button type="button" class="icon-btn" aria-label="Close" (click)="closeCheckout()">✕</button>
+        </div>
+        <app-shop-payment [order]="orderResult.order" [promptpayId]="orderResult.promptpay_id" (paid)="onCheckoutPaid()" />
+        <p class="hint pay-later">Not ready to pay? Your order is saved. Pay later from <strong>My Orders</strong> in your profile menu.</p>
       } @else {
         <div class="modal-head">
           <h2 id="checkout-title">Checkout</h2>
@@ -234,7 +315,7 @@
               <p class="error" role="alert">{{ orderError }}</p>
             }
             <button type="submit" class="btn-primary large block" [disabled]="isSubmitting || !cartItems.length">
-              {{ isSubmitting ? 'Placing order...' : 'Place Order · ' + formatPrice(cartTotal) }}
+              {{ isSubmitting ? 'Placing order...' : 'Continue to Payment · ' + formatPrice(cartTotal) }}
             </button>
           </form>
 
@@ -249,6 +330,7 @@
               }
             </ul>
             <p class="cart-total"><span>Total</span><strong>{{ formatPrice(cartTotal) }}</strong></p>
+            <p class="hint">Payment: PromptPay QR (next step). Your order is confirmed once we verify your payment.</p>
           </div>
         </div>
       }

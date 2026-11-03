@@ -97,6 +97,13 @@ export function canUseBackOffice(role?: string | null): boolean {
   return BACK_OFFICE_ROLES.includes((role || '').toLowerCase());
 }
 
+// ตรวจสลิปและยืนยันการชำระเงินของออเดอร์หน้าร้าน (ตรงกับสิทธิ์ใน API /api/shop/admin/*)
+export const ONLINE_ORDER_ROLES = ['admin', 'manager', 'pos'];
+
+export function canReviewOnlineOrders(role?: string | null): boolean {
+  return ONLINE_ORDER_ROLES.includes((role || '').toLowerCase());
+}
+
 // หน้าแรกของแต่ละ role (ตรงกับ logic เดิมในหน้า Login)
 export function homeRouteFor(role?: string | null): string {
   switch ((role || '').toLowerCase()) {

@@ -68,6 +68,25 @@ describe('NavbarComponent', () => {
       expect(component.canOpenShop).toBeTrue();
     });
 
+    it('admin / manager / pos: เมนูบัญชีมี Online Orders ไปหน้าตรวจสลิป / backend ไม่มี', () => {
+      const { component, router, fixture } = setUpPage(NavbarComponent);
+      login('pos');
+
+      expect(component.canReviewOrders).toBeTrue();
+      component.toggleAccountMenu();
+      fixture.detectChanges();
+      const button = Array.from((fixture.nativeElement as HTMLElement).querySelectorAll<HTMLButtonElement>('.account-sidebar__menu button'))
+        .find(b => b.textContent?.includes('Online Orders'))!;
+      button.click();
+      expect(router.navigate).toHaveBeenCalledWith(['/online-orders'], jasmine.objectContaining({ state: jasmine.objectContaining({ role: 'pos' }) }));
+
+      login('backend');
+      (router.navigate as jasmine.Spy).calls.reset();
+      component.openOnlineOrders();
+      expect(component.canReviewOrders).toBeFalse();
+      expect(router.navigate).not.toHaveBeenCalled();
+    });
+
     it('ไม่ใช่พนักงาน (แม้ history.state จะบอกว่าเป็น admin): ไม่เห็นปุ่มและไปหน้าร้านไม่ได้', () => {
       const { component, router } = setUpPage(NavbarComponent);
       login('customer');

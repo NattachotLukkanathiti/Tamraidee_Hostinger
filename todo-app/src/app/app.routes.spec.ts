@@ -27,7 +27,8 @@ describe('app routes', () => {
     ['helpp', STAFF],
     ['edit', STAFF],
     ['setting', STAFF],
-    ['receipt', STAFF]
+    ['receipt', STAFF],
+    ['online-orders', ['admin', 'manager', 'pos']]
   ];
 
   for (const [path, roles] of protectedRoutes) {

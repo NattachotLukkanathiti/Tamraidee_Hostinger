@@ -1,4 +1,5 @@
-/* ใช้หน้าตาและแอนิเมชันชุดเดียวกับ Navbar หลังร้าน (navbar.component.css) */
+/* ใช้หน้าตาและแอนิเมชันชุดเดียวกับ Navbar หลังร้าน (navbar.component.css)
+   ยกเว้นตอนเปิดเว็บ: แถบ navbar แสดงทันที ไม่เลื่อนลงมา (slidee) */
 :host {
   display: block;
   font-family: 'Nunito Sans', 'Montserrat', sans-serif;
@@ -32,16 +33,6 @@ button {
   box-sizing: border-box;
   border-bottom: 1px solid #e6eaed;
   background: #fff;
-  animation: slidee 0.7s ease-in-out;
-}
-
-@keyframes slidee {
-  0% {
-    transform: translateY(-200px);
-  }
-  100% {
-    transform: translateY(0);
-  }
 }
 
 .headercompany {
@@ -79,11 +70,70 @@ button {
   font-size: 12px;
 }
 
+/* ---------- แถบประเภทกลาง navbar (หน้าตาเดียวกับ .con_nav / .he ของ Dashboard) ---------- */
+.con_nav {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  justify-content: center;
+  gap: 39px;
+  min-width: 0;
+  margin: 0 24px;
+}
+
+/* ลิงก์ที่ไม่พอดีแถวเดียวถูกยกออกจากแถว (ซ่อนแต่ยังวัดความกว้างได้) และไปอยู่ในเมนู More */
+.nav-links {
+  position: relative;
+  display: flex;
+  flex: none;
+  column-gap: 39px;
+}
+
+.he {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #1d1d1f;
+  font-size: 12px;
+  font-weight: 300;
+  white-space: nowrap;
+}
+
+.he:hover {
+  color: #89898b;
+}
+
+.he.active {
+  color: #4f9a3a;
+  font-weight: 700;
+}
+
+.he.overflowed {
+  position: absolute;
+  visibility: hidden;
+}
+
+.he.more {
+  flex: none;
+}
+
+.he svg {
+  width: 12px;
+  height: 12px;
+}
+
+.he.more[aria-expanded='true'] svg {
+  transform: rotate(180deg);
+}
+
 .search {
   position: relative;
-  flex: 1 1 240px;
-  max-width: 480px;
-  margin: 0 24px;
+  flex: 0 1 260px;
+  margin-right: 24px;
 }
 
 .iconsearch {
@@ -347,6 +397,7 @@ button {
 }
 
 .account-sidebar__menu img,
+.account-sidebar__menu svg,
 .account-sidebar__logout svg {
   width: 24px;
   height: 24px;
@@ -362,13 +413,116 @@ button {
   color: #b81212;
 }
 
+/* ---------- ปุ่มเปลี่ยนหน้า + เมนูประเภทสินค้า (หน้าตา/แอนิเมชันเดียวกับ .hamburger / .con_ber หลังร้าน) ---------- */
+.hamburger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0.5px solid #00000031;
+  border-radius: 8px;
+  background: #fff;
+  transition: background 0.2s, border-radius 0.2s;
+}
+
+.hamburger:hover,
+.hamburger[aria-expanded='true'] {
+  border-radius: 50px;
+  background: #4444447c;
+}
+
+.menu-backdrop {
+  position: fixed;
+  inset: 70px 0 0;
+  z-index: 18;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: default;
+}
+
+.con_ber {
+  position: fixed;
+  top: 70px;
+  left: 0;
+  z-index: 19;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  align-content: start;
+  justify-items: start;
+  width: 100vw;
+  max-height: 70vh;
+  box-sizing: border-box;
+  padding: 20px 20px 30px;
+  overflow-y: auto;
+  border-radius: 0 0 20px 20px;
+  background: #eaeaea;
+  animation: fade_ber 0.5s ease-in-out;
+}
+
+.con_ber.closing {
+  animation: fade_out 0.3s ease-in forwards;
+}
+
+@keyframes fade_ber {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes fade_out {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.h {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 30px 0 0 40px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #0b0b0bd9;
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 0.9;
+  text-align: left;
+}
+
+.h:hover {
+  color: #0b0b0b8f;
+}
+
+.h.active {
+  color: #4f9a3a;
+  box-shadow: inset 0 -3px 0 #84d46e;
+}
+
+.h-count {
+  color: #646b72;
+  font-size: 15px;
+  font-weight: 600;
+}
+
 /* ตรงกับ breakpoint ของ Navbar หลังร้าน */
 @media (max-width: 1200px) {
   .container_bar {
     margin-right: 10px;
   }
 
+  .con_nav {
+    display: none;
+  }
+
+  .hamburger {
+    display: flex;
+  }
+
   .search {
+    flex: 1 1 240px;
+    max-width: 480px;
     margin: 0 16px;
   }
 }
@@ -390,6 +544,15 @@ button {
 
 /* มือถือ: ปุ่ม Login เหลือแค่ไอคอน 32px แบบปุ่มโปรไฟล์หลังร้าน */
 @media (max-width: 480px) {
+  .con_ber {
+    grid-template-columns: 1fr;
+  }
+
+  .h {
+    margin-left: 10px;
+    font-size: 24px;
+  }
+
   .login-button {
     justify-content: center;
     width: 32px;
@@ -402,10 +565,11 @@ button {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .navbaar,
   .cart-count,
   .account-sidebar,
-  .account-sidebar.closing {
+  .account-sidebar.closing,
+  .con_ber,
+  .con_ber.closing {
     animation: none;
   }
 }

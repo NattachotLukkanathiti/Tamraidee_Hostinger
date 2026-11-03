@@ -1,6 +1,6 @@
 import { PLATFORM_ID } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { AuthService, SessionUser, canUseBackOffice, homeRouteFor } from './auth.service';
+import { AuthService, SessionUser, canReviewOnlineOrders, canUseBackOffice, homeRouteFor } from './auth.service';
 
 const USER: SessionUser = {
   id: 7,
@@ -135,6 +135,17 @@ describe('canUseBackOffice', () => {
   it('role อื่นหรือยังไม่มี role ใช้ได้เฉพาะหน้าร้าน', () => {
     for (const role of ['', null, undefined, 'customer']) {
       expect(canUseBackOffice(role)).withContext(String(role)).toBeFalse();
+    }
+  });
+});
+
+describe('canReviewOnlineOrders', () => {
+  it('admin / manager / pos ตรวจสลิปออเดอร์ออนไลน์ได้ ส่วน backend / ลูกค้าไม่ได้', () => {
+    for (const role of ['admin', 'Manager', 'POS']) {
+      expect(canReviewOnlineOrders(role)).withContext(role).toBeTrue();
+    }
+    for (const role of ['backend', 'customer', '', null, undefined]) {
+      expect(canReviewOnlineOrders(role)).withContext(String(role)).toBeFalse();
     }
   });
 });

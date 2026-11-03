@@ -22,6 +22,7 @@ import { ReceiptComponent } from './receipt/receipt.component';
 import { PrivacyPolicyComponent } from './privacy-policy/privacy-policy.component';
 import { DeleteDataComponent } from './delete-data/delete-data.component';
 import { ShopComponent } from './shop/shop.component';
+import { OnlineOrdersComponent } from './online-orders/online-orders.component';
 import { authGuard } from './services/auth.guard';
 
 
@@ -50,6 +51,8 @@ export const routes: Routes = [
   { path: 'helpp', component: HelppComponent, canActivate: [authGuard], data: { roles: STAFF } },
   { path: 'edit' , component: EditComponent, canActivate: [authGuard], data: { roles: STAFF } },
   { path: 'setting' , component: SettingsPageComponent, canActivate: [authGuard], data: { roles: STAFF } },
+  // ตรวจสลิป PromptPay ของออเดอร์หน้าร้าน (สิทธิ์ตรงกับ API /api/shop/admin/*)
+  { path: 'online-orders', component: OnlineOrdersComponent, canActivate: [authGuard], data: { roles: [...ADMIN, 'pos'] } },
   { path: 'receipt' , component: ReceiptComponent, canActivate: [authGuard], data: { roles: STAFF } },
   { path: 'privacy-policy' ,component:PrivacyPolicyComponent},
   { path: 'delete-data' ,component:DeleteDataComponent},

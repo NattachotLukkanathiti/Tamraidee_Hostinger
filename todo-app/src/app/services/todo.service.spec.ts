@@ -10,6 +10,7 @@ type Case = [name: string, call: (service: TodoService) => Observable<unknown>, 
 const CASES: Case[] = [
   ['logAudit', (s) => s.logAudit({}), 'POST', '/audit'],
   ['getAudit', (s) => s.getAudit(), 'GET', '/audit'],
+  ['getShopBestSellers', (s) => s.getShopBestSellers(), 'GET', '/shop/best-sellers'],
   ['getShopCart', (s) => s.getShopCart(), 'GET', '/shop/cart'],
   ['saveShopCart', (s) => s.saveShopCart([]), 'PUT', '/shop/cart'],
   ['getTodos', (s) => s.getTodos(), 'GET', '/todos'],
@@ -59,7 +60,15 @@ const CASES: Case[] = [
   ['getSettings', (s) => s.getSettings(), 'GET', '/settings'],
   ['saveSettings', (s) => s.saveSettings({}), 'POST', '/settings'],
   ['checkUserRole', (s) => s.checkUserRole('a@b.com'), 'GET', '/users/role/a@b.com'],
-  ['createNotification', (s) => s.createNotification({}), 'POST', '/notification']
+  ['createNotification', (s) => s.createNotification({}), 'POST', '/notification'],
+  ['getMyShopOrders', (s) => s.getMyShopOrders(), 'GET', '/shop/orders/mine'],
+  ['uploadShopSlip', (s) => s.uploadShopSlip(3, 'data:image/png;base64,AA=='), 'POST', '/shop/orders/3/slip'],
+  ['cancelShopOrder', (s) => s.cancelShopOrder(3), 'POST', '/shop/orders/3/cancel'],
+  ['getOnlineOrders', (s) => s.getOnlineOrders(), 'GET', '/shop/admin/orders'],
+  ['getOnlineOrders (status)', (s) => s.getOnlineOrders('Awaiting Payment'), 'GET', '/shop/admin/orders?status=Awaiting%20Payment'],
+  ['getOnlineOrderSlip', (s) => s.getOnlineOrderSlip(3), 'GET', '/shop/admin/orders/3/slip'],
+  ['confirmOnlineOrder', (s) => s.confirmOnlineOrder(3), 'POST', '/shop/admin/orders/3/confirm'],
+  ['rejectOnlineOrder', (s) => s.rejectOnlineOrder(3, 'no'), 'POST', '/shop/admin/orders/3/reject']
 ];
 
 describe('TodoService', () => {
@@ -94,6 +103,13 @@ describe('TodoService', () => {
     const req = http.expectOne(`${environment.apiBase}/api/inventory`);
     expect(req.request.headers.get('ngrok-skip-browser-warning')).toBe('true');
     req.flush([]);
+  });
+
+  it('แนบสลิป / ปฏิเสธสลิป ส่งข้อมูลใน body', () => {
+    service.uploadShopSlip(3, 'data:image/png;base64,AA==').subscribe();
+    expect(http.expectOne(`${environment.apiBase}/api/shop/orders/3/slip`).request.body).toEqual({ slip: 'data:image/png;base64,AA==' });
+    service.rejectOnlineOrder(3, 'Amount does not match').subscribe();
+    expect(http.expectOne(`${environment.apiBase}/api/shop/admin/orders/3/reject`).request.body).toEqual({ reason: 'Amount does not match' });
   });
 
   it('checkout ส่ง order ทั้งใบใน body เดียว', () => {

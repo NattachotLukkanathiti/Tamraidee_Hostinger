@@ -1,0 +1,153 @@
+<main class="online-orders">
+  <div class="page-head">
+    <h1>Online Orders</h1>
+    <button type="button" class="icon-button" aria-label="Refresh" title="Refresh" (click)="load()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+    </button>
+  </div>
+  <p class="intro">
+    Customers pay with PromptPay and attach their slip. Confirm only after the money appears in the store account.
+    Confirming deducts stock and records the sale as <strong>Completed</strong>.
+  </p>
+
+  @if (notice) {
+    <output class="notice">{{ notice }}</output>
+  }
+
+  <div class="filters" role="group" aria-label="Filter by status">
+    @for (item of filters; track item) {
+      <button type="button" class="filter" [class.active]="filter === item" [attr.aria-pressed]="filter === item" (click)="filter = item">
+        {{ item }} <span class="filter-count">{{ count(item) }}</span>
+      </button>
+    }
+  </div>
+
+  <section class="card" aria-label="Orders">
+    @if (isLoading) {
+      <p class="state">Loading orders…</p>
+    } @else if (loadError) {
+      <p class="state error" role="alert">{{ loadError }}</p>
+    } @else if (!visibleOrders.length) {
+      <p class="state">No {{ filter === 'All' ? '' : filter.toLowerCase() + ' ' }}orders.</p>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Order Code</th>
+              <th scope="col">Customer</th>
+              <th scope="col">Items</th>
+              <th scope="col">Total</th>
+              <th scope="col">Date</th>
+              <th scope="col">Status</th>
+              <th scope="col"><span class="visually-hidden">Action</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (order of visibleOrders; track order.id) {
+              <tr>
+                <td class="code">{{ order.order_code }}</td>
+                <td>
+                  <div>{{ order.customer_name }}</div>
+                  <div class="muted">{{ order.phone }}</div>
+                </td>
+                <td class="items">{{ itemSummary(order) }}</td>
+                <td class="num">{{ formatPrice(order.total) }}</td>
+                <td class="muted">{{ order.created_at | date: 'yyyy-MM-dd HH:mm' }}</td>
+                <td><span class="status" [class]="'status ' + statusClass(order.status)">{{ order.status }}</span></td>
+                <td>
+                  <button type="button" class="review-button" [class.primary]="order.status === 'Verifying'" (click)="openReview(order)">
+                    {{ order.status === 'Verifying' ? 'Review slip' : 'View' }}
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+</main>
+
+@if (reviewing; as order) {
+  <div class="modal-layer">
+    <button type="button" class="backdrop" aria-label="Close" (click)="closeReview()"></button>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="review-title">
+      <div class="modal-head">
+        <h2 id="review-title">{{ order.order_code }}</h2>
+        <span class="status" [class]="'status ' + statusClass(order.status)">{{ order.status }}</span>
+        <button type="button" class="icon-button" aria-label="Close" (click)="closeReview()">✕</button>
+      </div>
+
+      <div class="review">
+        <div class="slip">
+          @if (!order.has_slip) {
+            <p class="state">No payment slip yet.</p>
+          } @else if (slip) {
+            <a [href]="slip" target="_blank" rel="noopener" title="Open full size">
+              <img [src]="slip" [alt]="'Payment slip for ' + order.order_code" />
+            </a>
+          } @else if (slipError) {
+            <p class="state error">{{ slipError }}</p>
+          } @else {
+            <p class="state">Loading slip…</p>
+          }
+        </div>
+
+        <div class="details">
+          <p class="amount-label">Amount to receive</p>
+          <p class="amount">{{ formatPrice(order.total) }}</p>
+
+          <dl>
+            <dt>Customer</dt><dd>{{ order.customer_name }} · {{ order.phone }}</dd>
+            <dt>Address</dt><dd>{{ order.address }}</dd>
+            @if (order.note) {
+              <dt>Note</dt><dd>{{ order.note }}</dd>
+            }
+            <dt>Ordered</dt><dd>{{ order.created_at | date: 'yyyy-MM-dd HH:mm' }}</dd>
+            @if (order.slip_uploaded_at) {
+              <dt>Slip sent</dt><dd>{{ order.slip_uploaded_at | date: 'yyyy-MM-dd HH:mm' }}</dd>
+            }
+            @if (order.reviewed_by) {
+              <dt>Reviewed by</dt><dd>{{ order.reviewed_by }} · {{ order.reviewed_at | date: 'yyyy-MM-dd HH:mm' }}</dd>
+            }
+            @if (order.reject_reason) {
+              <dt>Reject reason</dt><dd>{{ order.reject_reason }}</dd>
+            }
+          </dl>
+
+          <ul class="lines">
+            @for (line of order.items; track line.sku) {
+              <li><span>{{ line.product_name }} × {{ line.quantity }}</span><span>{{ formatPrice(line.price * line.quantity) }}</span></li>
+            }
+          </ul>
+
+          @if (reviewError) {
+            <p class="error" role="alert">{{ reviewError }}</p>
+          }
+
+          @if (order.status === 'Verifying') {
+            @if (showReject) {
+              <label class="reason">
+                Reason (shown to the customer)
+                <textarea rows="2" maxlength="300" [(ngModel)]="rejectReason" placeholder="e.g. Amount does not match / Transfer not found"></textarea>
+              </label>
+              <div class="actions">
+                <button type="button" class="btn-ghost" [disabled]="isSaving" (click)="showReject = false">Back</button>
+                <button type="button" class="btn-danger" [disabled]="isSaving" (click)="reject()">{{ isSaving ? 'Saving…' : 'Reject slip' }}</button>
+              </div>
+            } @else {
+              <div class="actions">
+                <button type="button" class="btn-ghost" [disabled]="isSaving" (click)="showReject = true">Reject</button>
+                <button type="button" class="btn-confirm" [disabled]="isSaving || !slip" (click)="confirm()">
+                  {{ isSaving ? 'Confirming…' : 'Confirm payment' }}
+                </button>
+              </div>
+              <p class="muted small">Check that {{ formatPrice(order.total) }} has arrived in the store's PromptPay account before confirming.</p>
+            }
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+}
