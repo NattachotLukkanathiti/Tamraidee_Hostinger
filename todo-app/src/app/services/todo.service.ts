@@ -21,7 +21,31 @@ export interface ChatMessage {
   reply_message?: string;  // <--- เพิ่ม
   reply_sender?: string;   // <--- เพิ่ม
 }
-  
+
+export interface ShopProduct {
+  sku: string;
+  product_name: string;
+  category: string | null;
+  brand: string | null;
+  price: number | string;
+  quantity: number | null;
+  picture: string | null;
+}
+
+export interface ShopOrderRequest {
+  customer_name: string;
+  phone: string;
+  address: string;
+  note?: string;
+  items: { sku: string; quantity: number }[];
+}
+
+export interface ShopOrderResult {
+  success: boolean;
+  order_code: string;
+  total: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -93,6 +117,15 @@ export class TodoService {
 
   getInventory() {
     return this.http.get<any[]>(`${this.apiUrl}/inventory`, { headers: this.headers });
+  }
+
+  // หน้าร้าน (ไม่ต้อง login): ได้เฉพาะข้อมูลสินค้าที่ลูกค้าเห็นได้
+  getShopProducts() {
+    return this.http.get<ShopProduct[]>(`${this.apiUrl}/shop/products`, { headers: this.headers });
+  }
+
+  createShopOrder(order: ShopOrderRequest) {
+    return this.http.post<ShopOrderResult>(`${this.apiUrl}/shop/orders`, order, { headers: this.headers });
   }
 
   getHistory() {

@@ -429,7 +429,7 @@ loadTodos() {
     this.todoService.logAudit(auditData).subscribe({
       next: () => {
         console.log('Logout audit saved');
-        this.router.navigate(['/']);
+        this.router.navigate(['/login']);
         this.closePanel
       },
       error: (err) => {

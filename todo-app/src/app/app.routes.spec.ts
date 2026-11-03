@@ -1,5 +1,7 @@
 import { Route } from '@angular/router';
+import { LoginComponent } from './login/login.component';
 import { OtpComponent } from './otp/otp.component';
+import { ShopComponent } from './shop/shop.component';
 import { authGuard } from './services/auth.guard';
 import { routes } from './app.routes';
 
@@ -36,11 +38,18 @@ describe('app routes', () => {
     });
   }
 
-  for (const path of ['', 'login', 'register', 'forgot', 'otp', 'step', 'reset', 'privacy-policy', 'delete-data']) {
+  for (const path of ['', 'login', 'register', 'forgot', 'otp', 'step', 'reset', 'privacy-policy', 'delete-data', 'shop', 'shop/:sku']) {
     it(`/${path} เปิดได้โดยไม่ต้อง login`, () => {
       expect(find(path).canActivate).toBeUndefined();
     });
   }
+
+  it('หน้าแรก (/) คือหน้าร้าน ส่วนหน้า login อยู่ที่ /login', () => {
+    expect(find('').component).toBe(ShopComponent);
+    expect(find('shop').component).toBe(ShopComponent);
+    expect(find('shop/:sku').component).toBe(ShopComponent);
+    expect(find('login').component).toBe(LoginComponent);
+  });
 
   it('/step ใช้หน้ากรอก OTP ตัวเดียวกับ /otp ในโหมดลืมรหัสผ่าน', () => {
     expect(find('step').component).toBe(OtpComponent);

@@ -21,13 +21,14 @@ import { SettingsPageComponent } from './setting/setting.component';
 import { ReceiptComponent } from './receipt/receipt.component';
 import { PrivacyPolicyComponent } from './privacy-policy/privacy-policy.component';
 import { DeleteDataComponent } from './delete-data/delete-data.component';
+import { ShopComponent } from './shop/shop.component';
 import { authGuard } from './services/auth.guard';
 
 
 const ADMIN = ['admin', 'manager'];
 
 export const routes: Routes = [
-  { path: '', component: LoginComponent },
+  { path: '', component: ShopComponent }, // หน้าแรกของเว็บ = หน้าร้าน (เข้าได้เลยไม่ต้อง login)
   { path: 'register', component: RegisterComponent },
   { path: 'login', component: LoginComponent },
   { path: 'forgot', component: ForgotComponent },
@@ -50,5 +51,8 @@ export const routes: Routes = [
   { path: 'setting' , component: SettingsPageComponent, canActivate: [authGuard] },
   { path: 'receipt' , component: ReceiptComponent, canActivate: [authGuard] },
   { path: 'privacy-policy' ,component:PrivacyPolicyComponent},
-  { path: 'delete-data' ,component:DeleteDataComponent}
+  { path: 'delete-data' ,component:DeleteDataComponent},
+  // หน้าร้านสำหรับลูกค้า ไม่ต้อง login
+  { path: 'shop', component: ShopComponent },
+  { path: 'shop/:sku', component: ShopComponent }
 ];

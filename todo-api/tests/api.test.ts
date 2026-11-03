@@ -72,6 +72,7 @@ beforeEach(async () => {
   await pool.query(sql('migrations/001_auth.sql'));
   await pool.query(sql('migrations/002_constraints.sql'));
   await pool.query(sql('migrations/003_firebase_uid.sql'));
+  await pool.query(sql('migrations/004_shop_orders.sql'));
   for (const key of Object.keys(firebaseTokens)) delete firebaseTokens[key];
   await pool.query(`
     INSERT INTO todos (username, title, password, completed, role, national_id) VALUES
@@ -102,6 +103,45 @@ test('auth: ไม่มี token / token ปลอม ได้ 401 ส่ว�
   assert.equal((await api('GET', '/api/inventory')).status, 401);
   assert.equal((await api('GET', '/api/inventory', undefined, 'forged.token.value')).status, 401);
   assert.equal((await api('POST', '/api/check-email', { title: 'admin@test.com' })).body.exists, true);
+});
+
+test('shop: ดูสินค้าได้โดยไม่ต้อง login และไม่เห็นข้อมูลภายใน (supplier / invoice)', async () => {
+  const res = await api('GET', '/api/shop/products');
+  assert.equal(res.status, 200);
+  assert.deepEqual(res.body.map((p: any) => p.sku), ['SKU-A', 'SKU-B']);
+  assert.deepEqual(Object.keys(res.body[0]).sort(), ['brand', 'category', 'picture', 'price', 'product_name', 'quantity', 'sku']);
+});
+
+// rate limit ของการสั่งซื้อคือ 5 ครั้ง / 15 นาที / IP นับรวมทุก test ในไฟล์นี้
+const shopOrder = (body: Record<string, unknown>) => api('POST', '/api/shop/orders', {
+  customer_name: 'ลูกค้า ทดสอบ', phone: '081-234-5678', address: 'กรุงเทพฯ', ...body
+});
+
+test('shop order: สั่งได้โดยไม่ login คิดราคาจาก DB ไม่ตัดสต็อก และแจ้งเตือนพนักงาน', async () => {
+  const res = await shopOrder({ items: [{ sku: 'SKU-A', quantity: 2, price: 1 }, { sku: 'SKU-A', quantity: 1 }] });
+
+  assert.equal(res.status, 201);
+  assert.match(res.body.order_code, /^WEB-\d{6}$/);
+  assert.equal(res.body.total, 300);
+  assert.equal(await stock('SKU-A'), 5);
+
+  const order = (await pool.query('SELECT phone, status, items FROM shop_order')).rows[0];
+  assert.deepEqual([order.phone, order.status, order.items[0].quantity], ['0812345678', 'Pending', 3]);
+  const notice = (await pool.query('SELECT title, description FROM notification')).rows[0];
+  assert.ok(notice.title.includes(res.body.order_code));
+  assert.ok(notice.description.includes('Apple x3'));
+});
+
+test('shop order: ข้อมูลไม่ครบ / ของไม่พอ / ไม่มีสินค้า ถูกปฏิเสธและไม่สร้างออเดอร์', async () => {
+  assert.equal((await shopOrder({ phone: '12', items: [{ sku: 'SKU-A', quantity: 1 }] })).status, 400);
+  assert.equal((await shopOrder({ items: [{ sku: 'SKU-B', quantity: 2 }] })).status, 409);
+  assert.equal((await shopOrder({ items: [{ sku: 'NOPE', quantity: 1 }] })).status, 409);
+  assert.equal((await pool.query('SELECT count(*)::int AS n FROM shop_order')).rows[0].n, 0);
+});
+
+test('shop order: สั่งถี่เกินไปได้ 429', async () => {
+  assert.equal((await shopOrder({ items: [] })).status, 400);
+  assert.equal((await shopOrder({ items: [{ sku: 'SKU-A', quantity: 1 }] })).status, 429);
 });
 
 test('reset-password: ไม่มี reset token ที่ได้จาก OTP ได้ 403', async () => {

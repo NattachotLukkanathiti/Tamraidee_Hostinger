@@ -9,6 +9,7 @@ import suppliersRoutes from './routes/suppliers.routes';
 import notificationsRoutes from './routes/notifications.routes';
 import chatRoutes from './routes/chat.routes';
 import auditRoutes from './routes/audit.routes';
+import shopRoutes from './routes/shop.routes';
 import settingsRoutes from './routes/settings.routes';
 
 export const app = express();
@@ -46,6 +47,8 @@ const PUBLIC_API_ROUTES = new Set([
   'POST /api/verify-otp',
   'POST /api/check-email',
   'PUT /api/reset-password',
+  'GET /api/shop/products',
+  'POST /api/shop/orders',
 ]);
 
 app.use('/api', (req, res, next) => {
@@ -63,3 +66,4 @@ app.use(notificationsRoutes);
 app.use(chatRoutes);
 app.use(auditRoutes);
 app.use(settingsRoutes);
+app.use(shopRoutes);

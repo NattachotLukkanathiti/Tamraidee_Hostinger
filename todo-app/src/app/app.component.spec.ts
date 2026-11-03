@@ -15,7 +15,7 @@ describe('AppComponent', () => {
     component = TestBed.createComponent(AppComponent).componentInstance;
   });
 
-  const hiddenPages = ['/', '/register', '/otp', '/forgot', '/login', '/confirmemployee', '/receipt', '/step', '/reset'];
+  const hiddenPages = ['/', '/register', '/otp', '/forgot', '/login', '/confirmemployee', '/receipt', '/step', '/reset', '/shop', '/shop/SKU-1', '/shop/SKU-1?ref=x'];
 
   for (const page of hiddenPages) {
     it(`หน้า ${page} ไม่แสดง navbar`, () => {
@@ -32,7 +32,7 @@ describe('AppComponent', () => {
   });
 
   it('หน้าที่ต้อง login แล้วแสดง navbar', () => {
-    for (const page of ['/dashboard', '/inventory', '/pos', '/sale', '/history']) {
+    for (const page of ['/dashboard', '/inventory', '/pos', '/sale', '/history', '/shopping']) {
       currentUrl = page;
       expect(component.isLoginPage()).withContext(page).toBeFalse();
     }

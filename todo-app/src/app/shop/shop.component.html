@@ -1,0 +1,288 @@
+<div class="shop">
+  <header class="shop-header">
+    <button type="button" class="brand" (click)="goHome()">
+      <img src="TRD.ico" alt="" class="brand-logo" />
+      <span>Tamraidee Shop</span>
+    </button>
+
+    <label class="search">
+      <span class="visually-hidden">ค้นหาสินค้า</span>
+      <input
+        type="search"
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="onSearchChange()"
+        placeholder="ค้นหาชื่อสินค้า แบรนด์ หรือรหัสสินค้า" />
+    </label>
+
+    <div class="header-actions">
+      <button type="button" class="btn-outline" (click)="goToSystem()">
+        {{ isStaffLoggedIn ? 'เข้าระบบหลังร้าน' : 'เข้าสู่ระบบ' }}
+      </button>
+      <button type="button" class="cart-toggle" (click)="toggleCart()" [attr.aria-expanded]="cartOpen" aria-controls="cart-panel">
+        <span aria-hidden="true">🛒</span>
+        <span class="cart-toggle-label">ตะกร้า</span>
+        @if (cart.count) {
+          <span class="badge" aria-label="จำนวนสินค้าในตะกร้า">{{ cart.count }}</span>
+        }
+      </button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- คอมพิวเตอร์: แถบหมวดหมู่ด้านซ้าย / มือถือ: เลื่อนเป็นแถวด้านบน -->
+    <nav class="categories" aria-label="หมวดหมู่สินค้า">
+      <h2 class="side-title">หมวดหมู่</h2>
+      @for (category of categories; track category.label) {
+        <button
+          type="button"
+          class="category"
+          [class.active]="category.label === selectedCategory && !selectedSku"
+          [attr.aria-pressed]="category.label === selectedCategory"
+          (click)="selectCategory(category.label)">
+          <span>{{ category.label }}</span>
+          <span class="count">{{ category.count }}</span>
+        </button>
+      }
+    </nav>
+
+    <main class="content">
+      @if (isLoading) {
+        <p class="state">กำลังโหลดสินค้า...</p>
+      } @else if (loadError) {
+        <div class="state">
+          <p>โหลดข้อมูลสินค้าไม่สำเร็จ</p>
+          <button type="button" class="btn-primary" (click)="loadProducts()">ลองใหม่</button>
+        </div>
+      } @else if (selectedSku) {
+        <button type="button" class="back" (click)="backToList()">← กลับไปหน้าสินค้าทั้งหมด</button>
+
+        @if (selectedProduct; as product) {
+          <section class="detail">
+            <div class="detail-image">
+              @if (product.picture) {
+                <img [src]="product.picture" [alt]="product.product_name" />
+              } @else {
+                <span class="placeholder large">{{ initial(product) }}</span>
+              }
+            </div>
+
+            <div class="detail-info">
+              @if (product.category) {
+                <span class="chip">{{ product.category }}</span>
+              }
+              <h1>{{ product.product_name }}</h1>
+              <p class="detail-price">{{ formatPrice(product.price) }}</p>
+
+              <dl class="specs">
+                <dt>แบรนด์</dt>
+                <dd>{{ product.brand || '-' }}</dd>
+                <dt>รหัสสินค้า</dt>
+                <dd>{{ product.sku }}</dd>
+                <dt>สถานะ</dt>
+                <dd><span [class]="'stock stock-' + stockLevel(product)">{{ stockLabel(product) }}</span></dd>
+                @if (cart.quantityOf(product.sku)) {
+                  <dt>ในตะกร้า</dt>
+                  <dd>{{ cart.quantityOf(product.sku) }} ชิ้น</dd>
+                }
+              </dl>
+
+              @if (available(product) > 0) {
+                <div class="quantity">
+                  <span>จำนวน</span>
+                  <button type="button" aria-label="ลดจำนวน" (click)="changeQuantity(-1)" [disabled]="quantity <= 1">−</button>
+                  <output aria-live="polite">{{ quantity }}</output>
+                  <button type="button" aria-label="เพิ่มจำนวน" (click)="changeQuantity(1)" [disabled]="quantity >= available(product)">+</button>
+                </div>
+                <p class="total">รวม <strong>{{ formatPrice(+product.price * quantity) }}</strong></p>
+                <div class="buy-actions">
+                  <button type="button" class="btn-outline large" (click)="addToCart(product, quantity)">เพิ่มลงตะกร้า</button>
+                  <button type="button" class="btn-primary large" (click)="buyNow(product)">ซื้อเลย</button>
+                </div>
+              } @else if (stockLevel(product) === 'out') {
+                <p class="notice">สินค้าหมดชั่วคราว</p>
+              } @else {
+                <p class="notice">คุณใส่สินค้านี้ในตะกร้าครบจำนวนที่มีแล้ว</p>
+                <button type="button" class="btn-primary large" (click)="openCheckout()">ไปชำระเงิน</button>
+              }
+            </div>
+          </section>
+
+          @if (relatedProducts.length) {
+            <section class="related">
+              <h2>สินค้าในหมวดเดียวกัน</h2>
+              <div class="grid">
+                @for (item of relatedProducts; track item.sku) {
+                  <ng-container *ngTemplateOutlet="card; context: { $implicit: item }" />
+                }
+              </div>
+            </section>
+          }
+        } @else {
+          <div class="state">
+            <p>ไม่พบสินค้ารหัส "{{ selectedSku }}"</p>
+            <button type="button" class="btn-primary" (click)="backToList()">ดูสินค้าทั้งหมด</button>
+          </div>
+        }
+      } @else {
+        <div class="toolbar">
+          <h1>{{ selectedCategory }} <span class="result-count">{{ filteredProducts.length }} รายการ</span></h1>
+          <label class="sort">
+            เรียงตาม
+            <select [(ngModel)]="sortBy">
+              <option value="name">ชื่อสินค้า</option>
+              <option value="price-asc">ราคา ต่ำ → สูง</option>
+              <option value="price-desc">ราคา สูง → ต่ำ</option>
+            </select>
+          </label>
+        </div>
+
+        @if (filteredProducts.length) {
+          <div class="grid">
+            @for (item of filteredProducts; track item.sku) {
+              <ng-container *ngTemplateOutlet="card; context: { $implicit: item }" />
+            }
+          </div>
+        } @else {
+          <p class="state">ไม่พบสินค้าที่ตรงกับการค้นหา</p>
+        }
+      }
+    </main>
+
+    <!-- คอมพิวเตอร์: ตะกร้าแสดงด้านขวาตลอด / จอเล็ก: เปิดเป็นแผงเลื่อนจากขวา -->
+    @if (cartOpen) {
+      <button type="button" class="backdrop drawer-backdrop" aria-label="ปิดตะกร้า" (click)="toggleCart(false)"></button>
+    }
+    <aside id="cart-panel" class="cart-panel" [class.open]="cartOpen" aria-label="ตะกร้าสินค้า">
+      <div class="cart-head">
+        <h2>ตะกร้าสินค้า</h2>
+        <button type="button" class="icon-btn close-cart" aria-label="ปิดตะกร้า" (click)="toggleCart(false)">✕</button>
+      </div>
+
+      @if (cartItems.length) {
+        <ul class="cart-list">
+          @for (item of cartItems; track item.product.sku) {
+            <li class="cart-line">
+              <button type="button" class="cart-thumb" (click)="openProduct(item.product)" [attr.aria-label]="'ดู ' + item.product.product_name">
+                @if (item.product.picture) {
+                  <img [src]="item.product.picture" alt="" />
+                } @else {
+                  <span class="placeholder small">{{ initial(item.product) }}</span>
+                }
+              </button>
+              <div class="cart-info">
+                <span class="cart-name">{{ item.product.product_name }}</span>
+                <span class="cart-price">{{ formatPrice(+item.product.price * item.quantity) }}</span>
+                <div class="quantity small">
+                  <button type="button" aria-label="ลดจำนวน" (click)="updateCartQuantity(item, -1)">−</button>
+                  <output>{{ item.quantity }}</output>
+                  <button type="button" aria-label="เพิ่มจำนวน" (click)="updateCartQuantity(item, 1)" [disabled]="item.quantity >= stock(item.product)">+</button>
+                </div>
+              </div>
+              <button type="button" class="icon-btn remove" [attr.aria-label]="'ลบ ' + item.product.product_name" (click)="cart.remove(item.product.sku)">🗑</button>
+            </li>
+          }
+        </ul>
+        <div class="cart-foot">
+          <p class="cart-total"><span>ยอดรวม</span><strong>{{ formatPrice(cartTotal) }}</strong></p>
+          <button type="button" class="btn-primary large block" (click)="openCheckout()">สั่งซื้อสินค้า</button>
+        </div>
+      } @else {
+        <p class="cart-empty">ยังไม่มีสินค้าในตะกร้า</p>
+      }
+    </aside>
+  </div>
+
+  @if (toast && !cartOpen) {
+    <output class="toast">{{ toast }}</output>
+  }
+
+  @if (checkoutOpen) {
+    <div class="modal-layer">
+      <button type="button" class="backdrop" aria-label="ปิดหน้าต่างสั่งซื้อ" (click)="closeCheckout()"></button>
+      <dialog class="modal" open aria-modal="true" aria-labelledby="checkout-title">
+        @if (orderResult) {
+          <div class="success">
+            <span class="success-icon" aria-hidden="true">✓</span>
+            <h2 id="checkout-title">สั่งซื้อสำเร็จ</h2>
+            <p>หมายเลขคำสั่งซื้อ <strong>{{ orderResult.order_code }}</strong></p>
+            <p>ยอดรวม {{ formatPrice(orderResult.total) }}</p>
+            <p class="hint">ร้านจะติดต่อกลับทางเบอร์โทรศัพท์เพื่อยืนยันคำสั่งซื้อและการชำระเงิน</p>
+            <button type="button" class="btn-primary large" (click)="closeCheckout()">เลือกซื้อสินค้าต่อ</button>
+          </div>
+        } @else {
+          <div class="modal-head">
+            <h2 id="checkout-title">ยืนยันการสั่งซื้อ</h2>
+            <button type="button" class="icon-btn" aria-label="ปิด" (click)="closeCheckout()">✕</button>
+          </div>
+          <div class="checkout">
+            <form class="checkout-form" (ngSubmit)="submitOrder()">
+              <label>
+                ชื่อผู้รับ
+                <input name="customer_name" [(ngModel)]="customer.customer_name" autocomplete="name" required maxlength="100" />
+              </label>
+              <label>
+                เบอร์โทรศัพท์
+                <input name="phone" type="tel" [(ngModel)]="customer.phone" autocomplete="tel" required placeholder="08x-xxx-xxxx" maxlength="20" />
+              </label>
+              <label>
+                ที่อยู่จัดส่ง
+                <textarea name="address" rows="3" [(ngModel)]="customer.address" autocomplete="street-address" required maxlength="500"></textarea>
+              </label>
+              <label>
+                หมายเหตุ (ถ้ามี)
+                <textarea name="note" rows="2" [(ngModel)]="customer.note" maxlength="500"></textarea>
+              </label>
+              @if (orderError) {
+                <p class="error" role="alert">{{ orderError }}</p>
+              }
+              <button type="submit" class="btn-primary large block" [disabled]="isSubmitting || !cartItems.length">
+                {{ isSubmitting ? 'กำลังส่งคำสั่งซื้อ...' : 'ยืนยันสั่งซื้อ ' + formatPrice(cartTotal) }}
+              </button>
+            </form>
+
+            <div class="summary">
+              <h3>สรุปรายการ</h3>
+              <ul>
+                @for (item of cartItems; track item.product.sku) {
+                  <li>
+                    <span>{{ item.product.product_name }} × {{ item.quantity }}</span>
+                    <span>{{ formatPrice(+item.product.price * item.quantity) }}</span>
+                  </li>
+                }
+              </ul>
+              <p class="cart-total"><span>ยอดรวม</span><strong>{{ formatPrice(cartTotal) }}</strong></p>
+            </div>
+          </div>
+        }
+      </dialog>
+    </div>
+  }
+</div>
+
+<ng-template #card let-item>
+  <article class="card">
+    <button type="button" class="card-open" (click)="openProduct(item)">
+      <div class="card-image">
+        @if (item.picture) {
+          <img [src]="item.picture" [alt]="item.product_name" loading="lazy" />
+        } @else {
+          <span class="placeholder">{{ initial(item) }}</span>
+        }
+        <span [class]="'stock stock-' + stockLevel(item)">{{ stockLabel(item) }}</span>
+      </div>
+      <div class="card-body">
+        <span class="card-brand">{{ item.brand || item.category || '' }}</span>
+        <span class="card-name">{{ item.product_name }}</span>
+        <span class="card-price">{{ formatPrice(item.price) }}</span>
+      </div>
+    </button>
+    <button
+      type="button"
+      class="add-btn"
+      [disabled]="available(item) === 0"
+      [attr.aria-label]="'เพิ่ม ' + item.product_name + ' ลงตะกร้า'"
+      (click)="addToCart(item)">
+      {{ stockLevel(item) === 'out' ? 'สินค้าหมด' : 'ใส่ตะกร้า' }}
+    </button>
+  </article>
+</ng-template>

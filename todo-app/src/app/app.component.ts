@@ -39,6 +39,9 @@ export class AppComponent {
   // ใช้ .split('?')[0] เพื่อตัด Query Parameters (เช่น ?fbclid=...) ออกไป
   const currentRoute = this.router.url.split('?')[0];
   
-  return hiddenRoutes.includes(currentRoute);
+  // หน้าร้าน (/shop, /shop/:sku) เป็นหน้าสาธารณะ ไม่ใช้ Navbar ของระบบหลังร้าน
+  const isShop = currentRoute === '/shop' || currentRoute.startsWith('/shop/');
+
+  return isShop || hiddenRoutes.includes(currentRoute);
 }
 }
