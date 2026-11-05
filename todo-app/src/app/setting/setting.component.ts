@@ -13,6 +13,9 @@ interface StoreSettings {
   time_zone: string;
   currency: string;
   date_format: string;
+  // การตั้งค่าหน้า POS (มีเมื่อรัน migration 007_pos_settings.sql แล้ว)
+  pos_hide_prices?: boolean;
+  pos_allow_price_edit?: boolean;
 }
 
 @Component({
@@ -40,6 +43,9 @@ export class SettingsPageComponent implements OnInit {
   showpopup = false;
   showpopupnoti = false;
   popup = '';
+
+  // ฐานข้อมูลยังไม่มีคอลัมน์การตั้งค่า POS (ยังไม่รัน migration) = ซ่อนสวิตช์ และไม่ส่งค่าไปบันทึก
+  posSettingsAvailable = false;
 
   form: StoreSettings = {
     email: '', phone: '', address: '',
@@ -90,7 +96,12 @@ export class SettingsPageComponent implements OnInit {
     this.isLoading = true; 
     this.cdr.markForCheck();
     
-    this.todoService.saveSettings(this.form).subscribe({
+    const { pos_hide_prices, pos_allow_price_edit, ...store } = this.form;
+    const payload = this.posSettingsAvailable
+      ? { ...store, pos_hide_prices: !!pos_hide_prices, pos_allow_price_edit: !!pos_allow_price_edit }
+      : store;
+
+    this.todoService.saveSettings(payload).subscribe({
       next: (response) => {
         this.isLoading = false;
         if (response.success) {
@@ -115,7 +126,7 @@ export class SettingsPageComponent implements OnInit {
       error: (err) => {
         this.isLoading = false;
         console.error('Error saving settings', err);
-        this.openpopupnoti('Failed to save settings');
+        this.openpopupnoti(err?.error?.message || 'Failed to save settings');
       }
     });
   }
@@ -125,7 +136,10 @@ export class SettingsPageComponent implements OnInit {
     this.todoService.getSettings().subscribe({
       next: (data) => { 
         this.isLoading = false;
-        if (data) this.form = data; 
+        if (data) {
+          this.form = data;
+          this.posSettingsAvailable = 'pos_hide_prices' in data && 'pos_allow_price_edit' in data;
+        }
         this.cdr.markForCheck();
       },
       error: (err) => {

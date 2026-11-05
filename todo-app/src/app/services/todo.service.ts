@@ -277,7 +277,8 @@ export class TodoService {
   }
 
   // ปิดการขายทั้งออเดอร์ในครั้งเดียว (Backend ตัดสต็อก + บันทึกยอดขายใน transaction)
-  checkout(order: { order_code: string; items: { sku: string; quantity: number }[]; discount: number; picture?: string }): Observable<any> {
+  // price = ราคาที่แก้ในหน้า POS (Backend ใช้เฉพาะเมื่อเปิด "Allow price editing" ในหน้า Setting)
+  checkout(order: { order_code: string; items: { sku: string; quantity: number; price?: number }[]; discount: number; picture?: string }): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/checkout`, order, { headers: this.headers });
   }
 

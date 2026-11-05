@@ -21,30 +21,54 @@ router.get('/api/settings', async (req, res) => {
 });
 
 router.post('/api/settings', requireRole('admin', 'manager'), async (req, res) => {
-  try {
-    const { id, email, phone, address } = req.body; // เอาตัวที่ไม่มีออก
+  const { id, email, phone, address } = req.body;
+  // การตั้งค่าหน้า POS (ไม่ส่งมา = คงค่าเดิม)
+  const flag = (value: unknown) => (typeof value === 'boolean' ? value : null);
+  const hidePrices = flag(req.body.pos_hide_prices);
+  const allowPriceEdit = flag(req.body.pos_allow_price_edit);
 
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
     let result;
-    
+
     if (id) {
-      result = await pool.query(
+      result = await client.query(
         `UPDATE settings 
          SET email = $1, phone = $2, address = $3, updated_at = NOW() 
          WHERE id = $4 RETURNING *`,
         [email, phone, address, id]
       );
     } else {
-      result = await pool.query(
+      result = await client.query(
         `INSERT INTO settings (email, phone, address) 
          VALUES ($1, $2, $3) RETURNING *`,
         [email, phone, address]
       );
     }
 
-    res.status(201).json({ success: true, data: result.rows[0] });
+    let row = result.rows[0];
+    if (row && (hidePrices !== null || allowPriceEdit !== null)) {
+      row = (await client.query(
+        `UPDATE settings
+         SET pos_hide_prices = COALESCE($1, pos_hide_prices), pos_allow_price_edit = COALESCE($2, pos_allow_price_edit)
+         WHERE id = $3 RETURNING *`,
+        [hidePrices, allowPriceEdit, row.id]
+      )).rows[0];
+    }
+
+    await client.query('COMMIT');
+    res.status(201).json({ success: true, data: row });
   } catch (error) {
+    await client.query('ROLLBACK').catch(() => {});
     console.error('Error saving settings:', error);
-    res.status(500).json({ success: false, message: 'Server Error' });
+    // ยังไม่ได้รัน migration 007 (ไม่มีคอลัมน์การตั้งค่า POS)
+    const message = (error as { code?: string })?.code === '42703'
+      ? 'POS settings are not available yet. Please run migration 007_pos_settings.sql.'
+      : 'Server Error';
+    res.status(500).json({ success: false, message });
+  } finally {
+    client.release();
   }
 });
 

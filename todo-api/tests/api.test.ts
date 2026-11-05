@@ -77,6 +77,7 @@ beforeEach(async () => {
   await pool.query(sql('migrations/004_shop_orders.sql'));
   await pool.query(sql('migrations/005_shop_cart.sql'));
   await pool.query(sql('migrations/006_shop_payment.sql'));
+  await pool.query(sql('migrations/007_pos_settings.sql'));
   for (const key of Object.keys(firebaseTokens)) delete firebaseTokens[key];
   await pool.query(`
     INSERT INTO todos (username, title, password, completed, role, national_id) VALUES
@@ -439,6 +440,41 @@ test('checkout: ตัดสต็อก กระจายส่วนลด �
 
   const titles = (await pool.query('SELECT title FROM notification')).rows.map(r => r.title);
   assert.deepEqual(titles, ['Inventory Alert : Banana']);
+});
+
+test('checkout: ราคาที่แก้จาก POS ใช้ได้เฉพาะเมื่อเปิดการตั้งค่า ไม่งั้นใช้ราคาจาก DB / ราคาติดลบไม่รับ', async () => {
+  const pos = await tokenFor('pos1');
+  const sell = (code: string, price: unknown) =>
+    api('POST', '/api/checkout', { order_code: code, items: [{ sku: 'SKU-A', quantity: 1, price }], discount: 0 }, pos);
+
+  // ค่าเริ่มต้นปิดอยู่: ส่งราคามาก็ไม่ใช้
+  assert.equal((await sell('#P1', 1)).body.data.total, 100);
+
+  await pool.query('UPDATE settings SET pos_allow_price_edit = true');
+  assert.equal((await sell('#P2', 79.999)).body.data.total, 80);
+  assert.equal((await sell('#P3', -5)).status, 400);
+  assert.equal((await api('POST', '/api/checkout', { order_code: '#P4', items: [{ sku: 'SKU-A', quantity: 1 }], discount: 0 }, pos)).body.data.total, 100);
+
+  const amounts = (await pool.query('SELECT order_code, amount::float FROM sale_order ORDER BY id')).rows;
+  assert.deepEqual(amounts.map(r => [r.order_code, r.amount]), [['#P1', 100], ['#P2', 80], ['#P4', 100]]);
+  assert.equal(await stock('SKU-A'), 2);
+});
+
+test('settings: บันทึกการตั้งค่า POS ได้ (admin) / ไม่ส่งมาคงค่าเดิม / pos บันทึกไม่ได้', async () => {
+  const admin = await tokenFor('admin1');
+  const id = (await pool.query('SELECT id FROM settings')).rows[0].id;
+  const base = { id, email: 'shop@test.com', phone: '081-111-2222', address: 'Bangkok' };
+
+  const saved = await api('POST', '/api/settings', { ...base, pos_hide_prices: true, pos_allow_price_edit: true }, admin);
+  assert.equal(saved.status, 201);
+  assert.deepEqual([saved.body.data.pos_hide_prices, saved.body.data.pos_allow_price_edit], [true, true]);
+
+  // หน้าเก่าที่ไม่ส่งค่า POS มา ไม่ทำให้การตั้งค่าหาย / ค่าที่ไม่ใช่ boolean ไม่ถูกบันทึก
+  await api('POST', '/api/settings', { ...base, pos_hide_prices: 'yes' }, admin);
+  const row = (await api('GET', '/api/settings', undefined, admin)).body;
+  assert.deepEqual([row.pos_hide_prices, row.pos_allow_price_edit, row.address], [true, true, 'Bangkok']);
+
+  assert.equal((await api('POST', '/api/settings', { ...base, pos_allow_price_edit: false }, await tokenFor('pos1'))).status, 403);
 });
 
 test('checkout: ของไม่พอ ยกเลิกทั้งออเดอร์ ไม่ตัดสต็อกสินค้าอื่น', async () => {

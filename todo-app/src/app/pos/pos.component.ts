@@ -26,6 +26,7 @@ interface Product {
 interface CartItem extends Product {
   quantity: number;
   batchNo: string;
+  basePrice: number; // ราคาจากคลังสินค้า (price = ราคาที่ขายจริง แก้ได้เมื่อเปิดการตั้งค่า)
 }
 
 type HeaderPanel = 'account' | null;
@@ -119,10 +120,18 @@ play_Return = false;
 
     this.loadInventory();
   }
+  // การตั้งค่าหน้า POS จากหน้า Setting
+  hidePrices = false;
+  allowPriceEdit = false;
+
   loadStoreSettings(): void {
     this.todoService.getSettings().subscribe({
       next: (settings) => {
-        if (settings && settings.phone) {
+        if (!settings) return;
+        this.hidePrices = settings.pos_hide_prices === true;
+        this.allowPriceEdit = settings.pos_allow_price_edit === true;
+        this.changeDetector.markForCheck();
+        if (settings.phone) {
           // ลบขีดหรือช่องว่างออก เพื่อให้ PromptPay ใช้งานได้ถูกต้อง
           this.storePhone = settings.phone.replace(/[-\s]/g, ''); 
         }
@@ -375,7 +384,7 @@ play_Return = false;
   addToCart(product: Product): void {
     const item = this.cartItems.find((entry) => entry.id === product.id);
     if (item) item.quantity = Math.min(item.quantity + 1, product.stock);
-    else this.cartItems = [...this.cartItems, { ...product, quantity: 1, batchNo: '' }];
+    else this.cartItems = [...this.cartItems, { ...product, quantity: 1, batchNo: '', basePrice: product.price }];
     
   }
   
@@ -385,6 +394,24 @@ play_Return = false;
     if (next <= 0) { this.removeFromCart(item); return; }
     item.quantity = Math.min(next, item.stock);
     this.changeDetector.markForCheck();
+  }
+
+  // แก้ราคาขายในตะกร้า (เฉพาะเมื่อเปิด "Allow price editing" ในหน้า Setting) ค่าที่ไม่ใช่ตัวเลข / ติดลบไม่รับ
+  setItemPrice(item: CartItem, value: number | string | null): void {
+    if (!this.allowPriceEdit) return;
+    const price = Number(value);
+    if (value === null || value === '' || !Number.isFinite(price) || price < 0) return;
+    item.price = Math.round(price * 100) / 100;
+    this.changeDetector.markForCheck();
+  }
+
+  resetItemPrice(item: CartItem): void {
+    item.price = item.basePrice;
+    this.changeDetector.markForCheck();
+  }
+
+  isPriceEdited(item: CartItem): boolean {
+    return item.price !== item.basePrice;
   }
 
   removeFromCart(item: CartItem): void {
@@ -604,7 +631,10 @@ processOrder(): void {
     // ส่งทั้งออเดอร์ให้ Backend ตัดสต็อก + บันทึกยอดขาย + แจ้งเตือนสต็อกต่ำ ใน transaction เดียว
     this.todoService.checkout({
       order_code: orderCode,
-      items: this.cartItems.map(item => ({ sku: item.id, quantity: item.quantity })),
+      // ส่งราคาที่แก้ไปด้วยเมื่อเปิดการตั้งค่า (Backend ใช้ก็ต่อเมื่อการตั้งค่าเปิดอยู่จริง)
+      items: this.cartItems.map(item => this.allowPriceEdit
+        ? { sku: item.id, quantity: item.quantity, price: item.price }
+        : { sku: item.id, quantity: item.quantity }),
       discount: this.discountAmount,
       picture: this.profile
     }).subscribe({
@@ -626,7 +656,7 @@ processOrder(): void {
       time: auditNow.toTimeString().split(' ')[0],
       username: this.username,
       email: this.email,
-      activity: `Completed Order: ${orderCode}`,
+      activity: `Completed Order: ${orderCode}${this.cartItems.some(item => this.isPriceEdited(item)) ? ' (price edited)' : ''}`,
             product: productNames,
       role: this.userRole,
       picture: this.profile

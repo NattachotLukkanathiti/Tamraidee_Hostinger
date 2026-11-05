@@ -52,7 +52,33 @@
 
     <div class="settings-divider"></div>
 
+    <section class="settings-section">
+      <h2>Point of sale (POS)</h2>
+      <p>Control how prices appear and can be changed on the POS screen.</p>
 
+      @if (posSettingsAvailable) {
+        <div class="toggle-list">
+          <label class="toggle-row">
+            <span class="toggle-text">
+              <strong>Hide product prices</strong>
+              <span>Product cards on the POS screen don't show prices. The order list and total still show them.</span>
+            </span>
+            <input type="checkbox" class="switch" role="switch" [(ngModel)]="form.pos_hide_prices" />
+          </label>
+          <label class="toggle-row">
+            <span class="toggle-text">
+              <strong>Allow price editing at checkout</strong>
+              <span>Staff can change a product's price in the order list before paying by cash or PromptPay. The new price is used for the total, the QR code, the receipt and the sales record.</span>
+            </span>
+            <input type="checkbox" class="switch" role="switch" [(ngModel)]="form.pos_allow_price_edit" />
+          </label>
+        </div>
+      } @else {
+        <p class="settings-note">POS settings are not available yet. Run migration <code>007_pos_settings.sql</code> on the database, then reload this page.</p>
+      }
+    </section>
+
+    <div class="settings-divider"></div>
 
     <div class="settings-actions">
       <button type="button" class="btn btn--secondary" (click)="back()">Cancel</button>

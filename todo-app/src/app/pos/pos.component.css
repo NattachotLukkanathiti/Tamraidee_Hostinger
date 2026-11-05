@@ -2676,3 +2676,38 @@
   font-size: 12px;
   z-index: 9999 !important; 
 }
+
+/* แก้ราคาในตะกร้า (เปิดได้จากหน้า Setting) */
+.price-input {
+  width: 100%;
+  max-width: 96px;
+  box-sizing: border-box;
+  padding: 4px 8px;
+  border: 1px solid #84d46e;
+  border-radius: 8px;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+  text-align: right;
+}
+
+.price-input:focus-visible {
+  outline: 2px solid #1364d5;
+  outline-offset: 1px;
+}
+
+.price-reset {
+  display: block;
+  margin: 6px 0 0 auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #646b72;
+  font-size: 11px;
+  text-decoration: line-through;
+  cursor: pointer;
+}
+
+.price-reset:hover {
+  color: #2b2f38;
+}

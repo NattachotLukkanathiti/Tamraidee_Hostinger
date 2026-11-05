@@ -154,7 +154,7 @@
                     <div class="product-card__category">{{ product.category }}</div>
                     <strong>{{ product.name }}</strong>
                     <div class="product-card__divider"></div>
-                    <div class="product-card__meta"><div>{{ product.stock }} Pcs</div><em>{{ formatCurrency(product.price) }}</em></div>
+                    <div class="product-card__meta"><div>{{ product.stock }} Pcs</div>@if (!hidePrices) {<em>{{ formatCurrency(product.price) }}</em>}</div>
                   </div>
                 </button>
               } @empty {
@@ -203,7 +203,19 @@
                     <div class="cart-row" tabindex="0">
                       <div class="cart-row__product"><strong>{{ item.name }}</strong><em>In Stock: {{ formatStock(item.stock) }}</em></div>
 
-                      <div class="cart-row__price is-right">{{ formatCurrency(item.price) }}</div>
+                      @if (allowPriceEdit) {
+                        <div class="cart-row__price is-right">
+                          <input class="price-input" type="number" min="0" step="0.01" inputmode="decimal"
+                            [attr.aria-label]="'Price of ' + item.name" [ngModel]="item.price" (ngModelChange)="setItemPrice(item, $event)" />
+                          @if (isPriceEdited(item)) {
+                            <button type="button" class="price-reset" [attr.aria-label]="'Reset price of ' + item.name" (click)="resetItemPrice(item)">
+                              was {{ formatCurrency(item.basePrice) }}
+                            </button>
+                          }
+                        </div>
+                      } @else {
+                        <div class="cart-row__price is-right">{{ formatCurrency(item.price) }}</div>
+                      }
                       <div class="cart-row__qty">
                         <div class="quantity">
                           <button type="button" aria-label="Increase quantity" (click)="changeQuantity(item, 1)"><img src="image/add_pos.svg" alt="" /></button>

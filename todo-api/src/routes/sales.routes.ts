@@ -73,17 +73,29 @@ router.post('/api/checkout', requireRole('admin', 'manager', 'pos'), async (req,
 
   // รวม SKU ซ้ำ และเรียงตาม SKU เพื่อให้ล็อกแถวลำดับเดียวกันเสมอ (กัน deadlock เมื่อขายพร้อมกันหลายเครื่อง)
   const quantities = new Map<string, number>();
+  const editedPrices = new Map<string, number>();
   for (const item of items) {
     const qty = Number(item?.quantity);
     if (!item?.sku || !Number.isInteger(qty) || qty <= 0) {
       return res.status(400).json({ success: false, message: 'จำนวนสินค้าไม่ถูกต้อง' });
     }
     quantities.set(String(item.sku), (quantities.get(String(item.sku)) || 0) + qty);
+    if (item.price !== undefined && item.price !== null) {
+      const price = Number(item.price);
+      if (!Number.isFinite(price) || price < 0) {
+        return res.status(400).json({ success: false, message: 'ราคาสินค้าไม่ถูกต้อง' });
+      }
+      editedPrices.set(String(item.sku), Math.round(price * 100) / 100);
+    }
   }
   const lines = [...quantities].sort(([a], [b]) => a.localeCompare(b));
 
   const client = await pool.connect();
   try {
+    // ราคาที่แก้จากหน้า POS ใช้ได้เฉพาะเมื่อเปิด "อนุญาตให้แก้ราคา" ในหน้า Setting ไม่งั้นใช้ราคาจาก DB เสมอ
+    const settings = (await client.query('SELECT * FROM settings LIMIT 1')).rows[0];
+    const allowPriceEdit = settings?.pos_allow_price_edit === true;
+
     await client.query('BEGIN');
 
     const sold: { sku: string; product_name: string; quantity: number; lineTotal: number; remaining: number; alert: number }[] = [];
@@ -110,7 +122,7 @@ router.post('/api/checkout', requireRole('admin', 'manager', 'pos'), async (req,
         sku,
         product_name: row.product_name,
         quantity: qty,
-        lineTotal: Number(row.price) * qty, // ใช้ราคาจาก DB ไม่ใช้ราคาที่ client ส่งมา
+        lineTotal: (allowPriceEdit && editedPrices.has(sku) ? editedPrices.get(sku)! : Number(row.price)) * qty,
         remaining: Number(row.quantity),
         alert: Number(row.quantity_alert ?? 10)
       });

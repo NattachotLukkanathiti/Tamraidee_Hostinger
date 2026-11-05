@@ -15,8 +15,8 @@ describe('PosComponent', () => {
     harness.component.userRole = 'pos';
     harness.component.profile = 'p.png';
     harness.component.cartItems = [
-      { ...apple, quantity: 2, batchNo: '' },
-      { ...banana, quantity: 1, batchNo: '' }
+      { ...apple, quantity: 2, batchNo: '', basePrice: apple.price },
+      { ...banana, quantity: 1, batchNo: '', basePrice: banana.price }
     ];
     return harness;
   };
@@ -185,6 +185,79 @@ describe('PosComponent', () => {
 
       expect(component.changeAmount).toBe(1000 - component.total);
       expect(todo.checkout).toHaveBeenCalled();
+    });
+  });
+
+  describe('การตั้งค่า POS จากหน้า Setting', () => {
+    const openWith = (settings: object | null) => {
+      const harness = setUpPage(PosComponent);
+      harness.todo.getInventory.and.returnValue(of([
+        { sku: 'SKU-A', category: 'Fruit', product_name: 'Apple', quantity: 5, price: 100, picture: 'a.png' }
+      ]));
+      harness.todo.getSettings.and.returnValue(of(settings));
+      harness.fixture.detectChanges();
+      return { ...harness, el: harness.fixture.nativeElement as HTMLElement };
+    };
+    const cardPrice = (el: HTMLElement) => el.querySelector('.product-card__meta em');
+
+    it('ค่าเริ่มต้น: แสดงราคาบนการ์ดสินค้า และแก้ราคาในตะกร้าไม่ได้', () => {
+      const { fixture, component, el } = openWith({ phone: '0811112222' });
+      el.querySelector<HTMLButtonElement>('.product-card')!.click();
+      fixture.detectChanges();
+
+      expect(cardPrice(el)?.textContent).toContain('100');
+      expect(el.querySelector('.price-input')).toBeNull();
+      component.setItemPrice(component.cartItems[0], 1);
+      expect(component.cartItems[0].price).toBe(100);
+      fixture.destroy();
+    });
+
+    it('ปิดราคาสินค้า: การ์ดสินค้าไม่แสดงราคา แต่ยอดรวมยังคิดตามราคา', () => {
+      const { fixture, component, el } = openWith({ pos_hide_prices: true });
+      el.querySelector<HTMLButtonElement>('.product-card')!.click();
+      fixture.detectChanges();
+
+      expect(cardPrice(el)).toBeNull();
+      expect(component.total).toBe(100);
+      fixture.destroy();
+    });
+
+    it('เปิดแก้ราคา: แก้ในตะกร้าแล้วยอดรวมเปลี่ยน ส่งราคาไป Backend และ audit บอกว่าแก้ราคา / กดคืนราคาเดิมได้', () => {
+      const { fixture, component, el, todo } = openWith({ pos_allow_price_edit: true });
+      todo.checkout.and.returnValue(of({ success: true }));
+      todo.logAudit.and.returnValue(of({}));
+      el.querySelector<HTMLButtonElement>('.product-card')!.click();
+      fixture.detectChanges();
+
+      const input = el.querySelector<HTMLInputElement>('.price-input')!;
+      input.value = '79.999';
+      input.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+
+      expect(component.cartItems[0].price).toBe(80);
+      expect(component.total).toBe(80);
+      expect(el.querySelector('.price-reset')?.textContent).toContain('100');
+
+      // ค่าที่ใช้ไม่ได้ไม่เปลี่ยนราคา
+      component.setItemPrice(component.cartItems[0], -1);
+      component.setItemPrice(component.cartItems[0], '');
+      component.setItemPrice(component.cartItems[0], 'abc');
+      expect(component.cartItems[0].price).toBe(80);
+
+      component.processOrder();
+      expect(todo.checkout.calls.mostRecent().args[0].items).toEqual([{ sku: 'SKU-A', quantity: 1, price: 80 }]);
+      expect(todo.logAudit.calls.mostRecent().args[0].activity).toContain('(price edited)');
+
+      el.querySelector<HTMLButtonElement>('.price-reset')!.click();
+      expect(component.cartItems[0].price).toBe(100);
+      fixture.destroy();
+    });
+
+    it('ไม่มีการตั้งค่าร้าน: ไม่ error และใช้ค่าเริ่มต้น', () => {
+      const { fixture, component } = openWith(null);
+      expect(component.hidePrices).toBeFalse();
+      expect(component.allowPriceEdit).toBeFalse();
+      fixture.destroy();
     });
   });
 });
