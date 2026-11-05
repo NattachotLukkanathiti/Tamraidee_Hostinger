@@ -12,6 +12,7 @@ export function shopOrder(overrides: Partial<ShopOrder> = {}): ShopOrder {
     items: [{ sku: 'A1', product_name: 'Apple', price: 25.5, quantity: 2 }],
     total: 51,
     status: 'Awaiting Payment',
+    payment_method: 'promptpay',
     created_at: '2026-11-04T10:00:00Z',
     has_slip: false,
     slip_uploaded_at: null,

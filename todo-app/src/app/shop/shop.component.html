@@ -23,7 +23,9 @@
           <p class="tile-eyebrow">{{ featuredLabel(i) }}</p>
           <h2>{{ item.product_name }}</h2>
           <p class="tile-sub">{{ tagline(item) }}</p>
-          <p class="tile-price">{{ formatPrice(item.price) }}</p>
+          @if (!hidePrices) {
+            <p class="tile-price">{{ formatPrice(item.price) }}</p>
+          }
           <div class="tile-actions">
             <button type="button" class="btn-primary" [attr.aria-label]="'Learn more about ' + item.product_name" (click)="openProduct(item)">Learn more</button>
             @if (available(item) > 0) {
@@ -96,7 +98,9 @@
                 <span class="chip">{{ product.category }}</span>
               }
               <h1>{{ product.product_name }}</h1>
-              <p class="detail-price">{{ formatPrice(product.price) }}</p>
+              @if (!hidePrices) {
+                <p class="detail-price">{{ formatPrice(product.price) }}</p>
+              }
 
               <dl class="specs">
                 <dt>Brand</dt>
@@ -118,7 +122,9 @@
                   <output aria-live="polite">{{ quantity }}</output>
                   <button type="button" aria-label="Increase quantity" (click)="changeQuantity(1)" [disabled]="quantity >= available(product)">+</button>
                 </div>
-                <p class="total">Subtotal <strong>{{ formatPrice(+product.price * quantity) }}</strong></p>
+                @if (!hidePrices) {
+                  <p class="total">Subtotal <strong>{{ formatPrice(+product.price * quantity) }}</strong></p>
+                }
                 <div class="buy-actions">
                   <button type="button" class="btn-outline large" (click)="addToCart(product, quantity)">Add to Cart</button>
                   <button type="button" class="btn-primary large" (click)="buyNow(product)">Buy Now</button>
@@ -169,7 +175,9 @@
                   <button type="button" class="best-card" (click)="openProduct(item)">
                     <span class="best-rank">#{{ i + featuredCount + 1 }} Best Seller</span>
                     <span class="best-name">{{ item.product_name }}</span>
-                    <span class="best-price">{{ formatPrice(item.price) }}</span>
+                    @if (!hidePrices) {
+                      <span class="best-price">{{ formatPrice(item.price) }}</span>
+                    }
                     <span class="best-image">
                       @if (item.picture) {
                         <img [src]="item.picture" [alt]="item.product_name" loading="lazy" />
@@ -186,14 +194,16 @@
 
         <div class="toolbar" id="all-products">
           <h1>{{ selectedCategory }} <span class="result-count">{{ filteredProducts.length }} items</span></h1>
-          <label class="sort">
-            Sort by
-            <select [(ngModel)]="sortBy">
-              <option value="name">Name</option>
-              <option value="price-asc">Price: Low to High</option>
-              <option value="price-desc">Price: High to Low</option>
-            </select>
-          </label>
+          @if (!hidePrices) {
+            <label class="sort">
+              Sort by
+              <select [(ngModel)]="sortBy">
+                <option value="name">Name</option>
+                <option value="price-asc">Price: Low to High</option>
+                <option value="price-desc">Price: High to Low</option>
+              </select>
+            </label>
+          }
         </div>
 
         @if (filteredProducts.length) {
@@ -270,7 +280,18 @@
   <div class="modal-layer">
     <button type="button" class="backdrop" aria-label="Close checkout" (click)="closeCheckout()"></button>
     <dialog class="modal form_noti" open aria-modal="true" aria-labelledby="checkout-title">
-      @if (orderResult && paymentSent) {
+      @if (orderResult && orderResult.order.payment_method === 'cash') {
+        <div class="success">
+          <span class="success-icon" aria-hidden="true">✓</span>
+          <h2 id="checkout-title">Order placed</h2>
+          <p>Order number <strong>{{ orderResult.order.order_code }}</strong></p>
+          <p class="hint">Pick up your order at the store and pay in cash. We will check it and let you know in My Orders if we can't fulfil it.</p>
+          <div class="success-actions">
+            <button type="button" class="btn-outline large" (click)="openOrders()">View My Orders</button>
+            <button type="button" class="btn-primary large" (click)="closeCheckout()">Continue Shopping</button>
+          </div>
+        </div>
+      } @else if (orderResult && paymentSent) {
         <div class="success">
           <span class="success-icon" aria-hidden="true">✓</span>
           <h2 id="checkout-title">Payment slip sent</h2>
@@ -315,7 +336,7 @@
               <p class="error" role="alert">{{ orderError }}</p>
             }
             <button type="submit" class="btn-primary large block" [disabled]="isSubmitting || !cartItems.length">
-              {{ isSubmitting ? 'Placing order...' : 'Continue to Payment · ' + formatPrice(cartTotal) }}
+              {{ isSubmitting ? 'Placing order...' : hidePrices ? 'Place Order' : 'Continue to Payment · ' + formatPrice(cartTotal) }}
             </button>
           </form>
 
@@ -330,7 +351,11 @@
               }
             </ul>
             <p class="cart-total"><span>Total</span><strong>{{ formatPrice(cartTotal) }}</strong></p>
-            <p class="hint">Payment: PromptPay QR (next step). Your order is confirmed once we verify your payment.</p>
+            @if (hidePrices) {
+              <p class="hint">Payment: cash when you pick up at the store. No online payment needed.</p>
+            } @else {
+              <p class="hint">Payment: PromptPay QR (next step). Your order is confirmed once we verify your payment.</p>
+            }
           </div>
         </div>
       }
@@ -352,7 +377,9 @@
       <div class="card-body">
         <span class="card-brand">{{ item.brand || item.category || '' }}</span>
         <span class="card-name">{{ item.product_name }}</span>
-        <span class="card-price">{{ formatPrice(item.price) }}</span>
+        @if (!hidePrices) {
+          <span class="card-price">{{ formatPrice(item.price) }}</span>
+        }
       </div>
     </button>
   </article>

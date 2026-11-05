@@ -141,6 +141,27 @@ describe('ShopOrdersComponent', () => {
     expect(closed).toHaveBeenCalledTimes(1);
   }));
 
+  it('ออเดอร์รับที่ร้าน: แสดงว่ารอรับและจ่ายเงินสด ไม่มีปุ่มจ่าย แต่ยกเลิกได้ / ถูกปฏิเสธเห็นเหตุผล', () => {
+    todoService.getMyShopOrders.and.returnValue(of({ orders: [
+      shopOrder({ id: 31, status: 'Awaiting Pickup', payment_method: 'cash' }),
+      shopOrder({ id: 30, status: 'Canceled', payment_method: 'cash', reject_reason: 'Out of stock' })
+    ], promptpay_id: null }));
+    todoService.cancelShopOrder.and.returnValue(of({ order: shopOrder({ id: 31, status: 'Canceled', payment_method: 'cash' }) }));
+    setUp();
+
+    expect(cards()[0].querySelector('.status')?.textContent).toContain('Awaiting pickup');
+    expect(cards()[0].textContent).toContain('pay in cash');
+    expect(cards()[0].querySelector('.btn-primary')).toBeNull();
+    expect(cards()[1].textContent).toContain('Reason: Out of stock');
+
+    cards()[0].querySelector<HTMLButtonElement>('.link-btn')!.click();
+    fixture.detectChanges();
+    cards()[0].querySelector<HTMLButtonElement>('.btn-danger')!.click();
+    fixture.detectChanges();
+    expect(todoService.cancelShopOrder).toHaveBeenCalledWith(31);
+    expect(cards()[0].querySelector('.status')?.textContent).toContain('Canceled');
+  });
+
   it('สถานะที่ไม่รู้จัก: แสดงชื่อสถานะตรง ๆ', () => {
     setUp();
     expect(component.status({ ...ORDERS[0], status: 'Refunded' as never }).label).toBe('Refunded');

@@ -8,8 +8,8 @@ import { formatPrice } from '../shop/shop-format';
 
 type Filter = ShopOrderStatus | 'All';
 
-// แท็บกรอง: เริ่มที่ "รอตรวจสลิป" เพราะเป็นงานที่พนักงานต้องทำ
-const FILTERS: Filter[] = ['Verifying', 'Awaiting Payment', 'Completed', 'Rejected', 'Canceled', 'All'];
+// แท็บกรอง: เริ่มที่ "รอตรวจสลิป" และ "รอรับที่ร้าน" เพราะเป็นงานที่พนักงานต้องทำ
+const FILTERS: Filter[] = ['Verifying', 'Awaiting Pickup', 'Awaiting Payment', 'Completed', 'Rejected', 'Canceled', 'All'];
 
 // หลังร้าน: ตรวจสลิป PromptPay ของออเดอร์หน้าร้าน
 // ยืนยัน = ตัดสต็อก + บันทึกยอดขาย (Completed) / ปฏิเสธ = แจ้งเหตุผลให้ลูกค้าแนบสลิปใหม่
@@ -69,6 +69,15 @@ export class OnlineOrdersComponent implements OnInit {
     }
   }
 
+  // งานที่รอพนักงาน: ตรวจสลิป (PromptPay) หรือกดรับ / ปฏิเสธออเดอร์รับที่ร้าน
+  needsAction(order: ShopOrder): boolean {
+    return order.status === 'Verifying' || order.status === 'Awaiting Pickup';
+  }
+
+  isPickup(order: ShopOrder): boolean {
+    return order.payment_method === 'cash';
+  }
+
   get visibleOrders(): ShopOrder[] {
     return this.filter === 'All' ? this.orders : this.orders.filter(o => o.status === this.filter);
   }
@@ -115,7 +124,10 @@ export class OnlineOrdersComponent implements OnInit {
     this.isSaving = true;
     this.reviewError = '';
     this.todoService.confirmOnlineOrder(order.id).subscribe({
-      next: ({ order: updated }) => this.finish(updated, `${updated.order_code} confirmed. Stock deducted and sale recorded.`),
+      next: ({ order: updated }) => this.finish(
+        updated,
+        `${updated.order_code} ${this.isPickup(updated) ? 'accepted (paid in cash)' : 'confirmed'}. Stock deducted and sale recorded.`
+      ),
       error: err => this.fail(err, 'The payment could not be confirmed. Please try again.')
     });
   }
@@ -125,13 +137,18 @@ export class OnlineOrdersComponent implements OnInit {
     const reason = this.rejectReason.trim();
     if (!order || this.isSaving) return;
     if (!reason) {
-      this.reviewError = 'Please tell the customer why the slip was not accepted.';
+      this.reviewError = 'Please tell the customer why the order was not accepted.';
       return;
     }
     this.isSaving = true;
     this.reviewError = '';
     this.todoService.rejectOnlineOrder(order.id, reason).subscribe({
-      next: ({ order: updated }) => this.finish(updated, `${updated.order_code} rejected. The customer can send a new slip.`),
+      next: ({ order: updated }) => this.finish(
+        updated,
+        this.isPickup(updated)
+          ? `${updated.order_code} rejected and canceled. The customer can see the reason.`
+          : `${updated.order_code} rejected. The customer can send a new slip.`
+      ),
       error: err => this.fail(err, 'The slip could not be rejected. Please try again.')
     });
   }

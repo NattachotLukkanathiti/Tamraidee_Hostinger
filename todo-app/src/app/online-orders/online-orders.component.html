@@ -9,8 +9,8 @@
     </button>
   </div>
   <p class="intro">
-    Customers pay with PromptPay and attach their slip. Confirm only after the money appears in the store account.
-    Confirming deducts stock and records the sale as <strong>Completed</strong>.
+    Customers pay with PromptPay and attach their slip, or (when product prices are hidden) order for pickup and pay cash at the store.
+    Confirm only after you have received the money. Confirming deducts stock and records the sale as <strong>Completed</strong>.
   </p>
 
   @if (notice) {
@@ -59,8 +59,8 @@
                 <td class="muted">{{ order.created_at | date: 'yyyy-MM-dd HH:mm' }}</td>
                 <td><span class="status" [class]="'status ' + statusClass(order.status)">{{ order.status }}</span></td>
                 <td>
-                  <button type="button" class="review-button" [class.primary]="order.status === 'Verifying'" (click)="openReview(order)">
-                    {{ order.status === 'Verifying' ? 'Review slip' : 'View' }}
+                  <button type="button" class="review-button" [class.primary]="needsAction(order)" (click)="openReview(order)">
+                    {{ order.status === 'Verifying' ? 'Review slip' : order.status === 'Awaiting Pickup' ? 'Review' : 'View' }}
                   </button>
                 </td>
               </tr>
@@ -84,7 +84,12 @@
 
       <div class="review">
         <div class="slip">
-          @if (!order.has_slip) {
+          @if (isPickup(order)) {
+            <div class="pickup">
+              <p class="pickup-title">Pickup · Cash</p>
+              <p>The customer will pick up this order at the store and pay <strong>{{ formatPrice(order.total) }}</strong> in cash.</p>
+            </div>
+          } @else if (!order.has_slip) {
             <p class="state">No payment slip yet.</p>
           } @else if (slip) {
             <a [href]="slip" target="_blank" rel="noopener" title="Open full size">
@@ -129,7 +134,7 @@
             <p class="error" role="alert">{{ reviewError }}</p>
           }
 
-          @if (order.status === 'Verifying') {
+          @if (needsAction(order)) {
             @if (showReject) {
               <label class="reason">
                 Reason (shown to the customer)
@@ -137,16 +142,20 @@
               </label>
               <div class="actions">
                 <button type="button" class="btn-ghost" [disabled]="isSaving" (click)="showReject = false">Back</button>
-                <button type="button" class="btn-danger" [disabled]="isSaving" (click)="reject()">{{ isSaving ? 'Saving…' : 'Reject slip' }}</button>
+                <button type="button" class="btn-danger" [disabled]="isSaving" (click)="reject()">{{ isSaving ? 'Saving…' : isPickup(order) ? 'Reject order' : 'Reject slip' }}</button>
               </div>
             } @else {
               <div class="actions">
                 <button type="button" class="btn-ghost" [disabled]="isSaving" (click)="showReject = true">Reject</button>
-                <button type="button" class="btn-confirm" [disabled]="isSaving || !slip" (click)="confirm()">
-                  {{ isSaving ? 'Confirming…' : 'Confirm payment' }}
+                <button type="button" class="btn-confirm" [disabled]="isSaving || (!isPickup(order) && !slip)" (click)="confirm()">
+                  {{ isSaving ? 'Confirming…' : isPickup(order) ? 'Accept · Paid in cash' : 'Confirm payment' }}
                 </button>
               </div>
-              <p class="muted small">Check that {{ formatPrice(order.total) }} has arrived in the store's PromptPay account before confirming.</p>
+              @if (isPickup(order)) {
+                <p class="muted small">Accept when the customer has picked up the order and paid {{ formatPrice(order.total) }} in cash.</p>
+              } @else {
+                <p class="muted small">Check that {{ formatPrice(order.total) }} has arrived in the store's PromptPay account before confirming.</p>
+              }
             }
           }
         </div>

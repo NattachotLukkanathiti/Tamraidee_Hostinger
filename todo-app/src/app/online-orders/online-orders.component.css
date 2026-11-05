@@ -245,6 +245,11 @@ td {
   color: #0058b0;
 }
 
+.status-awaiting-pickup {
+  background: #f3e6fe;
+  color: #7a2fc0;
+}
+
 .status-awaiting-payment {
   background: #fff4e5;
   color: #b64400;
@@ -366,6 +371,22 @@ td {
   max-height: 70vh;
   border-radius: 12px;
   object-fit: contain;
+}
+
+.pickup {
+  max-width: 280px;
+  padding: 24px;
+  text-align: center;
+}
+
+.pickup p {
+  margin: 0 0 8px;
+}
+
+.pickup-title {
+  color: #7a2fc0;
+  font-size: 18px;
+  font-weight: 800;
 }
 
 .details {

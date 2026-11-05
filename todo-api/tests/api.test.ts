@@ -78,6 +78,7 @@ beforeEach(async () => {
   await pool.query(sql('migrations/005_shop_cart.sql'));
   await pool.query(sql('migrations/006_shop_payment.sql'));
   await pool.query(sql('migrations/007_pos_settings.sql'));
+  await pool.query(sql('migrations/008_shop_pickup.sql'));
   for (const key of Object.keys(firebaseTokens)) delete firebaseTokens[key];
   await pool.query(`
     INSERT INTO todos (username, title, password, completed, role, national_id) VALUES
@@ -298,6 +299,47 @@ test('shop payment: สลิปไม่ผ่าน -> ลูกค้าเ�
   assert.equal((await pool.query('SELECT status FROM shop_order WHERE id = $1', [short])).rows[0].status, 'Verifying');
 });
 
+test('shop pickup: เปิดซ่อนราคา -> สั่งได้โดยไม่จ่าย (รอรับที่ร้าน) แจ้งพนักงาน / กดรับเมื่อจ่ายเงินสด ตัดสต็อก / ปฏิเสธ = ยกเลิก', async () => {
+  await pool.query("UPDATE settings SET pos_hide_prices = true, phone = ''"); // ไม่ต้องมีบัญชี PromptPay
+  const cust = await tokenFor('cust1');
+  const pos = await tokenFor('pos1');
+
+  const res = await shopOrder({ items: [{ sku: 'SKU-A', quantity: 2 }] }, cust);
+  assert.equal(res.status, 201);
+  assert.deepEqual([res.body.order.status, res.body.order.payment_method, res.body.promptpay_id], ['Awaiting Pickup', 'cash', null]);
+  assert.equal(await stock('SKU-A'), 5);
+  const notice = (await pool.query('SELECT title FROM notification')).rows[0];
+  assert.ok(notice.title.includes(res.body.order.order_code));
+  // ไม่มีขั้นแนบสลิป
+  assert.equal((await api('POST', `/api/shop/orders/${res.body.order.id}/slip`, { slip: SLIP }, cust)).status, 409);
+
+  const accepted = await api('POST', `/api/shop/admin/orders/${res.body.order.id}/confirm`, {}, pos);
+  assert.equal(accepted.status, 200);
+  assert.equal(accepted.body.order.status, 'Completed');
+  assert.equal(await stock('SKU-A'), 3);
+  const sale = (await pool.query('SELECT status, create_by FROM sale_order')).rows;
+  assert.deepEqual(sale.map(r => [r.status, r.create_by]), [['Completed', 'pos1']]);
+
+  // ปฏิเสธออเดอร์รับที่ร้าน: ยกเลิกทั้งออเดอร์และรายการขาย ไม่ตัดสต็อก
+  const id = (await pool.query(
+    `INSERT INTO shop_order (user_id, customer_name, phone, address, items, total, status, payment_method)
+     VALUES ((SELECT id FROM todos WHERE username = 'cust1'), 'ลูกค้า', '0812345678', 'กรุงเทพฯ', $1, 100, 'Awaiting Pickup', 'cash') RETURNING id`,
+    [JSON.stringify([{ sku: 'SKU-A', product_name: 'Apple', price: 100, quantity: 1 }])]
+  )).rows[0].id;
+  await pool.query(`INSERT INTO sale_order (order_code, product_name, quantity, amount, status, created_at) VALUES ($1, 'Apple', 1, 100, 'Pending', NOW())`, [`WEB-${String(id).padStart(6, '0')}`]);
+  const rejected = await api('POST', `/api/shop/admin/orders/${id}/reject`, { reason: 'Out of stock at the store' }, pos);
+  assert.deepEqual([rejected.body.order.status, rejected.body.order.reject_reason], ['Canceled', 'Out of stock at the store']);
+  assert.equal((await pool.query("SELECT count(*)::int AS n FROM sale_order WHERE status = 'Canceled'")).rows[0].n, 1);
+  assert.equal(await stock('SKU-A'), 3);
+
+  // ลูกค้ายกเลิกออเดอร์รับที่ร้านเองได้
+  const own = (await pool.query(
+    `INSERT INTO shop_order (user_id, customer_name, phone, address, items, total, status, payment_method)
+     VALUES ((SELECT id FROM todos WHERE username = 'cust1'), 'ลูกค้า', '0812345678', 'กรุงเทพฯ', '[]', 0, 'Awaiting Pickup', 'cash') RETURNING id`
+  )).rows[0].id;
+  assert.equal((await api('POST', `/api/shop/orders/${own}/cancel`, {}, cust)).body.order.status, 'Canceled');
+});
+
 test('sales cancel: ออเดอร์ออนไลน์ที่ยังไม่จ่าย (Pending) ไม่คืนสต็อก และยกเลิกออเดอร์ฝั่งลูกค้าด้วย / ที่ยืนยันแล้วคืนสต็อกแบบ POS', async () => {
   const pos = await tokenFor('pos1');
   const insertOrder = async (status: string, saleStatus: string) => {
@@ -458,6 +500,12 @@ test('checkout: ราคาที่แก้จาก POS ใช้ได้�
   const amounts = (await pool.query('SELECT order_code, amount::float FROM sale_order ORDER BY id')).rows;
   assert.deepEqual(amounts.map(r => [r.order_code, r.amount]), [['#P1', 100], ['#P2', 80], ['#P4', 100]]);
   assert.equal(await stock('SKU-A'), 2);
+});
+
+test('shop config: เปิดได้โดยไม่ต้อง login และบอกว่าซ่อนราคาตามสวิตช์ในหน้า Setting (ไม่ส่งข้อมูลร้านอื่น)', async () => {
+  assert.deepEqual((await api('GET', '/api/shop/config')).body, { hide_prices: false });
+  await pool.query('UPDATE settings SET pos_hide_prices = true');
+  assert.deepEqual((await api('GET', '/api/shop/config')).body, { hide_prices: true });
 });
 
 test('settings: บันทึกการตั้งค่า POS ได้ (admin) / ไม่ส่งมาคงค่าเดิม / pos บันทึกไม่ได้', async () => {

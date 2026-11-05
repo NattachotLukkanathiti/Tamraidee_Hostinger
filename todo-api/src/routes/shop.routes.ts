@@ -27,6 +27,7 @@ const MAX_SLIP_LENGTH = Math.ceil((2 * 1024 * 1024 * 4) / 3) + 32;
 
 export const STATUS = {
   awaiting: 'Awaiting Payment',
+  pickup: 'Awaiting Pickup', // สั่งแบบรับที่ร้าน รอลูกค้ามาจ่ายเงินสด
   verifying: 'Verifying',
   completed: 'Completed',
   rejected: 'Rejected',
@@ -35,7 +36,7 @@ export const STATUS = {
 const ALL_STATUSES: string[] = Object.values(STATUS);
 
 // ไม่ดึงรูปสลิปมากับรายการ (บอกแค่ว่ามีหรือไม่)
-const ORDER_COLUMNS = `id, customer_name, phone, address, note, items, total, status, created_at,
+const ORDER_COLUMNS = `id, customer_name, phone, address, note, items, total, status, payment_method, created_at,
   slip IS NOT NULL AS has_slip, slip_uploaded_at, reject_reason, reviewed_by, reviewed_at`;
 
 interface OrderLine { sku: string; product_name: string; price: number; quantity: number }
@@ -50,6 +51,7 @@ const toOrder = (row: Record<string, any>) => ({
   items: row.items as OrderLine[],
   total: Number(row.total),
   status: row.status as string,
+  payment_method: (row.payment_method ?? 'promptpay') as 'promptpay' | 'cash',
   created_at: row.created_at,
   has_slip: Boolean(row.has_slip),
   slip_uploaded_at: row.slip_uploaded_at,
@@ -60,6 +62,12 @@ const toOrder = (row: Record<string, any>) => ({
 
 
 // บัญชีรับเงิน = เบอร์โทรร้านในหน้า Setting (เบอร์เดียวกับที่หน้า POS ใช้สร้าง QR) หรือเลขประจำตัวผู้เสียภาษี 13 หลัก
+// เปิด "Hide product prices" ในหน้า Setting = หน้าร้านสั่งแบบรับที่ร้าน จ่ายเงินสด (ไม่มีขั้นจ่าย PromptPay)
+async function pickupOrdersEnabled(): Promise<boolean> {
+  const settings = (await pool.query('SELECT * FROM settings LIMIT 1')).rows[0];
+  return settings?.pos_hide_prices === true;
+}
+
 async function storePromptPayId(): Promise<string | null> {
   const result = await pool.query('SELECT phone FROM settings ORDER BY id LIMIT 1');
   const id = String(result.rows[0]?.phone ?? '').replace(/[\s-]/g, '');
@@ -125,6 +133,17 @@ router.get('/api/shop/products', async (req, res) => {
   }
 });
 
+// การตั้งค่าที่หน้าร้านต้องรู้ (เปิดได้โดยไม่ต้อง login): ซ่อนราคาสินค้าใช้สวิตช์เดียวกับหน้า POS ในหน้า Setting
+router.get('/api/shop/config', async (req, res) => {
+  try {
+    const settings = (await pool.query('SELECT * FROM settings LIMIT 1')).rows[0];
+    res.json({ hide_prices: settings?.pos_hide_prices === true });
+  } catch (error) {
+    console.error('Error fetching shop config:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
 // สินค้าขายดี: เรียงตามจำนวนที่ขายได้จริง (ไม่นับรายการที่ยกเลิก และออเดอร์ออนไลน์ที่ยังไม่จ่าย)
 // ส่งแค่ SKU ตามลำดับ ไม่เปิดเผยยอดขาย / จำนวนที่ขายได้ให้คนนอกเห็น
 router.get('/api/shop/best-sellers', async (req, res) => {
@@ -178,9 +197,11 @@ router.post('/api/shop/orders', orderLimit, async (req, res) => {
   }
 
   try {
+    // โหมดรับที่ร้าน (ตัดสินที่ server จากหน้า Setting ไม่เชื่อค่าจาก client) ไม่ต้องมีบัญชี PromptPay
+    const pickup = await pickupOrdersEnabled();
     // ร้านยังไม่ได้ตั้งเบอร์ PromptPay (หน้า Setting) = รับเงินไม่ได้ ไม่สร้างออเดอร์ค้างไว้
-    const promptpayId = await storePromptPayId();
-    if (!promptpayId) {
+    const promptpayId = pickup ? null : await storePromptPayId();
+    if (!pickup && !promptpayId) {
       return res.status(503).json({ success: false, message: 'Online payment is not available right now. Please try again later.' });
     }
 
@@ -211,12 +232,26 @@ router.post('/api/shop/orders', orderLimit, async (req, res) => {
     try {
       await client.query('BEGIN');
       const inserted = await client.query(
-        `INSERT INTO shop_order (user_id, customer_name, phone, address, note, items, total, status)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, '${STATUS.awaiting}') RETURNING ${ORDER_COLUMNS}`,
-        [req.user.id, customer.name, customer.phone, customer.address, customer.note, JSON.stringify(lines), total]
+        `INSERT INTO shop_order (user_id, customer_name, phone, address, note, items, total, status, payment_method)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING ${ORDER_COLUMNS}`,
+        [
+          req.user.id, customer.name, customer.phone, customer.address, customer.note, JSON.stringify(lines), total,
+          pickup ? STATUS.pickup : STATUS.awaiting, pickup ? 'cash' : 'promptpay'
+        ]
       );
       const order = toOrder(inserted.rows[0]);
       await insertSaleRows(client, order, SALE.pending, req.user.id, req.user.username);
+      if (pickup) {
+        // ไม่มีขั้นแนบสลิป จึงแจ้งพนักงานตั้งแต่สั่ง
+        const summary = lines.map(l => `${l.product_name} x${l.quantity}`).join(', ');
+        await client.query(
+          `INSERT INTO notification (title, description, type) VALUES ($1, $2, 'info')`,
+          [
+            `Pickup Order ${order.order_code}`,
+            `${order.customer_name} (${order.phone}) will pick up and pay ${total.toFixed(2)} THB in cash: ${summary}. Accept or reject it in Online Orders.`
+          ]
+        );
+      }
       await client.query('COMMIT');
       res.status(201).json({ success: true, order, promptpay_id: promptpayId });
     } catch (error) {
@@ -290,7 +325,7 @@ router.post('/api/shop/orders/:id/cancel', async (req, res) => {
     await client.query('BEGIN');
     const updated = await client.query(
       `UPDATE shop_order SET status = '${STATUS.canceled}'
-        WHERE id = $1 AND user_id = $2 AND status IN ('${STATUS.awaiting}', '${STATUS.rejected}')
+        WHERE id = $1 AND user_id = $2 AND status IN ('${STATUS.awaiting}', '${STATUS.rejected}', '${STATUS.pickup}')
         RETURNING ${ORDER_COLUMNS}`,
       [Number(req.params.id), req.user.id]
     );
@@ -361,9 +396,10 @@ router.post('/api/shop/admin/orders/:id/confirm', reviewers, async (req, res) =>
       [Number(req.params.id)]
     );
     const order = locked.rows[0] ? toOrder(locked.rows[0]) : null;
-    if (!order || order.status !== STATUS.verifying) {
+    // PromptPay: ต้องแนบสลิปแล้ว (Verifying) / รับที่ร้าน: กดรับเมื่อลูกค้ามาจ่ายเงินสด (Awaiting Pickup)
+    if (!order || (order.status !== STATUS.verifying && order.status !== STATUS.pickup)) {
       await client.query('ROLLBACK');
-      return res.status(409).json({ success: false, message: 'Only orders with a payment slip waiting for verification can be confirmed' });
+      return res.status(409).json({ success: false, message: 'Only orders waiting for slip verification or pickup can be confirmed' });
     }
 
     // เรียงตาม SKU ให้ล็อกแถวลำดับเดียวกับ POS เสมอ (กัน deadlock)
@@ -418,24 +454,42 @@ router.post('/api/shop/admin/orders/:id/confirm', reviewers, async (req, res) =>
   }
 });
 
-// สลิปไม่ผ่าน (ยอดไม่ตรง / ไม่พบรายการโอน): แจ้งเหตุผลให้ลูกค้าเห็น แล้วลูกค้าแนบสลิปใหม่หรือยกเลิกได้
+// ปฏิเสธ (ต้องมีเหตุผล ลูกค้าเห็นใน My Orders)
+// - PromptPay สลิปไม่ผ่าน (ยอดไม่ตรง / ไม่พบรายการโอน): Rejected ลูกค้าแนบสลิปใหม่หรือยกเลิกได้
+// - รับที่ร้าน: ยกเลิกออเดอร์เลย (Canceled) และยกเลิกรายการขายที่ยัง Pending
 router.post('/api/shop/admin/orders/:id/reject', reviewers, async (req, res) => {
   const reason = text(req.body?.reason, 300);
   if (!reason) return res.status(400).json({ success: false, message: 'Please enter a reason' });
+  const client = await pool.connect();
   try {
-    const updated = await pool.query(
-      `UPDATE shop_order SET status = '${STATUS.rejected}', reject_reason = $1, reviewed_by = $2, reviewed_at = now()
-        WHERE id = $3 AND status = '${STATUS.verifying}'
+    await client.query('BEGIN');
+    const updated = await client.query(
+      `UPDATE shop_order
+          SET status = CASE WHEN status = '${STATUS.pickup}' THEN '${STATUS.canceled}' ELSE '${STATUS.rejected}' END,
+              reject_reason = $1, reviewed_by = $2, reviewed_at = now()
+        WHERE id = $3 AND status IN ('${STATUS.verifying}', '${STATUS.pickup}')
         RETURNING ${ORDER_COLUMNS}`,
       [reason, actorName(req), Number(req.params.id)]
     );
     if (updated.rowCount === 0) {
-      return res.status(409).json({ success: false, message: 'Only orders with a payment slip waiting for verification can be rejected' });
+      await client.query('ROLLBACK');
+      return res.status(409).json({ success: false, message: 'Only orders waiting for slip verification or pickup can be rejected' });
     }
-    res.json({ success: true, order: toOrder(updated.rows[0]) });
+    const order = toOrder(updated.rows[0]);
+    if (order.status === STATUS.canceled) {
+      await client.query(
+        `UPDATE sale_order SET status = '${SALE.canceled}' WHERE order_code = $1 AND status = '${SALE.pending}'`,
+        [order.order_code]
+      );
+    }
+    await client.query('COMMIT');
+    res.json({ success: true, order });
   } catch (error) {
+    await client.query('ROLLBACK').catch(() => {});
     console.error('Error rejecting online order:', error);
     res.status(500).json({ success: false, message: 'Server Error' });
+  } finally {
+    client.release();
   }
 });
 

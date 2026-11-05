@@ -42,11 +42,11 @@
             <p class="order-total"><span>Total</span><strong>{{ formatPrice(order.total) }}</strong></p>
 
             <p class="status-detail">{{ status(order).detail }}</p>
-            @if (order.status === 'Rejected' && order.reject_reason) {
+            @if ((order.status === 'Rejected' || order.status === 'Canceled') && order.reject_reason) {
               <p class="error">Reason: {{ order.reject_reason }}</p>
             }
 
-            @if (canPay(order)) {
+            @if (canCancel(order)) {
               @if (confirmCancelId === order.id) {
                 <div class="confirm" role="group" aria-label="Confirm cancel">
                   <span>Cancel this order?</span>
@@ -57,9 +57,11 @@
                 </div>
               } @else {
                 <div class="actions">
-                  <button type="button" class="btn-primary" [attr.aria-expanded]="payingId === order.id" (click)="togglePay(order)">
-                    {{ payingId === order.id ? 'Hide payment' : order.status === 'Rejected' ? 'Send a new slip' : 'Pay now' }}
-                  </button>
+                  @if (canPay(order)) {
+                    <button type="button" class="btn-primary" [attr.aria-expanded]="payingId === order.id" (click)="togglePay(order)">
+                      {{ payingId === order.id ? 'Hide payment' : order.status === 'Rejected' ? 'Send a new slip' : 'Pay now' }}
+                    </button>
+                  }
                   <button type="button" class="link-btn" (click)="askCancel(order)">Cancel order</button>
                 </div>
               }

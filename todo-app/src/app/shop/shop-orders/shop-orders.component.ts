@@ -9,6 +9,7 @@ const PANEL_ANIMATION_MS = 300;
 // ข้อความสถานะที่ลูกค้าเห็น
 const STATUS_TEXT: Record<ShopOrderStatus, { label: string; detail: string; tone: string }> = {
   'Awaiting Payment': { label: 'Awaiting payment', detail: 'Pay with PromptPay and send us your slip.', tone: 'warning' },
+  'Awaiting Pickup': { label: 'Awaiting pickup', detail: 'Pick up your order at the store and pay in cash.', tone: 'info' },
   Verifying: { label: 'Verifying payment', detail: 'We received your slip and are checking your payment.', tone: 'info' },
   Completed: { label: 'Paid', detail: 'Payment confirmed. We are preparing your order.', tone: 'success' },
   Rejected: { label: 'Payment not accepted', detail: 'Please send a new slip or cancel the order.', tone: 'danger' },
@@ -66,7 +67,12 @@ export class ShopOrdersComponent implements OnInit {
   }
 
   canPay(order: ShopOrder): boolean {
-    return order.status === 'Awaiting Payment' || order.status === 'Rejected';
+    return order.payment_method !== 'cash' && (order.status === 'Awaiting Payment' || order.status === 'Rejected');
+  }
+
+  // ยกเลิกเองได้ตอนยังไม่จ่าย / สลิปไม่ผ่าน / ยังไม่มารับที่ร้าน
+  canCancel(order: ShopOrder): boolean {
+    return this.canPay(order) || order.status === 'Awaiting Pickup';
   }
 
   itemCount(order: ShopOrder): number {

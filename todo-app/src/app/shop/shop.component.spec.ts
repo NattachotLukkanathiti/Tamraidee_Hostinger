@@ -60,7 +60,8 @@ describe('ShopComponent', () => {
 
   beforeEach(() => {
     localStorage.clear();
-    todoService = jasmine.createSpyObj<TodoService>('TodoService', ['getShopProducts', 'createShopOrder', 'logAudit', 'getShopCart', 'saveShopCart', 'getShopBestSellers', 'getMyShopOrders', 'uploadShopSlip', 'cancelShopOrder']);
+    todoService = jasmine.createSpyObj<TodoService>('TodoService', ['getShopProducts', 'createShopOrder', 'logAudit', 'getShopCart', 'saveShopCart', 'getShopBestSellers', 'getMyShopOrders', 'uploadShopSlip', 'cancelShopOrder', 'getShopConfig']);
+    todoService.getShopConfig.and.returnValue(of({ hide_prices: false }));
     todoService.getShopProducts.and.returnValue(of(PRODUCTS));
     todoService.getShopBestSellers.and.returnValue(of({ skus: [] }));
     todoService.getShopCart.and.returnValue(of({ items: [] }));
@@ -260,6 +261,44 @@ describe('ShopComponent', () => {
     expect(component.selectedCategory).toBe('Drink');
     expect(router.navigate).toHaveBeenCalledOnceWith(['/shop']);
     expect(component.scrollToProducts).not.toHaveBeenCalled();
+  });
+
+  describe('ซ่อนราคา (สวิตช์ Hide product prices ในหน้า Setting)', () => {
+    const prices = () => el().querySelectorAll('.card-price, .tile-price, .best-price, .detail-price, .total');
+
+    it('ค่าเริ่มต้น: แสดงราคาบนการ์ดและมีตัวเลือกเรียงตามราคา', () => {
+      setUp();
+      expect(el().querySelectorAll('.card-price').length).toBeGreaterThan(0);
+      expect(el().querySelector('.sort')).not.toBeNull();
+    });
+
+    it('เปิดซ่อนราคา: ไม่แสดงราคาตอนเลือกดู ไม่มีเรียงตามราคา แต่ตะกร้ายังแสดงยอดรวม', () => {
+      todoService.getShopConfig.and.returnValue(of({ hide_prices: true }));
+      setUp();
+      component.sortBy = 'price-desc';
+      component.addToCart(PRODUCTS[0], 2);
+      component.toggleCart();
+      fixture.detectChanges();
+
+      expect(prices().length).toBe(0);
+      expect(el().querySelector('.sort')).toBeNull();
+      expect(component.filteredProducts.map(p => p.sku)).toEqual(['A1', 'B1', 'C1', 'D1']); // ไม่เรียงตามราคา
+      expect(el().querySelector('.cart-total')?.textContent).toContain('฿51.00');
+    });
+
+    it('หน้ารายละเอียดสินค้า: ไม่แสดงราคาและยอดรวมตามจำนวน', () => {
+      todoService.getShopConfig.and.returnValue(of({ hide_prices: true }));
+      setUp('A1');
+      expect(text()).toContain('Apple');
+      expect(prices().length).toBe(0);
+    });
+
+    it('โหลดการตั้งค่าไม่ได้: แสดงราคาตามปกติ', () => {
+      todoService.getShopConfig.and.returnValue(throwError(() => ({ status: 500 })));
+      setUp();
+      expect(component.hidePrices).toBeFalse();
+      expect(el().querySelectorAll('.card-price').length).toBeGreaterThan(0);
+    });
   });
 
   it('ค้นหาได้จากชื่อ แบรนด์ หรือรหัสสินค้า และแจ้งเมื่อไม่พบ', () => {
@@ -566,6 +605,30 @@ describe('ShopComponent', () => {
     expect(component.checkoutOpen).toBeFalse();
     expect(component.ordersOpen).toBeTrue();
     expect(el().querySelector('app-shop-orders')).not.toBeNull();
+  });
+
+  it('โหมดซ่อนราคา (รับที่ร้าน): ปุ่ม Place Order ไม่มีขั้นจ่ายเงิน แจ้งให้มารับและจ่ายเงินสด', () => {
+    todoService.getShopConfig.and.returnValue(of({ hide_prices: true }));
+    todoService.createShopOrder.and.returnValue(of({
+      success: true, order: { ...ORDER, status: 'Awaiting Pickup', payment_method: 'cash' }, promptpay_id: null
+    }));
+    setUp();
+    loginCustomer();
+    component.addToCart(PRODUCTS[0]);
+    component.openCheckout();
+    fixture.detectChanges();
+
+    expect(el().querySelector('.checkout-form button[type=submit]')?.textContent).toContain('Place Order');
+    expect(text()).toContain('cash when you pick up');
+
+    fillCustomer();
+    component.submitOrder();
+    fixture.detectChanges();
+
+    expect(el().querySelector('#checkout-title')?.textContent).toContain('Order placed');
+    expect(el().querySelector('app-shop-payment')).toBeNull();
+    expect(text()).toContain('pay in cash');
+    expect(cart.count).toBe(0);
   });
 
   it('ยังไม่ login: กดสั่งซื้อแล้วพาไป login ก่อน (ตะกร้ายังอยู่)', fakeAsync(() => {

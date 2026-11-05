@@ -62,6 +62,7 @@ const CASES: Case[] = [
   ['checkUserRole', (s) => s.checkUserRole('a@b.com'), 'GET', '/users/role/a@b.com'],
   ['createNotification', (s) => s.createNotification({}), 'POST', '/notification'],
   ['getMyShopOrders', (s) => s.getMyShopOrders(), 'GET', '/shop/orders/mine'],
+  ['getShopConfig', (s) => s.getShopConfig(), 'GET', '/shop/config'],
   ['uploadShopSlip', (s) => s.uploadShopSlip(3, 'data:image/png;base64,AA=='), 'POST', '/shop/orders/3/slip'],
   ['cancelShopOrder', (s) => s.cancelShopOrder(3), 'POST', '/shop/orders/3/cancel'],
   ['getOnlineOrders', (s) => s.getOnlineOrders(), 'GET', '/shop/admin/orders'],

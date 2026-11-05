@@ -57,15 +57,15 @@ describe('OnlineOrdersComponent', () => {
     expect(rows()[0].querySelector('.review-button')?.textContent).toContain('Review slip');
     const filters = Array.from(el().querySelectorAll<HTMLButtonElement>('.filter'));
     expect(filters.map(f => f.textContent?.replace(/\s+/g, ' ').trim())).toEqual([
-      'Verifying 1', 'Awaiting Payment 1', 'Completed 1', 'Rejected 1', 'Canceled 0', 'All 4'
+      'Verifying 1', 'Awaiting Pickup 0', 'Awaiting Payment 1', 'Completed 1', 'Rejected 1', 'Canceled 0', 'All 4'
     ]);
 
-    filters[5].click();
+    filters[6].click();
     fixture.detectChanges();
     expect(rows().length).toBe(4);
     expect(rows()[2].querySelector('.status')?.classList).toContain('status-completed');
 
-    filters[4].click();
+    filters[5].click();
     fixture.detectChanges();
     expect(el().querySelector('.state')?.textContent).toContain('No canceled orders');
   });
@@ -121,7 +121,7 @@ describe('OnlineOrdersComponent', () => {
     fixture.detectChanges();
     el().querySelector<HTMLButtonElement>('.modal .btn-danger')!.click();
     fixture.detectChanges();
-    expect(el().querySelector('.modal .error')?.textContent).toContain('why the slip was not accepted');
+    expect(el().querySelector('.modal .error')?.textContent).toContain('why the order was not accepted');
     expect(todoService.rejectOnlineOrder).not.toHaveBeenCalled();
 
     component.rejectReason = '  Transfer not found ';
@@ -213,6 +213,60 @@ describe('OnlineOrdersComponent', () => {
     component.back();
     expect(navigate).toHaveBeenCalledWith(['/pos'], { state: jasmine.objectContaining({ role: 'pos' }) });
     localStorage.clear();
+  });
+
+  describe('ออเดอร์รับที่ร้าน จ่ายเงินสด', () => {
+    const PICKUP = shopOrder({ id: 20, order_code: 'WEB-000020', status: 'Awaiting Pickup', payment_method: 'cash', total: 290 });
+
+    it('อยู่ในแท็บ Awaiting Pickup มีปุ่ม Review และไม่ต้องโหลดสลิป', () => {
+      todoService.getOnlineOrders.and.returnValue(of({ orders: [PICKUP, ...ORDERS] }));
+      setUp();
+      el().querySelectorAll<HTMLButtonElement>('.filter')[1].click();
+      fixture.detectChanges();
+
+      expect(rows().length).toBe(1);
+      expect(rows()[0].querySelector('.status')?.classList).toContain('status-awaiting-pickup');
+      rows()[0].querySelector<HTMLButtonElement>('.review-button')!.click();
+      fixture.detectChanges();
+
+      expect(todoService.getOnlineOrderSlip).not.toHaveBeenCalled();
+      expect(el().querySelector('.pickup')?.textContent).toContain('฿290.00');
+      expect(el().querySelector<HTMLButtonElement>('.modal .btn-confirm')!.disabled).toBeFalse();
+      expect(el().querySelector('.modal .btn-confirm')?.textContent).toContain('Paid in cash');
+    });
+
+    it('กดรับเมื่อจ่ายเงินสด: ยืนยันออเดอร์ และแจ้งว่ารับแล้ว', () => {
+      todoService.getOnlineOrders.and.returnValue(of({ orders: [PICKUP] }));
+      todoService.confirmOnlineOrder.and.returnValue(of({ order: { ...PICKUP, status: 'Completed' } }));
+      setUp();
+      review(PICKUP);
+
+      el().querySelector<HTMLButtonElement>('.modal .btn-confirm')!.click();
+      fixture.detectChanges();
+
+      expect(todoService.confirmOnlineOrder).toHaveBeenCalledWith(20);
+      expect(el().querySelector('.notice')?.textContent).toContain('accepted (paid in cash)');
+    });
+
+    it('ปฏิเสธ: ต้องใส่เหตุผล แล้วออเดอร์ถูกยกเลิก', () => {
+      todoService.getOnlineOrders.and.returnValue(of({ orders: [PICKUP] }));
+      todoService.rejectOnlineOrder.and.returnValue(of({ order: { ...PICKUP, status: 'Canceled', reject_reason: 'Out of stock' } }));
+      setUp();
+      review(PICKUP);
+      component.showReject = true;
+      fixture.detectChanges();
+      expect(el().querySelector('.modal .btn-danger')?.textContent).toContain('Reject order');
+
+      component.reject();
+      expect(component.reviewError).toContain('why the order was not accepted');
+
+      component.rejectReason = 'Out of stock';
+      component.reject();
+      fixture.detectChanges();
+      expect(todoService.rejectOnlineOrder).toHaveBeenCalledWith(20, 'Out of stock');
+      expect(el().querySelector('.notice')?.textContent).toContain('rejected and canceled');
+      expect(component.count('Canceled')).toBe(1);
+    });
   });
 
   it('โหลดรายการไม่สำเร็จ: แสดงข้อความ แล้วกดรีเฟรชได้', () => {

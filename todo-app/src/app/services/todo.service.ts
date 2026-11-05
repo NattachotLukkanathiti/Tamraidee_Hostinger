@@ -46,7 +46,8 @@ export interface ShopCartItem {
 }
 
 // สถานะคำสั่งซื้อหน้าร้าน: จ่ายผ่าน PromptPay แล้วแนบสลิป พนักงานตรวจแล้วจึงนับว่าสำเร็จ (ตัดสต็อก)
-export type ShopOrderStatus = 'Awaiting Payment' | 'Verifying' | 'Completed' | 'Rejected' | 'Canceled';
+// Awaiting Pickup = สั่งแบบรับที่ร้าน จ่ายเงินสด (เมื่อเปิด Hide product prices ในหน้า Setting) พนักงานกดรับเมื่อลูกค้ามาจ่าย
+export type ShopOrderStatus = 'Awaiting Payment' | 'Awaiting Pickup' | 'Verifying' | 'Completed' | 'Rejected' | 'Canceled';
 
 export interface ShopOrderLine {
   sku: string;
@@ -65,6 +66,7 @@ export interface ShopOrder {
   items: ShopOrderLine[];
   total: number;
   status: ShopOrderStatus;
+  payment_method: 'promptpay' | 'cash';
   created_at: string;
   has_slip: boolean;
   slip_uploaded_at: string | null;
@@ -76,7 +78,7 @@ export interface ShopOrder {
 export interface ShopOrderResult {
   success: boolean;
   order: ShopOrder;
-  promptpay_id: string;
+  promptpay_id: string | null; // null = ออเดอร์รับที่ร้าน จ่ายเงินสด
 }
 
 @Injectable({
@@ -192,6 +194,11 @@ export class TodoService {
 
   rejectOnlineOrder(orderId: number, reason: string) {
     return this.http.post<{ order: ShopOrder }>(`${this.apiUrl}/shop/admin/orders/${orderId}/reject`, { reason }, { headers: this.headers });
+  }
+
+  // การตั้งค่าที่หน้าร้านต้องรู้ (ไม่ต้อง login): hide_prices = ซ่อนราคาตอนเลือกดูสินค้า (สวิตช์เดียวกับหน้า POS)
+  getShopConfig() {
+    return this.http.get<{ hide_prices: boolean }>(`${this.apiUrl}/shop/config`, { headers: this.headers });
   }
 
   // SKU สินค้าขายดีเรียงจากมากไปน้อย (ไม่มียอดขาย)

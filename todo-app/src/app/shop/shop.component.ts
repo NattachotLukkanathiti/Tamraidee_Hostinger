@@ -55,6 +55,8 @@ export class ShopComponent implements OnInit {
   selectedCategory = ALL;
   searchTerm = '';
   sortBy: SortOption = 'name';
+  // ซ่อนราคาตอนเลือกดูสินค้า (เปิดจากหน้า Setting) ตะกร้าและหน้าชำระเงินยังแสดงยอดเพื่อให้รู้ยอดที่ต้องโอน
+  hidePrices = false;
   isLoading = true;
   loadError = false;
 
@@ -83,9 +85,18 @@ export class ShopComponent implements OnInit {
     this.destroyRef.onDestroy(() => clearTimeout(this.toastTimer));
     this.loadProducts();
     this.loadBestSellers();
+    this.loadConfig();
   }
 
   // แถบสินค้าขายดีเป็นส่วนเสริม: โหลดไม่ได้ก็แค่ไม่แสดง
+  // โหลดไม่ได้ = แสดงราคาตามปกติ
+  loadConfig(): void {
+    this.todoService.getShopConfig().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: config => (this.hidePrices = config?.hide_prices === true),
+      error: () => (this.hidePrices = false)
+    });
+  }
+
   loadBestSellers(): void {
     this.todoService.getShopBestSellers().subscribe({
       next: res => (this.bestSellerSkus = res?.skus ?? []),
@@ -118,7 +129,7 @@ export class ShopComponent implements OnInit {
       (this.selectedCategory === ALL || p.category === this.selectedCategory) &&
       (!term || [p.product_name, p.brand, p.sku].some(v => v?.toLowerCase().includes(term)))
     );
-    if (this.sortBy === 'name') return list;
+    if (this.sortBy === 'name' || this.hidePrices) return list;
     const direction = this.sortBy === 'price-asc' ? 1 : -1;
     return [...list].sort((a, b) => (Number(a.price) - Number(b.price)) * direction);
   }
