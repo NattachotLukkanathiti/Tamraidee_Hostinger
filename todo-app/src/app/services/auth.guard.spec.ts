@@ -70,6 +70,18 @@ describe('authGuard', () => {
     });
   });
 
+  it('มี state อื่นแต่ไม่มีชื่อผู้ใช้ (เช่น POS ส่งข้อมูลใบเสร็จ) -> เติมข้อมูลผู้ใช้โดยไม่ทำ state เดิมหาย', () => {
+    auth.setSession('jwt', user('pos'));
+    currentRoles = ['pos'];
+    const receiptData = { orderCode: '#123456' };
+    withNavigationState({ receiptData, userData: { username: 'u' } });
+
+    expect(run()).toBeFalse();
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/dashboard', {
+      state: jasmine.objectContaining({ username: 'u', role: 'pos', receiptData, userData: { username: 'u' } })
+    });
+  });
+
   it('ตอน prerender บน server ปล่อยผ่านไปตรวจจริงใน browser', () => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({

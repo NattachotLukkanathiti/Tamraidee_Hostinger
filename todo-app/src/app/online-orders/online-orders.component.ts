@@ -1,6 +1,8 @@
 import { Component, HostListener, OnInit, inject } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { DatePipe, Location } from '@angular/common';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { AuthService, homeRouteFor } from '../services/auth.service';
 import { ShopOrder, ShopOrderStatus, TodoService } from '../services/todo.service';
 import { formatPrice } from '../shop/shop-format';
 
@@ -19,6 +21,9 @@ const FILTERS: Filter[] = ['Verifying', 'Awaiting Payment', 'Completed', 'Reject
 })
 export class OnlineOrdersComponent implements OnInit {
   private readonly todoService = inject(TodoService);
+  private readonly location = inject(Location);
+  private readonly router = inject(Router);
+  private readonly auth = inject(AuthService);
 
   readonly filters = FILTERS;
   readonly formatPrice = formatPrice;
@@ -53,6 +58,15 @@ export class OnlineOrdersComponent implements OnInit {
         this.loadError = 'Online orders could not be loaded. Please try again.';
       }
     });
+  }
+
+  // กลับหน้าก่อนหน้าในแอป (เช่น หน้าร้าน / หลังร้าน) ถ้าเปิดหน้านี้ตรง ๆ ให้ไปหน้าแรกหลังร้านของ role นั้น
+  back(): void {
+    if (this.router.lastSuccessfulNavigation?.previousNavigation) {
+      this.location.back();
+    } else {
+      void this.router.navigate([homeRouteFor(this.auth.user?.role)], { state: this.auth.navigationState() });
+    }
   }
 
   get visibleOrders(): ShopOrder[] {

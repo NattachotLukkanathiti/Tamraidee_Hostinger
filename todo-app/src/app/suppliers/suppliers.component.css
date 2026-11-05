@@ -2263,3 +2263,12 @@ input::placeholder{
     from { transform: scale(0.95); opacity: 0; }
     to { transform: scale(1); opacity: 1; }
 }
+
+.supplier-error {
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #fff0f0;
+  color: #d70015;
+  font-size: 14px;
+}

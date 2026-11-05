@@ -1,5 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Subject, of, throwError } from 'rxjs';
+import { Location } from '@angular/common';
+import { Router, provideRouter } from '@angular/router';
+import { AuthService } from '../services/auth.service';
 import { TodoService } from '../services/todo.service';
 import { shopOrder } from '../../testing/shop-order-fixtures';
 import { OnlineOrdersComponent } from './online-orders.component';
@@ -41,7 +44,7 @@ describe('OnlineOrdersComponent', () => {
     todoService.getOnlineOrderSlip.and.returnValue(of({ slip: SLIP }));
     TestBed.configureTestingModule({
       imports: [OnlineOrdersComponent],
-      providers: [{ provide: TodoService, useValue: todoService }]
+      providers: [provideRouter([]), { provide: TodoService, useValue: todoService }]
     });
   });
 
@@ -191,6 +194,25 @@ describe('OnlineOrdersComponent', () => {
     component.confirm(); // ไม่มีออเดอร์ที่เปิดอยู่ ไม่ทำอะไร
     component.reject();
     expect(todoService.confirmOnlineOrder).not.toHaveBeenCalled();
+  });
+
+  it('ปุ่มย้อนกลับ: มีหน้าก่อนหน้าในแอปกลับไปหน้านั้น / เปิดตรง ๆ ไปหน้าแรกหลังร้านของ role', () => {
+    setUp();
+    const router = TestBed.inject(Router);
+    const location = TestBed.inject(Location);
+    spyOn(location, 'back');
+    const navigate = spyOn(router, 'navigate').and.resolveTo(true);
+    TestBed.inject(AuthService).setSession('t', { id: 1, username: 'pos1', title: 'p@test.com', role: 'pos' });
+
+    spyOnProperty(router, 'lastSuccessfulNavigation').and.returnValue({ previousNavigation: {} } as never);
+    el().querySelector<HTMLButtonElement>('.back-button')!.click();
+    expect(location.back).toHaveBeenCalled();
+    expect(navigate).not.toHaveBeenCalled();
+
+    (Object.getOwnPropertyDescriptor(router, 'lastSuccessfulNavigation')!.get as jasmine.Spy).and.returnValue(null);
+    component.back();
+    expect(navigate).toHaveBeenCalledWith(['/pos'], { state: jasmine.objectContaining({ role: 'pos' }) });
+    localStorage.clear();
   });
 
   it('โหลดรายการไม่สำเร็จ: แสดงข้อความ แล้วกดรีเฟรชได้', () => {

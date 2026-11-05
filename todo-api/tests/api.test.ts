@@ -19,6 +19,8 @@ const { app } = require('../src/app') as typeof import('../src/app');
 const { pool } = require('../src/database/db') as typeof import('../src/database/db');
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { setFirebaseVerifierForTests, signToken } = require('../src/middleware/auth') as typeof import('../src/middleware/auth');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { dbErrorMessage } = require('../src/lib/helpers') as typeof import('../src/lib/helpers');
 
 // Firebase ID token ปลอม: token -> ข้อมูลผู้ใช้ที่ Firebase จะยืนยันให้
 const firebaseTokens: Record<string, { uid: string; email: string; email_verified: boolean; name?: string; auth_time?: number }> = {};
@@ -161,6 +163,12 @@ test('shop order: ต้อง login คิดราคาจาก DB ไม่
   assert.ok(order.user_id);
   // ยังไม่จ่าย ยังไม่ต้องแจ้งพนักงาน
   assert.equal((await pool.query('SELECT count(*)::int AS n FROM notification')).rows[0].n, 0);
+  // ขึ้นในรายการขาย (Sales Orders) เป็น Pending แบบเดียวกับสถานะของ POS
+  const sale = (await pool.query('SELECT order_code, product_name, quantity, amount, status, create_by FROM sale_order')).rows;
+  assert.deepEqual(sale.map(r => [r.order_code, r.product_name, r.quantity, Number(r.amount), r.status, r.create_by]),
+    [[res.body.order.order_code, 'Apple', 3, 300, 'Pending', 'cust1']]);
+  // ยังไม่จ่าย ไม่นับเป็นสินค้าขายดี
+  assert.deepEqual((await api('GET', '/api/shop/best-sellers')).body.skus, []);
 });
 
 test('shop order: ข้อมูลไม่ครบ / ของไม่พอ / ไม่มีสินค้า / ร้านยังไม่ตั้ง PromptPay ถูกปฏิเสธและไม่สร้างออเดอร์', async () => {
@@ -193,6 +201,12 @@ test('shop payment: แนบสลิป -> พนักงานยืนย�
      VALUES ((SELECT id FROM todos WHERE username = 'cust1'), 'ลูกค้า', '0812345678', 'กรุงเทพฯ', $1, 300) RETURNING id`,
     [JSON.stringify([{ sku: 'SKU-A', product_name: 'Apple', price: 100, quantity: 3 }])]
   )).rows[0].id;
+
+  await pool.query(
+    `INSERT INTO sale_order (order_code, product_name, quantity, amount, create_by, status, created_at)
+     VALUES ($1, 'Apple', 3, 300, 'cust1', 'Pending', NOW())`,
+    [`WEB-${String(id).padStart(6, '0')}`]
+  );
 
   const mine = await api('GET', '/api/shop/orders/mine', undefined, cust);
   assert.deepEqual(mine.body.orders.map((o: any) => [o.id, o.status, o.has_slip]), [[id, 'Awaiting Payment', false]]);
@@ -261,8 +275,13 @@ test('shop payment: สลิปไม่ผ่าน -> ลูกค้าเ�
   assert.deepEqual([again.body.order.status, again.body.order.reject_reason], ['Verifying', null]);
 
   const toCancel = await insert([{ sku: 'SKU-A', product_name: 'Apple', price: 100, quantity: 1 }], 100);
+  await pool.query(
+    `INSERT INTO sale_order (order_code, product_name, quantity, amount, status, created_at) VALUES ($1, 'Apple', 1, 100, 'Pending', NOW())`,
+    [`WEB-${String(toCancel).padStart(6, '0')}`]
+  );
   const canceled = await api('POST', `/api/shop/orders/${toCancel}/cancel`, {}, cust);
   assert.equal(canceled.body.order.status, 'Canceled');
+  assert.equal((await pool.query('SELECT status FROM sale_order WHERE order_code = $1', [canceled.body.order.order_code])).rows[0].status, 'Canceled');
   assert.equal((await api('POST', `/api/shop/orders/${toCancel}/slip`, { slip: SLIP }, cust)).status, 409);
 
   // ของไม่พอ: ยกเลิกทั้งออเดอร์ ไม่ตัดสินค้าอื่น และออเดอร์ยังรอตรวจอยู่
@@ -276,6 +295,64 @@ test('shop payment: สลิปไม่ผ่าน -> ลูกค้าเ�
   assert.match(failed.body.message, /Banana/);
   assert.deepEqual([await stock('SKU-A'), await stock('SKU-B')], [5, 1]);
   assert.equal((await pool.query('SELECT status FROM shop_order WHERE id = $1', [short])).rows[0].status, 'Verifying');
+});
+
+test('sales cancel: ออเดอร์ออนไลน์ที่ยังไม่จ่าย (Pending) ไม่คืนสต็อก และยกเลิกออเดอร์ฝั่งลูกค้าด้วย / ที่ยืนยันแล้วคืนสต็อกแบบ POS', async () => {
+  const pos = await tokenFor('pos1');
+  const insertOrder = async (status: string, saleStatus: string) => {
+    const id = (await pool.query(
+      `INSERT INTO shop_order (user_id, customer_name, phone, address, items, total, status)
+       VALUES ((SELECT id FROM todos WHERE username = 'cust1'), 'ลูกค้า', '0812345678', 'กรุงเทพฯ', $1, 200, $2) RETURNING id`,
+      [JSON.stringify([{ sku: 'SKU-A', product_name: 'Apple', price: 100, quantity: 2 }]), status]
+    )).rows[0].id;
+    const saleId = (await pool.query(
+      `INSERT INTO sale_order (order_code, product_name, quantity, amount, status, created_at) VALUES ($1, 'Apple', 2, 200, $2, NOW()) RETURNING id`,
+      [`WEB-${String(id).padStart(6, '0')}`, saleStatus]
+    )).rows[0].id;
+    return { id, saleId };
+  };
+
+  const unpaid = await insertOrder('Verifying', 'Pending');
+  assert.equal((await api('POST', '/api/sale_order/cancel', { ids: [unpaid.saleId] }, pos)).status, 200);
+  assert.equal(await stock('SKU-A'), 5);
+  assert.equal((await pool.query('SELECT status FROM shop_order WHERE id = $1', [unpaid.id])).rows[0].status, 'Canceled');
+  assert.equal((await api('POST', `/api/shop/admin/orders/${unpaid.id}/confirm`, {}, pos)).status, 409);
+
+  const paid = await insertOrder('Completed', 'Completed');
+  await api('POST', '/api/sale_order/cancel', { ids: [paid.saleId] }, pos);
+  assert.equal(await stock('SKU-A'), 7);
+  assert.equal((await pool.query('SELECT status FROM shop_order WHERE id = $1', [paid.id])).rows[0].status, 'Canceled');
+});
+
+test('suppliers: id ไม่มีค่าเริ่มต้น / ตัวนับ id ค้าง ก็ยังเพิ่มได้ (id ต่อจากของเดิม สถานะ Active) / ข้อมูลไม่ครบ 400 / pos เพิ่มไม่ได้', async () => {
+  const admin = await tokenFor('admin1');
+  const add = (name: string) => api('POST', '/api/suppliers', { supplier_name: ` ${name} `, email: 'a@test.com', phone: '0812345678', logo: '' }, admin);
+  // ข้อมูลเดิมที่ย้ายมา และ id ไม่มีค่าเริ่มต้น (เหมือนตารางบน Supabase)
+  await pool.query(`INSERT INTO suppliers (id, supplier_name, email, phone) VALUES (5, 'Old Co.', 'old@test.com', '021111111')`);
+
+  const first = await add('ACME Co.');
+  assert.equal(first.status, 201);
+  assert.deepEqual(
+    [first.body.data.id, first.body.data.supplier_name, first.body.data.status, first.body.data.order_history, first.body.data.logo],
+    [6, 'ACME Co.', 'Active', 0, null]
+  );
+
+  // มีตัวนับ id แต่ค้างอยู่ต่ำกว่า id ที่มี: ครั้งแรกชนแล้วเพิ่มด้วย id ถัดไป และตั้งตัวนับให้ ครั้งต่อไปใช้ตัวนับได้ปกติ
+  await pool.query(`CREATE SEQUENCE suppliers_id_seq OWNED BY suppliers.id; ALTER TABLE suppliers ALTER COLUMN id SET DEFAULT nextval('suppliers_id_seq'); SELECT setval('suppliers_id_seq', 5)`);
+  assert.equal((await add('Beta')).body.data.id, 7);
+  assert.equal((await add('Gamma')).body.data.id, 8);
+
+  assert.equal((await api('POST', '/api/suppliers', { supplier_name: 'X', email: '', phone: '1' }, admin)).status, 400);
+  assert.equal((await api('POST', '/api/suppliers', { supplier_name: 'X', email: 'x@test.com', phone: '1' }, await tokenFor('pos1'))).status, 403);
+});
+
+test('dbErrorMessage: แปลง error ของฐานข้อมูลเป็นข้อความที่บอกวิธีแก้', () => {
+  assert.match(dbErrorMessage({ code: '23505', constraint: 'suppliers_pkey' }), /out of sync/);
+  assert.equal(dbErrorMessage({ code: '23505', constraint: 'suppliers_email_key' }), 'This record already exists.');
+  assert.equal(dbErrorMessage({ code: '23502', column: 'id' }), 'Missing required value: id');
+  assert.match(dbErrorMessage({ code: '42703' }), /outdated/);
+  assert.match(dbErrorMessage({ code: '22P02' }), /wrong format/);
+  assert.equal(dbErrorMessage(new Error('boom')), 'Server Error');
 });
 
 test('shop cart: ต้อง login และแต่ละบัญชีเห็นเฉพาะตะกร้าของตัวเอง', async () => {

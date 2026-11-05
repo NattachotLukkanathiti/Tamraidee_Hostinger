@@ -326,32 +326,30 @@
             </div>
         </div>   
         
-        <!-- ข้อมูลผู้จัดจำหน่าย -->
-        <div class="con_sku_pro">             
-          <!--   <div class="sku_pro">             
-                <label class="label_import">Supplier Name <span class="important">*</span></label>             
-                <input type="text" class="sku_input" [(ngModel)]="newSupplier.supplier_name" placeholder="Company Name">         
-            </div>    -->      
-            <div class="sku_pro">             
-                <label class="label_import">Contact Person</label>             
-                <input type="text" class="sku_input" [(ngModel)]="newSupplier.created_by" placeholder="Contact Name">         
-            </div>     
-                  <div class="sku_pro">             
-                <label class="label_import">Phone <span class="important">*</span></label>             
-                <input type="text" class="sku_input" [(ngModel)]="newSupplier.phone" placeholder="08X-XXX-XXXX">         
-            </div>           
-        </div>         
-        
-        <div class="con_sku_pro">             
-            <div class="sku_pro">             
-                <label class="label_import">Email <span class="important">*</span></label>             
-                <input type="email" class="sku_input" [(ngModel)]="newSupplier.email" placeholder="example@email.com">         
-            </div>         
-      <!--       <div class="sku_pro">             
-                <label class="label_import">Phone <span class="important">*</span></label>             
-                <input type="text" class="sku_input" [(ngModel)]="newSupplier.phone" placeholder="08X-XXX-XXXX">         
-            </div>        -->  
-        </div>         
+        <!-- ข้อมูลผู้จัดจำหน่าย (Supplier Name / Phone / Email จำเป็นต้องกรอก ตรงกับที่ API ตรวจ) -->
+        <div class="con_sku_pro">
+            <div class="sku_pro">
+                <label class="label_import">Supplier Name <span class="important">*</span></label>
+                <input type="text" class="sku_input" [(ngModel)]="newSupplier.supplier_name" placeholder="Company Name">
+            </div>
+            <div class="sku_pro">
+                <label class="label_import">Contact Person</label>
+                <input type="text" class="sku_input" [(ngModel)]="newSupplier.created_by" placeholder="Contact Name">
+            </div>
+        </div>
+
+        <div class="con_sku_pro">
+            <div class="sku_pro">
+                <label class="label_import">Phone <span class="important">*</span></label>
+                <input type="text" class="sku_input" [(ngModel)]="newSupplier.phone" placeholder="08X-XXX-XXXX">
+            </div>
+            <div class="sku_pro">
+                <label class="label_import">Email <span class="important">*</span></label>
+                <input type="email" class="sku_input" [(ngModel)]="newSupplier.email" placeholder="example@email.com">
+            </div>
+        </div>
+
+        <p class="supplier-error" role="alert" *ngIf="supplierError">{{ supplierError }}</p>
 
         <!-- ปุ่มบันทึก -->
         <div class="button_import">                 

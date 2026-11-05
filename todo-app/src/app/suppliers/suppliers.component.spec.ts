@@ -84,6 +84,58 @@ describe('SuppliersComponent', () => {
     });
   });
 
+  describe('เพิ่ม supplier', () => {
+    const fill = (component: SuppliersComponent) => {
+      component.newSupplier = { supplier_name: 'ACME', created_by: 'Somchai', email: 'acme@test.com', phone: '0812345678', logo: '' };
+    };
+
+    it('ยังไม่กรอกชื่อ / เบอร์ / อีเมล: แจ้งในฟอร์มและไม่ส่งไป API', () => {
+      const { fixture, component, todo } = setUpPage(SuppliersComponent);
+      fixture.detectChanges();
+
+      component.saveSupplier();
+      fixture.detectChanges();
+
+      expect(todo.addSupplier).not.toHaveBeenCalled();
+      expect((fixture.nativeElement as HTMLElement).querySelector('.supplier-error')?.textContent).toContain('Supplier Name');
+      fixture.destroy();
+    });
+
+    it('กรอกครบ: ส่งข้อมูล โหลดรายการใหม่ และล้างฟอร์ม', fakeAsync(() => {
+      const { fixture, component, todo } = setUpPage(SuppliersComponent);
+      todo.addSupplier.and.returnValue(of({ success: true }));
+      fixture.detectChanges();
+      fill(component);
+
+      component.saveSupplier();
+      tick(400);
+
+      expect(todo.addSupplier).toHaveBeenCalledWith(jasmine.objectContaining({ supplier_name: 'ACME', phone: '0812345678' }));
+      expect(todo.getSuppliers).toHaveBeenCalledTimes(2);
+      expect(component.newSupplier.supplier_name).toBe('');
+      expect(component.supplierError).toBe('');
+      fixture.destroy();
+    }));
+
+    it('API ไม่รับ: แสดงข้อความจาก API ในฟอร์ม (ไม่พาไปหน้า login)', () => {
+      const { fixture, component, todo, router } = setUpPage(SuppliersComponent);
+      todo.addSupplier.and.returnValue(throwError(() => ({ status: 400, error: { message: 'กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน' } })));
+      fixture.detectChanges();
+      fill(component);
+
+      component.saveSupplier();
+
+      expect(component.supplierError).toBe('กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน');
+      expect(component.isLoading).toBeFalse();
+      expect(router.navigate).not.toHaveBeenCalledWith(['/login']);
+
+      todo.addSupplier.and.returnValue(throwError(() => ({ status: 500 })));
+      component.saveSupplier();
+      expect(component.supplierError).toContain('Unable to save');
+      fixture.destroy();
+    });
+  });
+
   describe('เมนูนำทาง', () => {
     for (const name of animationMethods(SuppliersComponent, true)) {
       it(`${name} ปิดแถบแจ้งเตือน แล้วเปลี่ยนหน้า`, fakeAsync(() => {

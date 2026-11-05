@@ -218,7 +218,15 @@ loadSuppliers() {
     this.button_importt = true;
   }
 
+  supplierError = '';
+
   saveSupplier() {
+  const { supplier_name, email, phone } = this.newSupplier;
+  if (!supplier_name.trim() || !email.trim() || !phone.trim()) {
+    this.supplierError = 'Please fill in Supplier Name, Phone and Email.';
+    return;
+  }
+  this.supplierError = '';
   this.isLoading = true; // เปิด Loading
   
   this.todoService.addSupplier(this.newSupplier).subscribe({
@@ -240,13 +248,14 @@ loadSuppliers() {
           error: (err) => console.error('Failed to save audit', err)
         });
       this.loadSuppliers(); // โหลดข้อมูลในตารางใหม่
+      this.newSupplier = { supplier_name: '', created_by: '', email: '', phone: '', logo: '' }; // เพิ่มรายต่อไปเริ่มจากฟอร์มว่าง
       this.button_cancels(); // ปิดหน้าต่างฟอร์ม
       this.isLoading = false; // ปิด Loading
     },
     error: (err) => {
       console.error('Error saving supplier:', err);
       this.isLoading = false;
-      // สามารถเพิ่ม openpopupnoti('บันทึกไม่สำเร็จ') ตรงนี้ได้
+      this.supplierError = err?.error?.message || 'Unable to save supplier. Please try again.';
     }
   });
 }
@@ -275,6 +284,7 @@ loadSuppliers() {
   }
   // --- ส่วนที่เพิ่มเข้ามาใหม่ (ฟังก์ชันสำหรับฟอร์ม) ---
   button_cancels() {
+    this.supplierError = '';
     this.outimport = true;
     setTimeout(() => {
       this.button_importt = false;

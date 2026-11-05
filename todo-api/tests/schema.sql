@@ -1,5 +1,5 @@
 -- schema จำลองสำหรับ API test (เฉพาะตาราง/คอลัมน์ที่ test ใช้) - ห้ามรันกับฐานข้อมูลจริง
-DROP TABLE IF EXISTS todos, inventory, sale_order, notification, audit, history, settings, shop_order, shop_cart CASCADE;
+DROP TABLE IF EXISTS todos, inventory, sale_order, notification, audit, history, settings, suppliers, shop_order, shop_cart CASCADE;
 
 CREATE TABLE todos (
   id serial PRIMARY KEY, username text, title text, password varchar(50), completed boolean,
@@ -29,4 +29,9 @@ CREATE TABLE history (
 );
 CREATE TABLE settings (
   id serial PRIMARY KEY, email text, phone text, address text, updated_at timestamptz
+);
+-- เหมือนตารางที่ย้ายเข้า Supabase: id ไม่มีค่าเริ่มต้น
+CREATE TABLE suppliers (
+  id integer PRIMARY KEY, logo text, supplier_name text, email text, phone text,
+  order_history integer, status text
 );

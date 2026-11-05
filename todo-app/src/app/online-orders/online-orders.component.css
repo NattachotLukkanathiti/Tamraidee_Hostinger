@@ -56,10 +56,33 @@ button:disabled {
 }
 
 h1 {
+  flex: 1;
   margin: 0;
   font-size: clamp(40px, 6vw, 64px);
   font-weight: 800;
   letter-spacing: -0.02em;
+}
+
+.back-button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex: none;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  transition: background-color 120ms ease;
+}
+
+.back-button:hover {
+  background: var(--head);
+}
+
+.back-button img {
+  width: 24px;
+  height: 24px;
 }
 
 .intro {

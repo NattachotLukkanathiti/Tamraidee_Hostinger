@@ -1,8 +1,9 @@
 import { Request, Response, Router } from 'express';
+import { PoolClient } from 'pg';
 import { pool } from '../database/db';
 import { rateLimit } from '../middleware/rateLimit';
 import { requireRole } from '../middleware/auth';
-import { actorName } from '../lib/helpers';
+import { actorName, webOrderCode } from '../lib/helpers';
 
 // หน้าร้านออนไลน์สำหรับลูกค้า: ดูสินค้า / สินค้าขายดี เรียกได้โดยไม่ต้อง login (ลงทะเบียนไว้ใน PUBLIC_API_ROUTES)
 // ส่วนตะกร้าและคำสั่งซื้อต้อง login และเห็นได้เฉพาะของบัญชีตัวเอง
@@ -41,7 +42,7 @@ interface OrderLine { sku: string; product_name: string; price: number; quantity
 
 const toOrder = (row: Record<string, any>) => ({
   id: row.id as number,
-  order_code: orderCode(row.id),
+  order_code: webOrderCode(row.id),
   customer_name: row.customer_name as string,
   phone: row.phone as string,
   address: row.address as string,
@@ -57,13 +58,36 @@ const toOrder = (row: Record<string, any>) => ({
   reviewed_at: row.reviewed_at
 });
 
-export const orderCode = (id: number) => `WEB-${String(id).padStart(6, '0')}`;
 
 // บัญชีรับเงิน = เบอร์โทรร้านในหน้า Setting (เบอร์เดียวกับที่หน้า POS ใช้สร้าง QR) หรือเลขประจำตัวผู้เสียภาษี 13 หลัก
 async function storePromptPayId(): Promise<string | null> {
   const result = await pool.query('SELECT phone FROM settings ORDER BY id LIMIT 1');
   const id = String(result.rows[0]?.phone ?? '').replace(/[\s-]/g, '');
   return /^(0\d{9}|\d{13})$/.test(id) ? id : null;
+}
+
+// สถานะในตาราง sale_order (หน้า Sales Orders) ชุดเดียวกับที่ POS ใช้
+// ออเดอร์ออนไลน์: ยังไม่จ่าย / รอตรวจ / สลิปไม่ผ่าน = Pending, ยืนยันแล้ว = Completed, ยกเลิก = Canceled
+export const SALE = { pending: 'Pending', completed: 'Completed', canceled: 'Canceled' } as const;
+
+// บันทึกรายการขายของออเดอร์ (1 แถวต่อสินค้า) แบบเดียวกับ POS: picture = รูปโปรไฟล์ของผู้ทำรายการ
+async function insertSaleRows(
+  client: PoolClient,
+  order: { order_code: string; items: OrderLine[] },
+  status: string,
+  userId: number | undefined,
+  createBy: string | undefined
+) {
+  const profile = userId
+    ? (await client.query('SELECT profile FROM todos WHERE id = $1', [userId])).rows[0]?.profile ?? null
+    : null;
+  for (const line of order.items) {
+    await client.query(
+      `INSERT INTO sale_order (order_code, product_name, quantity, amount, picture, create_by, status, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
+      [order.order_code, line.product_name, line.quantity, Math.round(line.price * line.quantity * 100) / 100, profile, createBy, status]
+    );
+  }
 }
 
 function orderNotEditable(res: Response) {
@@ -101,7 +125,7 @@ router.get('/api/shop/products', async (req, res) => {
   }
 });
 
-// สินค้าขายดี: เรียงตามจำนวนที่ขายได้จริงจาก POS (ไม่นับรายการที่ยกเลิก)
+// สินค้าขายดี: เรียงตามจำนวนที่ขายได้จริง (ไม่นับรายการที่ยกเลิก และออเดอร์ออนไลน์ที่ยังไม่จ่าย)
 // ส่งแค่ SKU ตามลำดับ ไม่เปิดเผยยอดขาย / จำนวนที่ขายได้ให้คนนอกเห็น
 router.get('/api/shop/best-sellers', async (req, res) => {
   try {
@@ -109,7 +133,7 @@ router.get('/api/shop/best-sellers', async (req, res) => {
       `SELECT i.sku
        FROM sale_order s
        JOIN inventory i ON i.product_name = s.product_name
-       WHERE s.status IS DISTINCT FROM 'Canceled'
+       WHERE s.status IS DISTINCT FROM 'Canceled' AND s.status IS DISTINCT FROM 'Pending'
        GROUP BY i.sku
        ORDER BY SUM(s.quantity) DESC, i.sku ASC
        LIMIT $1`,
@@ -183,12 +207,24 @@ router.post('/api/shop/orders', orderLimit, async (req, res) => {
     }
     const total = Math.round(lines.reduce((sum, l) => sum + l.price * l.quantity, 0) * 100) / 100;
 
-    const inserted = await pool.query(
-      `INSERT INTO shop_order (user_id, customer_name, phone, address, note, items, total, status)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, '${STATUS.awaiting}') RETURNING ${ORDER_COLUMNS}`,
-      [req.user.id, customer.name, customer.phone, customer.address, customer.note, JSON.stringify(lines), total]
-    );
-    res.status(201).json({ success: true, order: toOrder(inserted.rows[0]), promptpay_id: promptpayId });
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const inserted = await client.query(
+        `INSERT INTO shop_order (user_id, customer_name, phone, address, note, items, total, status)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, '${STATUS.awaiting}') RETURNING ${ORDER_COLUMNS}`,
+        [req.user.id, customer.name, customer.phone, customer.address, customer.note, JSON.stringify(lines), total]
+      );
+      const order = toOrder(inserted.rows[0]);
+      await insertSaleRows(client, order, SALE.pending, req.user.id, req.user.username);
+      await client.query('COMMIT');
+      res.status(201).json({ success: true, order, promptpay_id: promptpayId });
+    } catch (error) {
+      await client.query('ROLLBACK').catch(() => {});
+      throw error;
+    } finally {
+      client.release();
+    }
   } catch (error) {
     console.error('Error creating shop order:', error);
     res.status(500).json({ success: false, message: 'Server Error' });
@@ -249,18 +285,33 @@ router.post('/api/shop/orders/:id/slip', slipLimit, async (req, res) => {
 // ลูกค้ายกเลิกได้เฉพาะออเดอร์ที่ยังไม่จ่าย / สลิปไม่ผ่าน (ส่งสลิปแล้วต้องรอพนักงานตรวจ)
 router.post('/api/shop/orders/:id/cancel', async (req, res) => {
   if (!req.user) return res.status(401).json({ success: false, message: 'Please sign in again' });
+  const client = await pool.connect();
   try {
-    const updated = await pool.query(
+    await client.query('BEGIN');
+    const updated = await client.query(
       `UPDATE shop_order SET status = '${STATUS.canceled}'
         WHERE id = $1 AND user_id = $2 AND status IN ('${STATUS.awaiting}', '${STATUS.rejected}')
         RETURNING ${ORDER_COLUMNS}`,
       [Number(req.params.id), req.user.id]
     );
-    if (updated.rowCount === 0) return orderNotEditable(res);
-    res.json({ success: true, order: toOrder(updated.rows[0]) });
+    if (updated.rowCount === 0) {
+      await client.query('ROLLBACK');
+      return orderNotEditable(res);
+    }
+    const order = toOrder(updated.rows[0]);
+    // ยังไม่เคยตัดสต็อก จึงแค่เปลี่ยนสถานะในรายการขาย ไม่ต้องคืนสต็อก
+    await client.query(
+      `UPDATE sale_order SET status = '${SALE.canceled}' WHERE order_code = $1 AND status = '${SALE.pending}'`,
+      [order.order_code]
+    );
+    await client.query('COMMIT');
+    res.json({ success: true, order });
   } catch (error) {
+    await client.query('ROLLBACK').catch(() => {});
     console.error('Error canceling shop order:', error);
     res.status(500).json({ success: false, message: 'Server Error' });
+  } finally {
+    client.release();
   }
 });
 
@@ -322,7 +373,7 @@ router.post('/api/shop/admin/orders/:id/confirm', reviewers, async (req, res) =>
       const result = await client.query(
         `UPDATE inventory SET quantity = quantity - $1
           WHERE sku = $2 AND quantity >= $1
-          RETURNING quantity, quantity_alert, picture`,
+          RETURNING quantity, quantity_alert`,
         [line.quantity, line.sku]
       );
       if (result.rowCount === 0) {
@@ -335,12 +386,6 @@ router.post('/api/shop/admin/orders/:id/confirm', reviewers, async (req, res) =>
       }
 
       const row = result.rows[0];
-      // ราคาตามที่ลูกค้าจ่ายจริง (ราคา ณ ตอนสั่ง ซึ่งเป็นยอดใน QR)
-      await client.query(
-        `INSERT INTO sale_order (order_code, product_name, quantity, amount, picture, create_by, status, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6, 'Completed', NOW())`,
-        [order.order_code, line.product_name, line.quantity, Math.round(line.price * line.quantity * 100) / 100, row.picture, reviewer]
-      );
       if (Number(row.quantity) <= Number(row.quantity_alert ?? 10)) {
         await client.query(
           `INSERT INTO notification (title, description, type) VALUES ($1, $2, 'warning')`,
@@ -351,6 +396,11 @@ router.post('/api/shop/admin/orders/:id/confirm', reviewers, async (req, res) =>
         );
       }
     }
+
+    // รายการขายของออเดอร์นี้ (Pending ตั้งแต่ตอนสั่ง) กลายเป็น Completed ณ เวลาที่ยืนยัน แบบเดียวกับการปิดการขายที่ POS
+    // (ราคาตามที่ลูกค้าจ่ายจริง = ราคา ณ ตอนสั่ง ซึ่งเป็นยอดใน QR)
+    await client.query(`DELETE FROM sale_order WHERE order_code = $1 AND status = '${SALE.pending}'`, [order.order_code]);
+    await insertSaleRows(client, order, SALE.completed, req.user?.id, reviewer);
 
     const updated = await client.query(
       `UPDATE shop_order SET status = '${STATUS.completed}', reviewed_by = $1, reviewed_at = now()

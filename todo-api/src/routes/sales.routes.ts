@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { pool } from '../database/db';
 import { requireRole } from '../middleware/auth';
-import { actorName } from '../lib/helpers';
+import { actorName, webOrderCode } from '../lib/helpers';
 
 const router = Router();
 
@@ -184,19 +184,45 @@ router.post('/api/sale_order/cancel', requireRole('admin', 'manager', 'pos'), as
   try {
     await client.query('BEGIN');
 
+    // เก็บสถานะก่อนยกเลิกไว้ด้วย: แถว Pending (ออเดอร์ออนไลน์ที่ยังไม่จ่าย) ยังไม่เคยตัดสต็อก จึงไม่ต้องคืน
     const canceled = await client.query(
-      `UPDATE sale_order SET status = 'Canceled'
-       WHERE id = ANY($1::int[]) AND status IS DISTINCT FROM 'Canceled'
-       RETURNING id, product_name, quantity`,
+      `WITH target AS (
+         SELECT id, status FROM sale_order
+         WHERE id = ANY($1::int[]) AND status IS DISTINCT FROM 'Canceled'
+         FOR UPDATE
+       )
+       UPDATE sale_order s SET status = 'Canceled'
+       FROM target
+       WHERE s.id = target.id
+       RETURNING s.id, s.order_code, s.product_name, s.quantity, target.status AS previous_status`,
       [ids]
     );
 
     for (const row of canceled.rows) {
+      if (row.previous_status === 'Pending') continue;
       // sale_order เก็บแค่ชื่อสินค้า จึงคืนสต็อกให้สินค้าชื่อนั้น (ตัวแรกถ้ามีชื่อซ้ำ ตาม logic เดิมของหน้า Sale)
       await client.query(
         `UPDATE inventory SET quantity = quantity + $1
          WHERE id = (SELECT id FROM inventory WHERE product_name = $2 ORDER BY id LIMIT 1)`,
         [Number(row.quantity) || 0, row.product_name]
+      );
+    }
+
+    // ออเดอร์จากหน้าร้าน (WEB-xxxxxx): ยกเลิกทั้งออเดอร์ให้ลูกค้าเห็นใน My Orders และยืนยันการชำระเงินต่อไม่ได้
+    const webOrderIds = [...new Set(canceled.rows
+      .map(row => /^WEB-(\d+)$/.exec(String(row.order_code ?? ''))?.[1])
+      .filter((id): id is string => Boolean(id))
+      .map(Number))];
+    if (webOrderIds.length) {
+      await client.query(
+        `UPDATE shop_order SET status = 'Canceled', reviewed_by = $2, reviewed_at = now()
+         WHERE id = ANY($1::int[]) AND status <> 'Canceled'`,
+        [webOrderIds, actorName(req)]
+      );
+      await client.query(
+        `UPDATE sale_order SET status = 'Canceled'
+         WHERE status = 'Pending' AND order_code = ANY($1::text[])`,
+        [webOrderIds.map(webOrderCode)]
       );
     }
 

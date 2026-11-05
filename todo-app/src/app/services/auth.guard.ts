@@ -23,10 +23,11 @@ export const authGuard: CanActivateFn = (route, state) => {
   }
 
   // เข้าหน้าตรง ๆ หรือรีเฟรช: เติมข้อมูลผู้ใช้ลง navigation state ให้หน้าที่ยังอ่านจาก history.state ทำงานได้
+  // เก็บ state เดิมที่ส่งมาด้วย (เช่น receiptData จากหน้า POS) ไม่เขียนทับ
   const navState = router.getCurrentNavigation()?.extras.state;
   if (!navState?.['username']) {
     // ยกเลิก navigation นี้แล้วเริ่มใหม่พร้อม state (ไม่ต้องรอผล)
-    void router.navigateByUrl(state.url, { state: auth.navigationState() });
+    void router.navigateByUrl(state.url, { state: { ...auth.navigationState(), ...navState } });
     return false;
   }
 
