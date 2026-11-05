@@ -14,11 +14,11 @@ export class PhumalinState implements OnDestroy {
   readonly username = this.auth.user?.username ?? '';
   readonly role = (this.auth.user?.role ?? '').toLowerCase();
 
-  /// ลำดับเดียวกับแถบเมนูหน้าเดิม: Pos / Dashboard / Inventory
+  /// ลำดับเดียวกับแถบเมนูหน้าเดิม: Pos / Dashboard / Inventory (ชื่อเมนูภาษาไทย)
   readonly views: { id: PhumalinView; label: string }[] = ([
-    { id: 'pos', label: 'Pos' },
-    { id: 'dashboard', label: 'Dashboard' },
-    { id: 'inventory', label: 'Inventory' }
+    { id: 'pos', label: 'เพิ่มสินค้า' },
+    { id: 'dashboard', label: 'แดชบอร์ด' },
+    { id: 'inventory', label: 'คลังสินค้า' }
   ] as const).filter((view) => this.canSee(view.id));
 
   readonly store = signal<PhumalinStore>(this.readStore());

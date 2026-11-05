@@ -51,37 +51,7 @@
   font-weight: 600;
 }
 
-.pm-store:focus-visible,
-.pm-view:focus-visible {
+.pm-store:focus-visible {
   outline: 2px solid #6FAB23;
   outline-offset: 2px;
-}
-
-/* หน้าย่อย: จอกว้างใช้แถบเมนูด้านบน (Pos / Dashboard / Inventory) แทน */
-.pm-views {
-  display: none;
-  gap: 4px;
-}
-
-.pm-view {
-  min-height: 34px;
-  padding: 0 14px;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: #48505E;
-  font: inherit;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.pm-view--active {
-  background: #1D1D1F;
-  color: #fff;
-}
-
-@media (max-width: 1200px) {
-  .pm-views {
-    display: inline-flex;
-  }
 }

@@ -18,40 +18,40 @@
         <div class="container" [class.fade-out]="state.leaving()" [class.Return]="true">
             <div class="static">
                 <div class="header_in">
-                    <div class="header_Inventory">Inventory</div>
+                    <div class="header_Inventory">คลังสินค้า</div>
                     <div class="in_bt"></div>
                 </div>
                 <div class="bars">
                     <div class="search">
-                        <input class="inputser" type="text" placeholder="Search" [(ngModel)]="search" (input)="applyFilters()">
+                        <input class="inputser" type="text" placeholder="ค้นหา" [(ngModel)]="search" (input)="applyFilters()">
                         <img class="iconsearch" src="image/search.svg" alt="">
                     </div>
                     <div class="con_3btn">
                         <div class="custom-select">
-                            <select class="text" [(ngModel)]="selectedStockFilter" (change)="applyFilters()" aria-label="Stock">
-                                <option value="all">All</option>
-                                <option value="out">Out of Stock</option>
+                            <select class="text" [(ngModel)]="selectedStockFilter" (change)="applyFilters()" aria-label="สต็อก">
+                                <option value="all">ทั้งหมด</option>
+                                <option value="out">หมดสต็อก</option>
                             </select>
                         </div>
                         <div class="custom-select">
-                            <select [(ngModel)]="selectedCategory" (change)="applyFilters()" aria-label="Category">
-                                <option value="all">All Categories</option>
+                            <select [(ngModel)]="selectedCategory" (change)="applyFilters()" aria-label="หมวดหมู่">
+                                <option value="all">ทุกหมวดหมู่</option>
                                 @for (cat of categories; track cat.id) {
                                     <option [value]="cat.id">{{ cat.label }}</option>
                                 }
                             </select>
                         </div>
                         <div class="con_am">
-                            <div class="reload" (click)="reloads()" title="Reload">
-                                <img src="image/Group.svg" alt="Reload">
+                            <div class="reload" (click)="reloads()" title="โหลดใหม่">
+                                <img src="image/Group.svg" alt="โหลดใหม่">
                             </div>
                             <div class="button_addt" (click)="button_adds()">
                                 <img src="image/In_add.svg" alt="">
-                                <div class="H">Add Quantity</div>
+                                <div class="H">เพิ่มจำนวน</div>
                             </div>
                             <div class="import" (click)="button_imports()">
                                 <img src="image/import.svg" alt="">
-                                <div class="H">Import Product</div>
+                                <div class="H">เพิ่มสินค้าใหม่</div>
                             </div>
                         </div>
                     </div>
@@ -60,24 +60,24 @@
                 <div class="detail_con">
                     <div class="table-container">
                         <div class="table">
-                            <div class="sku">Name</div>
-                            <div class="sku">Category</div>
-                            <div class="sku">Unit</div>
-                            <div class="sku">Remaining</div>
-                            <div class="sku">Note</div>
+                            <div class="sku">ชื่อ</div>
+                            <div class="sku">หมวดหมู่</div>
+                            <div class="sku">หน่วย</div>
+                            <div class="sku">คงเหลือ</div>
+                            <div class="sku">หมายเหตุ</div>
                         </div>
 
                         @if (loader) {
                             <div class="card">
                                 <div class="loader">
-                                    <div class="text">Loading</div>
+                                    <div class="text">กำลังโหลด</div>
                                     <div class="words">
                                         <span class="word"></span>
                                         <span class="word">TAM</span>
                                         <span class="word">RAI</span>
                                         <span class="word">DEE</span>
-                                        <span class="word">WELCOME</span>
-                                        <span class="word">Please</span>
+                                        <span class="word">ยินดีต้อนรับ</span>
+                                        <span class="word">รอสักครู่</span>
                                     </div>
                                 </div>
                             </div>
@@ -85,26 +85,26 @@
                             @for (item of paginatedItems; track item.id; let i = $index) {
                                 <div class="table_detail2" [style.animation-delay]="i * 0.15 + 's'">
                                     <div class="table_detail" (click)="showHistory(item)">
-                                        <div class="sku2" data-label="Name">
+                                        <div class="sku2" data-label="ชื่อ">
                                             <div class="connn">
-                                                <img class="profile_employee" [src]="categoryIcon(item.category)" alt="">{{ item.name }}
+                                                <img class="profile_employee" [src]="itemImage(item)" (error)="useCategoryIcon($event, item.category)" alt="" style="object-fit: cover;">{{ item.name }}
                                             </div>
                                         </div>
-                                        <div class="sku2" data-label="Category">{{ categoryLabel(item.category) }}</div>
-                                        <div class="sku2" data-label="Unit">{{ item.unit }}</div>
-                                        <div class="sku2" data-label="Remaining" [class.text-alert]="item.quantity <= 0">{{ formatQty(item.quantity) }}</div>
-                                        <div class="sku2 pm-note" data-label="Note">{{ item.note || '-' }}</div>
+                                        <div class="sku2" data-label="หมวดหมู่">{{ categoryLabel(item.category) }}</div>
+                                        <div class="sku2" data-label="หน่วย">{{ item.unit }}</div>
+                                        <div class="sku2" data-label="คงเหลือ" [class.text-alert]="item.quantity <= 0">{{ formatQty(item.quantity) }}</div>
+                                        <div class="sku2 pm-note" data-label="หมายเหตุ">{{ item.note || '-' }}</div>
 
                                         <div class="button_small">
-                                            <img class="icon_small_inventory" src="image/edit.svg" alt="Edit" (click)="button_editt(item); $event.stopPropagation()">
-                                            <img class="icon_small_inventory2" src="image/delete.svg" alt="Delete" (click)="button_delete(item); $event.stopPropagation()">
+                                            <img class="icon_small_inventory" src="image/edit.svg" alt="แก้ไข" (click)="button_editt(item); $event.stopPropagation()">
+                                            <img class="icon_small_inventory2" src="image/delete.svg" alt="ลบ" (click)="button_delete(item); $event.stopPropagation()">
                                         </div>
                                     </div>
                                     <div class="line"></div>
                                 </div>
                             } @empty {
                                 <div class="pm-empty">
-                                    {{ items.length ? 'No items match your search.' : 'No items in ' + storeLabel(state.store()) + ' yet. Click Import Product to add one.' }}
+                                    {{ items.length ? 'ไม่พบสินค้าที่ค้นหา' : 'ยังไม่มีสินค้าใน' + storeLabel(state.store()) + ' กด "เพิ่มสินค้าใหม่" เพื่อเริ่ม' }}
                                 </div>
                             }
                         }
@@ -113,11 +113,11 @@
 
                 <div class="con_tainer_page">
                     <div class="pagination">
-                        <a class="prev" [class.disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">&lt; Prev</a>
+                        <a class="prev" [class.disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">&lt; ก่อนหน้า</a>
                         @for (page of visiblePages; track page) {
                             <a class="page" [class.active]="currentPage === page" (click)="changePage(page)">{{ page }}</a>
                         }
-                        <a class="next" [class.disabled]="currentPage === totalPages || totalPages === 0" (click)="changePage(currentPage + 1)">Next &gt;</a>
+                        <a class="next" [class.disabled]="currentPage === totalPages || totalPages === 0" (click)="changePage(currentPage + 1)">ถัดไป &gt;</a>
                     </div>
                 </div>
             </div>
@@ -130,9 +130,9 @@
             <div class="popupcontainer">
                 <div class="popup-content">
                     <img class="iconsuccess" src="image/cross.svg" alt="">
-                    <div class="headerpop">Something went Wrong</div>
+                    <div class="headerpop">เกิดข้อผิดพลาด</div>
                     <div class="subheadersuccess">{{ popup }}</div>
-                    <button class="buttonnoti" (click)="closepopup()">OK</button>
+                    <button class="buttonnoti" (click)="closepopup()">ตกลง</button>
                 </div>
             </div>
         </div>
@@ -146,11 +146,11 @@
                         <img class="iconsuccess" src="image/notidelete.svg" alt="">
                         <div class="line"></div>
                     </div>
-                    <div class="headerpop">Delete Item?</div>
+                    <div class="headerpop">ลบสินค้า?</div>
                     <div class="subheadersuccess">{{ popup }}</div>
                     <div class="container_button">
-                        <button class="button_confirm" (click)="confirmdelete()">Confirm</button>
-                        <button class="button_cancel" (click)="closepopup()">No</button>
+                        <button class="button_confirm" (click)="confirmdelete()">ยืนยัน</button>
+                        <button class="button_cancel" (click)="closepopup()">ไม่</button>
                     </div>
                 </div>
             </div>
@@ -163,11 +163,11 @@
                 <div class="popup-content">
                     <img class="iconsuccess" src="image/editalert.svg" alt="">
                     <div class="line"></div>
-                    <div class="headerpop">Edit Item?</div>
+                    <div class="headerpop">แก้ไขสินค้า?</div>
                     <div class="subheadersuccess">{{ popup }}</div>
                     <div class="container_button">
-                        <button class="button_edit" (click)="saveEdit()">Confirm</button>
-                        <button class="button_cancel" (click)="closepopup()">No</button>
+                        <button class="button_edit" (click)="saveEdit()">ยืนยัน</button>
+                        <button class="button_cancel" (click)="closepopup()">ไม่</button>
                     </div>
                 </div>
             </div>
@@ -177,47 +177,47 @@
     <!-- ===== เพิ่มวัตถุดิบ (Import Product) ===== -->
     <div class="import_product" [class.product]="true" [class.button_importt]="button_importt">
         <div class="con_import_product" [class.out_comimport]="outimport">
-            <div class="serach_product">Import Product</div>
+            <div class="serach_product">เพิ่มสินค้าใหม่ · {{ storeLabel(state.store()) }}</div>
             <div class="add_image">
-                <img [src]="categoryIcon(newItem.category)" alt="" style="width: 100px; height: 100px; object-fit: cover;">
+                <img [src]="itemImage(newItem)" (error)="useCategoryIcon($event, newItem.category)" alt="" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px;">
                 <div class="sku_pro2">
-                    <label class="label_import">Store</label>
+                    <label class="label_import" for="pm-new-picture">ลิงก์รูปภาพ</label>
                     <div class="con_edit">
-                        <input type="text" class="sku_input2" [value]="storeLabel(state.store())" readonly>
+                        <input id="pm-new-picture" type="url" class="sku_input2" [(ngModel)]="newItem.picture" name="pm-new-picture" maxlength="2000" placeholder="https://...">
                     </div>
                 </div>
             </div>
 
             <div class="con_sku_pro">
                 <div class="sku_pro">
-                    <label class="label_import" for="pm-new-name">Name <span class="important">*</span></label>
+                    <label class="label_import" for="pm-new-name">ชื่อ <span class="important">*</span></label>
                     <input id="pm-new-name" type="text" class="sku_input" [(ngModel)]="newItem.name" name="name" maxlength="120">
                 </div>
                 <div class="sku_pro">
-                    <label class="label_import" for="pm-new-unit">Unit <span class="important">*</span></label>
-                    <input id="pm-new-unit" type="text" class="sku_input" [(ngModel)]="newItem.unit" name="unit" maxlength="30" placeholder="kg, pack, pcs" list="pm-unit-list">
+                    <label class="label_import" for="pm-new-unit">หน่วย <span class="important">*</span></label>
+                    <input id="pm-new-unit" type="text" class="sku_input" [(ngModel)]="newItem.unit" name="unit" maxlength="30" placeholder="กก., แพ็ค, ชิ้น" list="pm-unit-list">
                 </div>
             </div>
 
             <div class="con_sku_pro">
                 <div class="sku_pro">
-                    <label class="label_import" for="pm-new-category">Category <span class="important">*</span></label>
+                    <label class="label_import" for="pm-new-category">หมวดหมู่ <span class="important">*</span></label>
                     <select id="pm-new-category" class="sku_input" [(ngModel)]="newItem.category" name="category">
-                        <option value="" disabled>-- Select Category --</option>
+                        <option value="" disabled>-- เลือกหมวดหมู่ --</option>
                         @for (cat of categories; track cat.id) {
                             <option [value]="cat.id">{{ cat.label }}</option>
                         }
                     </select>
                 </div>
                 <div class="sku_pro">
-                    <label class="label_import" for="pm-new-qty">Remaining <span class="important">*</span></label>
+                    <label class="label_import" for="pm-new-qty">คงเหลือ <span class="important">*</span></label>
                     <input id="pm-new-qty" type="number" min="0" step="any" class="sku_input" [(ngModel)]="newItem.quantity" name="quantity">
                 </div>
             </div>
 
             <div class="con_sku_pro">
                 <div class="sku_pro">
-                    <label class="label_import" for="pm-new-note">Note</label>
+                    <label class="label_import" for="pm-new-note">หมายเหตุ</label>
                     <input id="pm-new-note" type="text" class="sku_input" [(ngModel)]="newItem.note" name="note" maxlength="500">
                 </div>
             </div>
@@ -225,8 +225,8 @@
             @if (button_importt && formError) { <p class="pm-error" role="alert">{{ formError }}</p> }
 
             <div class="button_import">
-                <div class="save" (click)="saveNewItem()" style="cursor: pointer;">Save to Stock</div>
-                <div class="cancel" (click)="button_cancels()" style="cursor: pointer;">Cancel</div>
+                <div class="save" (click)="saveNewItem()" style="cursor: pointer;">บันทึก</div>
+                <div class="cancel" (click)="button_cancels()" style="cursor: pointer;">ยกเลิก</div>
             </div>
         </div>
     </div>
@@ -234,14 +234,14 @@
     <!-- ===== Add Quantity ===== -->
     <div class="import_product" [class.product2]="true" [class.button_addd]="button_addd">
         <div class="con_import_product2" [class.out_comimport]="outimport">
-            <div class="serach_product">Search Product</div>
+            <div class="serach_product">เพิ่มจำนวน · {{ storeLabel(state.store()) }}</div>
             <div class="add_image2">
-                <img [src]="categoryIcon(selectedAddItem?.category)" alt="" style="width: 100px; height: 100px; object-fit: cover;">
+                <img [src]="itemImage(selectedAddItem)" (error)="useCategoryIcon($event, selectedAddItem?.category)" alt="" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px;">
                 <div class="sku_pro2">
-                    <label class="label_import" for="pm-add-item">Item <span class="important">*</span></label>
+                    <label class="label_import" for="pm-add-item">สินค้า <span class="important">*</span></label>
                     <div class="con_edit">
                         <select id="pm-add-item" class="sku_input2" [(ngModel)]="addQty.itemId" name="itemId">
-                            <option [ngValue]="null" disabled>-- Select Item --</option>
+                            <option [ngValue]="null" disabled>-- เลือกสินค้า --</option>
                             @for (item of items; track item.id) {
                                 <option [ngValue]="item.id">{{ item.name }} ({{ categoryLabel(item.category) }})</option>
                             }
@@ -252,34 +252,34 @@
 
             <div class="con_sku_pro">
                 <div class="sku_pro">
-                    <label class="label_import">Name</label>
+                    <label class="label_import">ชื่อ</label>
                     <input type="text" class="sku_input" [value]="selectedAddItem?.name ?? ''" disabled>
                 </div>
                 <div class="sku_pro">
-                    <label class="label_import">Category</label>
+                    <label class="label_import">หมวดหมู่</label>
                     <input type="text" class="sku_input" [value]="selectedAddItem ? categoryLabel(selectedAddItem.category) : ''" disabled>
                 </div>
             </div>
             <div class="con_sku_pro">
                 <div class="sku_pro">
-                    <label class="label_import">Unit</label>
+                    <label class="label_import">หน่วย</label>
                     <input type="text" class="sku_input" [value]="selectedAddItem?.unit ?? ''" disabled>
                 </div>
                 <div class="sku_pro">
-                    <label class="label_import">Remaining</label>
+                    <label class="label_import">คงเหลือ</label>
                     <input type="text" class="sku_input" [value]="selectedAddItem ? formatQty(selectedAddItem.quantity) : ''" disabled>
                 </div>
             </div>
 
-            <div class="serach_product">Add New Quantity</div>
+            <div class="serach_product">จำนวนที่เพิ่ม</div>
 
             <div class="con_sku_pro">
                 <div class="sku_pro">
-                    <label class="label_import" for="pm-add-qty">Import Quantity <span class="important">*</span></label>
+                    <label class="label_import" for="pm-add-qty">จำนวนที่เพิ่ม <span class="important">*</span></label>
                     <input id="pm-add-qty" type="number" min="0" step="any" class="sku_input" [(ngModel)]="addQty.quantity" name="addQuantity">
                 </div>
                 <div class="sku_pro">
-                    <label class="label_import" for="pm-add-note">Note</label>
+                    <label class="label_import" for="pm-add-note">หมายเหตุ</label>
                     <input id="pm-add-note" type="text" class="sku_input" [(ngModel)]="addQty.note" name="addNote" maxlength="500">
                 </div>
             </div>
@@ -287,8 +287,8 @@
             @if (button_addd && formError) { <p class="pm-error" role="alert">{{ formError }}</p> }
 
             <div class="button_import">
-                <div class="save" (click)="saveAddQuantity()">Save to Stock</div>
-                <div class="cancel" (click)="button_cancels()">Cancel</div>
+                <div class="save" (click)="saveAddQuantity()">บันทึก</div>
+                <div class="cancel" (click)="button_cancels()">ยกเลิก</div>
             </div>
         </div>
     </div>
@@ -298,30 +298,30 @@
         <div class="con_import_product2" [class.out_comimport]="outimport">
             <div class="serach_product">
                 <img src="image/main_edit2.svg" alt="">
-                Edit Product
+                แก้ไขสินค้า
             </div>
             <div class="add_image2">
-                <img [src]="categoryIcon(editItem.category)" alt="" style="width: 100px; height: 100px; object-fit: cover;">
+                <img [src]="itemImage(editItem)" (error)="useCategoryIcon($event, editItem.category)" alt="" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px;">
                 <div class="sku_pro2">
-                    <label class="label_import">Store</label>
+                    <label class="label_import" for="pm-edit-picture">ลิงก์รูปภาพ</label>
                     <div class="con_edit">
-                        <input type="text" class="sku_input2" [value]="storeLabel(state.store())" readonly>
+                        <input id="pm-edit-picture" type="url" class="sku_input2" [(ngModel)]="editItem.picture" name="pm-edit-picture" maxlength="2000" placeholder="https://...">
                     </div>
                 </div>
             </div>
             <div class="con_sku_pro">
                 <div class="sku_pro">
-                    <label class="label_import" for="pm-edit-name">Name <span class="important">*</span></label>
+                    <label class="label_import" for="pm-edit-name">ชื่อ <span class="important">*</span></label>
                     <input id="pm-edit-name" type="text" class="sku_input" [(ngModel)]="editItem.name" name="editName" maxlength="120">
                 </div>
                 <div class="sku_pro">
-                    <label class="label_import" for="pm-edit-unit">Unit <span class="important">*</span></label>
+                    <label class="label_import" for="pm-edit-unit">หน่วย <span class="important">*</span></label>
                     <input id="pm-edit-unit" type="text" class="sku_input" [(ngModel)]="editItem.unit" name="editUnit" maxlength="30" list="pm-unit-list">
                 </div>
             </div>
             <div class="con_sku_pro">
                 <div class="sku_pro">
-                    <label class="label_import" for="pm-edit-category">Category <span class="important">*</span></label>
+                    <label class="label_import" for="pm-edit-category">หมวดหมู่ <span class="important">*</span></label>
                     <select id="pm-edit-category" class="sku_input" [(ngModel)]="editItem.category" name="editCategory">
                         @for (cat of categories; track cat.id) {
                             <option [value]="cat.id">{{ cat.label }}</option>
@@ -329,13 +329,13 @@
                     </select>
                 </div>
                 <div class="sku_pro">
-                    <label class="label_import" for="pm-edit-qty">Remaining <span class="important">*</span></label>
+                    <label class="label_import" for="pm-edit-qty">คงเหลือ <span class="important">*</span></label>
                     <input id="pm-edit-qty" type="number" min="0" step="any" class="sku_input" [(ngModel)]="editItem.quantity" name="editQuantity">
                 </div>
             </div>
             <div class="con_sku_pro">
                 <div class="sku_pro">
-                    <label class="label_import" for="pm-edit-note">Note</label>
+                    <label class="label_import" for="pm-edit-note">หมายเหตุ</label>
                     <input id="pm-edit-note" type="text" class="sku_input" [(ngModel)]="editItem.note" name="editNote" maxlength="500">
                 </div>
             </div>
@@ -343,8 +343,8 @@
             @if (button_edit && formError) { <p class="pm-error" role="alert">{{ formError }}</p> }
 
             <div class="button_import">
-                <div class="save" (click)="editt()">Save</div>
-                <div class="cancel" (click)="button_cancels()">Cancel</div>
+                <div class="save" (click)="editt()">บันทึก</div>
+                <div class="cancel" (click)="button_cancels()">ยกเลิก</div>
             </div>
         </div>
     </div>
@@ -364,9 +364,9 @@
             <div class="popupcontainer">
                 <div class="popup-content">
                     <img class="iconsuccess" src="image/success.svg" alt="">
-                    <div class="headerpop">Success</div>
+                    <div class="headerpop">สำเร็จ</div>
                     <div class="subheadersuccess">{{ popup }}</div>
-                    <button class="buttonclose" (click)="closepopup()">Back to Inventory</button>
+                    <button class="buttonclose" (click)="closepopup()">กลับไปคลังสินค้า</button>
                 </div>
             </div>
         </div>
@@ -392,20 +392,20 @@
                 <div class="popup-content">
                     <div class="headerpop">{{ historyItem.name }}</div>
                     <div class="subheadersuccess">
-                        Remaining: {{ formatQty(historyItem.quantity) }} {{ historyItem.unit }} · {{ categoryLabel(historyItem.category) }}
+                        คงเหลือ: {{ formatQty(historyItem.quantity) }} {{ historyItem.unit }} · {{ categoryLabel(historyItem.category) }}
                         @if (historyItem.note) { <br>{{ historyItem.note }} }
                     </div>
                     <div style="width: 100%; max-height: 260px; overflow-y: auto; margin-bottom: 15px; font-size: 14px;">
                         @for (move of historyRows; track move.id) {
                             <div style="display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid #E6EAED;">
-                                <span>{{ move.created_at | date:'d MMM, HH:mm' }} · {{ movementLabel(move) }}{{ move.created_by ? ' · ' + move.created_by : '' }}</span>
+                                <span>{{ thaiDateTime(move.created_at) }} · {{ movementLabel(move) }}{{ move.created_by ? ' · ' + move.created_by : '' }}</span>
                                 <strong [class.pm-out]="move.type === 'out' || move.quantity < 0">{{ movementText(move) }} {{ move.unit }}</strong>
                             </div>
                         } @empty {
-                            <div style="text-align: center; color: #888;">No history yet.</div>
+                            <div style="text-align: center; color: #888;">ยังไม่มีประวัติ</div>
                         }
                     </div>
-                    <button class="buttonclose" (click)="historyItem = null">Close</button>
+                    <button class="buttonclose" (click)="historyItem = null">ปิด</button>
                 </div>
             </div>
         </div>

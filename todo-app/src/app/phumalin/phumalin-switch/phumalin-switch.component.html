@@ -1,6 +1,6 @@
 <div class="pm-switch">
   <div class="pm-brand">Phumalin</div>
-  <div class="pm-stores" role="radiogroup" aria-label="Store">
+  <div class="pm-stores" role="radiogroup" aria-label="เลือกร้าน">
     @for (store of stores; track store.id) {
       <button type="button" role="radio" class="pm-store"
         [class.pm-store--active]="state.store() === store.id"
@@ -8,13 +8,4 @@
         (click)="state.setStore(store.id)">{{ store.label }}</button>
     }
   </div>
-  @if (state.views.length > 1) {
-    <nav class="pm-views" aria-label="Phumalin pages">
-      @for (view of state.views; track view.id) {
-        <button type="button" class="pm-view" [class.pm-view--active]="state.view() === view.id"
-          [attr.aria-current]="state.view() === view.id ? 'page' : null"
-          (click)="state.go(view.id)">{{ view.label }}</button>
-      }
-    </nav>
-  }
 </div>

@@ -15,8 +15,9 @@ describe('PhumalinInventoryComponent', () => {
     return { ...page, ...page.create() };
   };
 
-  it('แสดงตาราง ชื่อ / หมวด / หน่วย / คงเหลือ / หมายเหตุ และกรองได้', () => {
+  it('แสดงตาราง ชื่อ / หมวด / หน่วย / คงเหลือ / หมายเหตุ (หัวตารางภาษาไทย) และกรองได้', () => {
     const { el, fixture, component } = open();
+    expect(Array.from(el.querySelectorAll('.table .sku')).map((h) => h.textContent?.trim())).toEqual(['ชื่อ', 'หมวดหมู่', 'หน่วย', 'คงเหลือ', 'หมายเหตุ']);
     expect(el.querySelectorAll('.table_detail').length).toBe(2);
     expect(el.textContent).toContain('เนื้อสัตว์');
     expect(el.textContent).toContain('order more');
@@ -40,11 +41,18 @@ describe('PhumalinInventoryComponent', () => {
     component.button_imports();
     component.saveNewItem();
     expect(api.addItem).not.toHaveBeenCalled();
-    expect(component.formError).toContain('required');
+    expect(component.formError).toContain('กรอกข้อมูล');
 
-    component.newItem = { name: ' Garlic ', unit: 'kg', category: 'vegetable', quantity: 2.5, note: ' shelf ' };
+    component.newItem = { name: 'Garlic', unit: 'kg', category: 'vegetable', quantity: 1, note: '', picture: 'javascript:alert(1)' };
     component.saveNewItem();
-    expect(api.addItem).toHaveBeenCalledWith('lower', { name: 'Garlic', unit: 'kg', category: 'vegetable', quantity: 2.5, note: 'shelf' });
+    expect(api.addItem).not.toHaveBeenCalled();
+    expect(component.formError).toContain('ลิงก์รูปภาพ');
+
+    component.newItem = { name: ' Garlic ', unit: 'kg', category: 'vegetable', quantity: 2.5, note: ' shelf ', picture: ' https://cdn.test/garlic.jpg ' };
+    component.saveNewItem();
+    expect(api.addItem).toHaveBeenCalledWith('lower', {
+      name: 'Garlic', unit: 'kg', category: 'vegetable', quantity: 2.5, note: 'shelf', picture: 'https://cdn.test/garlic.jpg'
+    });
     expect(component.showpopup).toBeTrue();
   });
 
@@ -56,11 +64,11 @@ describe('PhumalinInventoryComponent', () => {
     component.saveAddQuantity();
     expect(api.stockIn).toHaveBeenCalledWith('upper', 2, 3, '');
 
-    api.stockIn.and.returnValue(throwError(() => ({ error: { message: 'Item not found.' } })));
+    api.stockIn.and.returnValue(throwError(() => ({ error: { message: 'ไม่พบสินค้านี้' } })));
     component.button_adds();
     component.addQty = { itemId: 2, quantity: 1, note: '' };
     component.saveAddQuantity();
-    expect(component.formError).toBe('Item not found.');
+    expect(component.formError).toBe('ไม่พบสินค้านี้');
   });
 
   it('แก้ไขต้องกดยืนยันก่อน / ลบต้องกดยืนยันก่อน', () => {
@@ -82,12 +90,26 @@ describe('PhumalinInventoryComponent', () => {
     expect(api.deleteItem).toHaveBeenCalledWith('upper', 2);
   });
 
+  it('รูปในตาราง: มีลิงก์รูปใช้ลิงก์นั้น ไม่มีใช้ไอคอนหมวด / ฟอร์มเพิ่มมีช่อง Image URL พร้อมรูปตัวอย่าง', () => {
+    const page = setUpPhumalin(PhumalinInventoryComponent);
+    page.api.getItems.and.returnValue(of([pmItem({ id: 1, picture: 'https://cdn.test/a.jpg' }), pmItem({ id: 2, name: 'Pork', category: 'meat' })]));
+    const { el, fixture, component } = page.create();
+    const imgs = Array.from(el.querySelectorAll<HTMLImageElement>('.profile_employee')).map((img) => img.getAttribute('src'));
+    expect(imgs).toEqual(['https://cdn.test/a.jpg', 'phumalin/meat.svg']);
+
+    component.button_imports();
+    component.newItem.picture = 'https://cdn.test/new.jpg';
+    fixture.detectChanges();
+    expect(el.querySelector('label[for="pm-new-picture"]')?.textContent).toContain('ลิงก์รูปภาพ');
+    expect(el.querySelector('.add_image img')?.getAttribute('src')).toBe('https://cdn.test/new.jpg');
+  });
+
   it('กดที่แถว: แสดงประวัติของวัตถุดิบนั้น', () => {
     const { el, fixture, component } = open();
     component.showHistory(ITEMS[1]);
     fixture.detectChanges();
     expect(component.historyRows.length).toBe(1);
-    expect(el.textContent).toContain('Withdraw');
+    expect(el.textContent).toContain('เบิก');
     expect(el.textContent).toContain('-1 kg');
   });
 });

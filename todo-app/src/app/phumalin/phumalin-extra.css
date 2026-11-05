@@ -48,11 +48,6 @@
   margin-left: auto;
 }
 
-.product-card.pm-card--empty {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 .pm-qty-input {
   width: 44px;
   padding: 0;
@@ -93,4 +88,18 @@
 .grand-total:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* ---------- Dashboard ---------- */
+/* ปุ่มช่วงเวลาภาษาไทยยาวกว่า 1D / 1W: ห้ามตัดบรรทัด */
+.overdate .date {
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+/* จอ ≤ 1200px: ซ่อนเมนูบน ใช้แฮมเบอร์เกอร์ (phumalin-menu) แทน เหมือนหน้าเดิม */
+@media (max-width: 1200px) {
+  .navbaar .con_nav {
+    display: none !important;
+  }
 }

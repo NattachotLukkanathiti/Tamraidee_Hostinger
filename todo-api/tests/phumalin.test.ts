@@ -57,6 +57,7 @@ beforeEach(async () => {
   await pool.query(sql('tests/schema.sql'));
   await pool.query(sql('migrations/001_auth.sql'));
   await pool.query(sql('migrations/009_phumalin.sql'));
+  await pool.query(sql('migrations/010_phumalin_picture.sql'));
   await pool.query(`
     INSERT INTO todos (username, title, password, completed, role, national_id) VALUES
       ('admin1', 'admin@test.com', 'x', false, 'admin', '1111'),
@@ -115,6 +116,42 @@ test('phumalin: เติมจำนวน / เบิกหลายราย�
   const outs = (await api('GET', '/api/phumalin/upper/movements', undefined, admin)).body.filter((m: any) => m.type === 'out');
   assert.equal(outs.length, 2);
   assert.equal(outs[0].created_by, 'pos1');
+});
+
+test('phumalin: เพิ่มสินค้าหลายรายการจากหน้า POS / ของที่ไม่มีในร้านนี้ไม่เพิ่มเลยทั้งชุด / backend ใช้ไม่ได้', async () => {
+  const admin = await tokenFor('admin1');
+  const pos = await tokenFor('pos1');
+  const back = await tokenFor('back1');
+  const egg = (await api('POST', '/api/phumalin/upper/items', { name: 'Egg', unit: 'pcs', category: 'meat', quantity: 0 }, admin)).body.data;
+  const bag = (await api('POST', '/api/phumalin/upper/items', { name: 'Bag', unit: 'pcs', category: 'packaging', quantity: 5 }, admin)).body.data;
+  const other = (await api('POST', '/api/phumalin/lower/items', { name: 'Egg', unit: 'pcs', category: 'meat' }, admin)).body.data;
+
+  const ok = await api('POST', '/api/phumalin/upper/restock', { items: [{ id: egg.id, quantity: 30 }, { id: bag.id, quantity: 2.5 }], note: 'market' }, pos);
+  assert.equal(ok.status, 200);
+  assert.match(ok.body.order_code, /^UP-IN-\d{6}$/);
+  assert.equal(await remaining(egg.id), 30);
+  assert.equal(await remaining(bag.id), 7.5);
+
+  assert.equal((await api('POST', '/api/phumalin/upper/restock', { items: [{ id: egg.id, quantity: 1 }, { id: other.id, quantity: 1 }] }, pos)).status, 404);
+  assert.equal(await remaining(egg.id), 30);
+  assert.equal((await api('POST', '/api/phumalin/upper/restock', { items: [{ id: egg.id, quantity: 0 }] }, pos)).status, 400);
+  assert.equal((await api('POST', '/api/phumalin/upper/restock', { items: [{ id: egg.id, quantity: 1 }] }, back)).status, 403);
+
+  const ins = (await api('GET', '/api/phumalin/upper/movements', undefined, admin)).body.filter((m: any) => m.order_code === ok.body.order_code);
+  assert.equal(ins.length, 2);
+  assert.ok(ins.every((m: any) => m.type === 'in' && m.note === 'market'));
+});
+
+test('phumalin: ใส่ลิงก์รูปได้ (http/https เท่านั้น) / แก้ไขเปลี่ยนรูปได้', async () => {
+  const admin = await tokenFor('admin1');
+  const pic = 'https://cdn.test/cabbage.jpg';
+  const add = await api('POST', '/api/phumalin/upper/items', { name: 'Cabbage', unit: 'kg', category: 'vegetable', picture: pic }, admin);
+  assert.equal(add.status, 201);
+  assert.equal(add.body.data.picture, pic);
+  assert.equal((await api('POST', '/api/phumalin/upper/items', { name: 'Bad', unit: 'kg', category: 'vegetable', picture: 'javascript:alert(1)' }, admin)).status, 400);
+
+  const edit = await api('PUT', `/api/phumalin/upper/items/${add.body.data.id}`, { name: 'Cabbage', unit: 'kg', category: 'vegetable', picture: '' }, admin);
+  assert.equal(edit.body.data.picture, null);
 });
 
 test('phumalin: แก้คงเหลือบันทึก adjust / ลบแล้วประวัติยังอยู่ / สิทธิ์ตาม role', async () => {

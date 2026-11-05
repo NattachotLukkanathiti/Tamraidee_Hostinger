@@ -28,6 +28,14 @@ describe('PhumalinComponent', () => {
     expect(Array.from(el.querySelectorAll('.pm-store')).map((b) => b.textContent?.trim())).toEqual(['ร้านบน', 'ร้านล่าง']);
   });
 
+  it('เมนูบนเป็นภาษาไทย / ซ่อนเวลา แจ้งเตือน โปรไฟล์ ของ navbar กลางเฉพาะตอนอยู่หน้านี้', () => {
+    const el = open('admin');
+    expect(Array.from(el.querySelectorAll('.con_nav .he')).map((b) => b.textContent?.trim())).toEqual(['เพิ่มสินค้า', 'แดชบอร์ด', 'คลังสินค้า']);
+    expect(document.body.classList).toContain('phumalin-page');
+    TestBed.resetTestingModule();
+    expect(document.body.classList).not.toContain('phumalin-page');
+  });
+
   it('backend เปิดมาเจอหน้า Inventory', () => {
     expect(open('backend').querySelector('app-phumalin-inventory')).not.toBeNull();
   });

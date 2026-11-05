@@ -1,0 +1,16 @@
+<button type="button" class="pm-hamburger" aria-label="เมนู" aria-controls="pm-mobile-menu"
+  [attr.aria-expanded]="open()" (click)="toggle()">
+  <img src="image/ham.svg" alt="">
+</button>
+
+@if (open()) {
+  <nav id="pm-mobile-menu" class="pm-ber" [class.closing]="closing()" aria-label="หน้าของ Phumalin">
+    <div class="pm-ber__links">
+      @for (view of state.views; track view.id) {
+        <button type="button" class="pm-ber__link" [class.pm-ber__link--active]="state.view() === view.id"
+          [attr.aria-current]="state.view() === view.id ? 'page' : null"
+          (click)="pick(view.id)">{{ view.label }}</button>
+      }
+    </div>
+  </nav>
+}

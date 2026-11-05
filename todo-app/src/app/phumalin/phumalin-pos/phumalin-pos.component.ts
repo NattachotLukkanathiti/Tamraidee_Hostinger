@@ -6,7 +6,7 @@ import { PhumalinState } from '../phumalin-state.service';
 import { PhumalinSwitchComponent } from '../phumalin-switch/phumalin-switch.component';
 import {
   PHUMALIN_ALL_ICON, PHUMALIN_CATEGORIES, PhumalinCategory, PhumalinItem, PhumalinStore,
-  categoryIcon, categoryLabel, formatQty, storeLabel
+  categoryIcon, categoryLabel, formatQty, itemImage, storeLabel, useCategoryIcon
 } from '../phumalin.models';
 
 interface CategoryCard {
@@ -16,13 +16,15 @@ interface CategoryCard {
   icon: string;
 }
 
+const MAX_QUANTITY = 9_999_999;
+
 interface CartItem {
   item: PhumalinItem;
   quantity: number;
 }
 
-/// PHUMALIN Pos: หน้าตาเดียวกับ POS เดิม จิ้มวัตถุดิบเพื่อเพิ่มลงรายการ แล้วกดยืนยัน = เบิกออกจากสต็อกของร้านที่เลือก
-/// (ไม่มีราคา / ไม่มีชำระเงิน)
+/// PHUMALIN Pos: หน้าตาเดียวกับ POS เดิม จิ้มสินค้าเพื่อเพิ่มลงรายการ แล้วกดยืนยัน = เพิ่มจำนวนเข้าสต็อกของร้านที่เลือก
+/// (ไม่มีราคา / ไม่มีชำระเงิน / ไม่ใช่การเบิก)
 @Component({
   selector: 'app-phumalin-pos',
   standalone: true,
@@ -38,6 +40,8 @@ export class PhumalinPosComponent {
 
   readonly categoryLabel = categoryLabel;
   readonly categoryIcon = categoryIcon;
+  readonly itemImage = itemImage;
+  readonly useCategoryIcon = useCategoryIcon;
   readonly formatQty = formatQty;
   readonly storeLabel = storeLabel;
 
@@ -54,7 +58,7 @@ export class PhumalinPosComponent {
   showConfirm = false;
   outimport = false;
   isLoading = false;
-  withdrawError = '';
+  saveError = '';
   successCode = '';
 
   private timers: ReturnType<typeof setTimeout>[] = [];
@@ -80,21 +84,21 @@ export class PhumalinPosComponent {
         this.items = [...items].sort((a, b) => a.name.localeCompare(b.name));
         this.loadError = '';
         this.buildCategories();
-        // สต็อกเปลี่ยน (เช่นเครื่องอื่นเบิกไป) -> จำนวนในรายการต้องไม่เกินที่เหลือ
+        // ใช้คงเหลือล่าสุด และตัดรายการที่ถูกลบไปแล้วออก
         this.cartItems = this.cartItems
           .map((entry) => {
             const item = this.items.find((i) => i.id === entry.item.id);
-            return item ? { item, quantity: Math.min(entry.quantity, item.quantity) } : null;
+            return item ? { item, quantity: entry.quantity } : null;
           })
-          .filter((entry): entry is CartItem => !!entry && entry.quantity > 0);
+          .filter((entry): entry is CartItem => !!entry);
       },
-      error: (err) => (this.loadError = err?.error?.message || 'Could not load items. Please try again.')
+      error: (err) => (this.loadError = err?.error?.message || 'โหลดรายการสินค้าไม่สำเร็จ กรุณาลองใหม่')
     });
   }
 
   private buildCategories(): void {
     this.categories = [
-      { id: 'all', label: 'All Categories', count: this.items.length, icon: PHUMALIN_ALL_ICON },
+      { id: 'all', label: 'ทั้งหมด', count: this.items.length, icon: PHUMALIN_ALL_ICON },
       ...PHUMALIN_CATEGORIES.map((cat) => ({
         id: cat.id,
         label: cat.label,
@@ -123,7 +127,7 @@ export class PhumalinPosComponent {
     element.scrollBy({ left: 200, behavior: 'smooth' });
   }
 
-  // ---------- รายการเบิก ----------
+  // ---------- รายการที่จะเพิ่ม ----------
 
   get itemCount(): number {
     return this.cartItems.length;
@@ -133,12 +137,11 @@ export class PhumalinPosComponent {
     return this.cartItems.find((entry) => entry.item.id === id)?.quantity ?? 0;
   }
 
-  /// จิ้มวัตถุดิบ = เพิ่มทีละ 1 (ไม่เกินคงเหลือ, หมดแล้วกดไม่ได้)
+  /// จิ้มสินค้า = เพิ่มทีละ 1 (ของหมดก็กดเพิ่มได้)
   addToCart(item: PhumalinItem): void {
-    if (item.quantity <= 0) return;
     const entry = this.cartItems.find((e) => e.item.id === item.id);
-    if (entry) entry.quantity = Math.min(entry.quantity + 1, item.quantity);
-    else this.cartItems = [...this.cartItems, { item, quantity: Math.min(1, item.quantity) }];
+    if (entry) entry.quantity = Math.min(entry.quantity + 1, MAX_QUANTITY);
+    else this.cartItems = [...this.cartItems, { item, quantity: 1 }];
   }
 
   changeQuantity(entry: CartItem, change: number): void {
@@ -147,18 +150,19 @@ export class PhumalinPosComponent {
       this.removeFromCart(entry);
       return;
     }
-    entry.quantity = Math.min(next, entry.item.quantity);
+    entry.quantity = Math.min(next, MAX_QUANTITY);
   }
 
   /// พิมพ์จำนวนเองได้ (เช่น 0.5 กก.) ค่าที่ไม่ใช่ตัวเลข / ติดลบไม่รับ
   setQuantity(entry: CartItem, value: number | string | null): void {
     const quantity = Number(value);
     if (value === null || value === '' || !Number.isFinite(quantity) || quantity <= 0) return;
-    entry.quantity = Math.min(Math.round(quantity * 100) / 100, entry.item.quantity);
+    entry.quantity = Math.min(Math.round(quantity * 100) / 100, MAX_QUANTITY);
   }
 
-  remainingAfter(entry: CartItem): number {
-    return Math.max(0, Math.round((entry.item.quantity - entry.quantity) * 100) / 100);
+  /// คงเหลือหลังเพิ่ม
+  totalAfter(entry: CartItem): number {
+    return Math.round((entry.item.quantity + entry.quantity) * 100) / 100;
   }
 
   removeFromCart(entry: CartItem): void {
@@ -184,11 +188,11 @@ export class PhumalinPosComponent {
     return this.state.canSee('dashboard') || this.state.canSee('inventory');
   }
 
-  // ---------- ยืนยันเบิก ----------
+  // ---------- ยืนยันเพิ่มสินค้า ----------
 
   openConfirm(): void {
     if (!this.cartItems.length) return;
-    this.withdrawError = '';
+    this.saveError = '';
     this.successCode = '';
     this.outimport = false;
     this.showConfirm = true;
@@ -204,12 +208,12 @@ export class PhumalinPosComponent {
     }, 300));
   }
 
-  confirmWithdraw(): void {
+  confirmRestock(): void {
     if (!this.cartItems.length || this.isLoading) return;
     const store = this.state.store();
     this.isLoading = true;
-    this.withdrawError = '';
-    this.api.withdraw(store, this.cartItems.map((e) => ({ id: e.item.id, quantity: e.quantity })), this.note.trim()).subscribe({
+    this.saveError = '';
+    this.api.restock(store, this.cartItems.map((e) => ({ id: e.item.id, quantity: e.quantity })), this.note.trim()).subscribe({
       next: (res) => {
         this.isLoading = false;
         this.successCode = res.order_code;
@@ -222,8 +226,8 @@ export class PhumalinPosComponent {
       },
       error: (err) => {
         this.isLoading = false;
-        this.withdrawError = err?.error?.message || 'Could not save this withdrawal. Please try again.';
-        this.load(store); // เผื่อเครื่องอื่นเบิกไปก่อน
+        this.saveError = err?.error?.message || 'เพิ่มสินค้าไม่สำเร็จ กรุณาลองใหม่';
+        this.load(store); // เผื่อมีสินค้าถูกลบไประหว่างนั้น
       }
     });
   }

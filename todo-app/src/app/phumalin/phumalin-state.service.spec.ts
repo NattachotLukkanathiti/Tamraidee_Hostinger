@@ -14,6 +14,7 @@ describe('PhumalinState', () => {
   it('admin เห็นครบ 3 หน้า เริ่มที่ Pos และร้านบน', () => {
     const state = make('admin');
     expect(state.views.map((v) => v.id)).toEqual(['pos', 'dashboard', 'inventory']);
+    expect(state.views.map((v) => v.label)).toEqual(['เพิ่มสินค้า', 'แดชบอร์ด', 'คลังสินค้า']);
     expect(state.view()).toBe('pos');
     expect(state.store()).toBe('upper');
   });

@@ -13,6 +13,7 @@ export interface PhumalinItem {
   category: PhumalinCategory;
   quantity: number;
   note: string | null;
+  picture?: string | null;
   created_by?: string | null;
   created_at?: string;
   updated_at?: string;
@@ -24,6 +25,7 @@ export interface PhumalinItemInput {
   category: PhumalinCategory | '';
   quantity: number | null;
   note: string;
+  picture: string;
 }
 
 export interface PhumalinMovement {
@@ -77,8 +79,29 @@ export function categoryIcon(id: string | null | undefined): string {
   return PHUMALIN_CATEGORIES.find((c) => c.id === id)?.icon ?? PHUMALIN_ALL_ICON;
 }
 
+/// รูปของสินค้า: ใช้ลิงก์รูปที่ใส่ไว้ ถ้าไม่มีใช้ไอคอนของหมวด
+export function itemImage(item: { picture?: string | null; category?: string | null } | null | undefined): string {
+  const picture = item?.picture?.trim();
+  return picture && /^https?:\/\//i.test(picture) ? picture : categoryIcon(item?.category);
+}
+
+/// รูปโหลดไม่ได้ (ลิงก์เสีย) -> เปลี่ยนเป็นไอคอนหมวดแทน
+export function useCategoryIcon(event: Event, category: string | null | undefined): void {
+  const img = event.target as HTMLImageElement;
+  const icon = categoryIcon(category);
+  if (!img.src.endsWith(icon)) img.src = icon;
+}
+
 export function storeLabel(id: PhumalinStore): string {
   return PHUMALIN_STORES.find((s) => s.id === id)?.label ?? id;
+}
+
+/// วันที่ภาษาไทย เช่น "6 พ.ย. 14:05"
+export function thaiDateTime(value: string | Date): string {
+  const date = new Date(value);
+  const day = date.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
+  const time = date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', hour12: false });
+  return `${day} ${time}`;
 }
 
 /// แสดงจำนวนแบบไม่มีทศนิยมเกินจำเป็น เช่น 2 / 2.5 / 1,250

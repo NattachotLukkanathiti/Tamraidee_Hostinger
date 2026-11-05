@@ -1,0 +1,11 @@
+/* PHUMALIN: ใช้เฉพาะตอนเปิดหน้า /phumalin (body มีคลาส phumalin-page) ไม่กระทบหน้าอื่น */
+app-phumalin {
+  display: block;
+}
+
+/* navbar กลาง: ซ่อนเวลา / เสียง / แจ้งเตือน / โปรไฟล์ / เมนูแฮมเบอร์เกอร์ (เหลือแค่โลโก้) */
+/* ใช้ visibility (ไม่ใช่ display: none) เพื่อให้แถบยังสูงเท่าเดิม โลโก้ไม่เลื่อน */
+body.phumalin-page app-navbar .container_bar {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}

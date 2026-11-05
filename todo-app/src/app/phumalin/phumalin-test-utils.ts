@@ -19,7 +19,7 @@ export const pmMove = (patch: Partial<PhumalinMovement> = {}): PhumalinMovement 
 
 export function createPhumalinApiMock(): jasmine.SpyObj<PhumalinService> {
   const api = jasmine.createSpyObj<PhumalinService>('PhumalinService',
-    ['getItems', 'addItem', 'updateItem', 'deleteItem', 'stockIn', 'withdraw', 'getMovements']);
+    ['getItems', 'addItem', 'updateItem', 'deleteItem', 'stockIn', 'restock', 'withdraw', 'getMovements']);
   api.getItems.and.returnValue(of([]));
   api.getMovements.and.returnValue(of([]));
   return api;

@@ -5,15 +5,15 @@ import { PhumalinService } from '../phumalin.service';
 import { PhumalinState } from '../phumalin-state.service';
 import { PhumalinSwitchComponent } from '../phumalin-switch/phumalin-switch.component';
 import {
-  PHUMALIN_CATEGORIES, PhumalinItem, PhumalinMovement, PhumalinStore, categoryIcon, categoryLabel, formatQty, storeLabel
+  PHUMALIN_CATEGORIES, PhumalinItem, PhumalinMovement, PhumalinStore, categoryIcon, categoryLabel, formatQty, itemImage, storeLabel, thaiDateTime
 } from '../phumalin.models';
 
 type Range = '1D' | '1W' | '1M' | '3M' | '6M' | '1Y';
 type ActivityFilter = 'last-7-days' | 'last-30-days' | 'all';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const MONTHS = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+const DAYS = ['อา.', 'จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.'];
 const CHART_HEIGHT = 300;
 
 /// PHUMALIN Dashboard: หน้าตาเดียวกับ Dashboard เดิม แต่สรุปการเบิก / เติมวัตถุดิบของร้านที่เลือก
@@ -32,9 +32,11 @@ export class PhumalinDashboardComponent {
   readonly categoryLabel = categoryLabel;
   readonly categoryIcon = categoryIcon;
   readonly formatQty = formatQty;
+  readonly thaiDateTime = thaiDateTime;
 
   readonly dateRanges: Range[] = ['1D', '1W', '1M', '3M', '6M', '1Y'];
-  readonly heatmapDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  readonly rangeLabels: Record<Range, string> = { '1D': 'วันนี้', '1W': '7วัน', '1M': '1เดือน', '3M': '3เดือน', '6M': '6เดือน', '1Y': '1ปี' };
+  readonly heatmapDays = ['จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.', 'อา.'];
   readonly heatmapTimes = ['10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
 
   loader = true;
@@ -82,7 +84,7 @@ export class PhumalinDashboardComponent {
       },
       error: (err) => {
         this.loader = false;
-        this.errorMessage = err?.error?.message || 'Could not load dashboard data.';
+        this.errorMessage = err?.error?.message || 'โหลดข้อมูลแดชบอร์ดไม่สำเร็จ';
       }
     });
   }
@@ -120,7 +122,7 @@ export class PhumalinDashboardComponent {
 
     const labels: string[] = [];
     if (range === '1D') {
-      labels.push(now.toLocaleDateString('en-US', { day: 'numeric', month: 'short' }));
+      labels.push(now.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' }));
     } else if (range === '1W') {
       for (let i = 6; i >= 0; i--) labels.push(DAYS[new Date(now.getTime() - i * DAY_MS).getDay()]);
     } else if (range === '1Y') {
@@ -134,7 +136,7 @@ export class PhumalinDashboardComponent {
     for (const move of inRange) {
       const date = new Date(move.created_at);
       let label = MONTHS[date.getMonth()];
-      if (range === '1D') label = date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+      if (range === '1D') label = date.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
       else if (range === '1W') label = DAYS[date.getDay()];
       if (label in counts) counts[label] += 1;
     }
@@ -173,7 +175,7 @@ export class PhumalinDashboardComponent {
     const day = now.getDay();
     const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - day + (day === 0 ? -6 : 1) + this.currentWeekOffset * 7);
     const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6, 23, 59, 59, 999);
-    const fmt = (date: Date) => date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const fmt = (date: Date) => date.toLocaleDateString('th-TH', { month: 'short', day: 'numeric' });
     this.currentWeekRange = `${fmt(start)} - ${fmt(end)}`;
 
     this.weekly = {};
@@ -223,7 +225,7 @@ export class PhumalinDashboardComponent {
   }
 
   movementLabel(move: PhumalinMovement): string {
-    const labels = { in: 'Added', out: 'Withdrawn', adjust: 'Edited' } as const;
+    const labels = { in: 'เพิ่ม', out: 'เบิก', adjust: 'แก้ยอด' } as const;
     return labels[move.type];
   }
 
@@ -249,7 +251,7 @@ export class PhumalinDashboardComponent {
   private computeTopItems(): void {
     const counts = new Map<string, { name: string; count: number; image: string }>();
     for (const move of this.withdrawals) {
-      const entry = counts.get(move.item_name) ?? { name: move.item_name, count: 0, image: categoryIcon(move.category) };
+      const entry = counts.get(move.item_name) ?? { name: move.item_name, count: 0, image: itemImage(this.items.find((item) => item.id === move.item_id) ?? move) };
       entry.count += 1;
       counts.set(move.item_name, entry);
     }

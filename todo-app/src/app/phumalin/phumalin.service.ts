@@ -41,7 +41,12 @@ export class PhumalinService {
     return this.http.post<{ success: boolean; data: PhumalinItem }>(`${this.base}/${store}/items/${id}/stock-in`, { quantity, note });
   }
 
-  /// POST /api/phumalin/:store/withdraw
+  /// POST /api/phumalin/:store/restock (หน้า POS: เพิ่มสินค้าหลายรายการ)
+  restock(store: PhumalinStore, items: { id: number; quantity: number }[], note?: string): Observable<PhumalinWithdrawResult> {
+    return this.http.post<PhumalinWithdrawResult>(`${this.base}/${store}/restock`, { items, note });
+  }
+
+  /// POST /api/phumalin/:store/withdraw (ไม่ได้ใช้ในหน้าแล้ว เก็บไว้เผื่อใช้)
   withdraw(store: PhumalinStore, items: { id: number; quantity: number }[], note?: string): Observable<PhumalinWithdrawResult> {
     return this.http.post<PhumalinWithdrawResult>(`${this.base}/${store}/withdraw`, { items, note });
   }

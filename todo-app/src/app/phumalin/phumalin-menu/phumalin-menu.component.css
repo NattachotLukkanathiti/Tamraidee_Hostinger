@@ -1,0 +1,91 @@
+/* ค่าเดียวกับ .hamburger / .con_ber / .h ของ navbar เดิม (navbar.component.css) */
+.pm-hamburger {
+  position: fixed;
+  top: 15px;
+  right: 20px;
+  z-index: 11; /* เหนือ navbar กลาง (z-index 10) */
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0.5px solid #00000031;
+  border-radius: 8px;
+  background-color: white;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-radius 0.2s ease;
+}
+
+.pm-hamburger:hover {
+  background-color: #4444447c;
+  border-radius: 50px;
+}
+
+.pm-hamburger:focus-visible,
+.pm-ber__link:focus-visible {
+  outline: 2px solid #6FAB23;
+  outline-offset: 2px;
+}
+
+.pm-ber {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 9;
+  box-sizing: border-box;
+  width: 100vw;
+  min-height: calc(100vh - 70px);
+  margin-top: 70px;
+  padding: 20px;
+  background-color: #eaeaea;
+  animation: pm-fade-in 0.5s ease-in-out;
+}
+
+.pm-ber.closing {
+  animation: pm-fade-out 0.3s ease-in forwards;
+}
+
+.pm-ber__links {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.pm-ber__link {
+  margin: 30px 0 1em 40px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #0b0b0bd9;
+  font: inherit;
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pm-ber__link:hover {
+  color: #0b0b0b8f;
+}
+
+.pm-ber__link--active {
+  color: #6FAB23;
+}
+
+@keyframes pm-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pm-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@media (max-width: 1200px) {
+  .pm-hamburger {
+    display: flex;
+  }
+}

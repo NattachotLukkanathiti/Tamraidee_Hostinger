@@ -18,14 +18,14 @@
         <div class="container" [class.fade-out]="state.leaving()" [class.Return]="true">
             <div class="hea">
                 <div class="con_header">
-                    <div class="header_Inventory">Dashboard</div>
+                    <div class="header_Inventory">แดชบอร์ด</div>
                 </div>
                 <div class="in_bt">
-                    <div class="pdf" (click)="printPage()" title="Print">
-                        <img src="image/pdf.svg" alt="Print">
+                    <div class="pdf" (click)="printPage()" title="พิมพ์">
+                        <img src="image/pdf.svg" alt="พิมพ์">
                     </div>
-                    <div class="reload" (click)="load()" title="Reload">
-                        <img src="image/Group.svg" alt="Reload">
+                    <div class="reload" (click)="load()" title="โหลดใหม่">
+                        <img src="image/Group.svg" alt="โหลดใหม่">
                     </div>
                 </div>
             </div>
@@ -33,34 +33,34 @@
             @if (errorMessage) { <p class="pm-error" role="alert">{{ errorMessage }}</p> }
 
             <div class="contall">
-                <div class="headersum">Stock Summary</div>
+                <div class="headersum">สรุปสต็อก</div>
                 <div class="conT">
                     <div class="T1">
                         <img class="iconpass" src="image/Frame.svg" alt="">
                         <div class="con_sub2">
                             <div class="value">{{ summary.withdrawalsToday }}</div>
-                            <div class="sub">Today’s Withdrawals</div>
+                            <div class="sub">เบิกวันนี้</div>
                         </div>
                     </div>
                     <div class="T2">
                         <img class="iconpass" src="image/shop2.svg" alt="">
                         <div class="con_sub2">
                             <div class="value">{{ summary.addedToday }}</div>
-                            <div class="sub">Added Today</div>
+                            <div class="sub">เพิ่มวันนี้</div>
                         </div>
                     </div>
                     <div class="T3">
                         <img class="iconpass" src="image/coin.svg" alt="">
                         <div class="con_sub2">
                             <div class="value">{{ summary.outOfStock }}</div>
-                            <div class="sub">Out of Stock</div>
+                            <div class="sub">หมดสต็อก</div>
                         </div>
                     </div>
                     <div class="T4">
                         <div class="con_sub"><img class="iconpass" src="image/bag.svg" alt=""></div>
                         <div class="con_sub2">
                             <div class="value">{{ summary.items }}</div>
-                            <div class="sub">Items</div>
+                            <div class="sub">สินค้าทั้งหมด</div>
                         </div>
                     </div>
                 </div>
@@ -68,10 +68,10 @@
 
             <div class="static">
                 <div class="navstatic">
-                    <div class="headerSale">Withdrawals</div>
+                    <div class="headerSale">การเบิก</div>
                     <div class="overdate">
                         @for (range of dateRanges; track range) {
-                            <div class="date" [class.active]="selectedRange === range" (click)="selectRange(range)">{{ range }}</div>
+                            <div class="date" [class.active]="selectedRange === range" (click)="selectRange(range)">{{ rangeLabels[range] }}</div>
                         }
                     </div>
                 </div>
@@ -80,7 +80,7 @@
                     <div class="total">
                         <span class="point"></span>
                         <div class="consd">
-                            Total Withdrawals:
+                            เบิกทั้งหมด:
                             <div class="Total_sale">{{ formatK(totalWithdrawals) }}</div>
                         </div>
                     </div>
@@ -95,20 +95,20 @@
                         @if (loader) {
                             <div class="card">
                                 <div class="loader">
-                                    <div class="text">Loading</div>
+                                    <div class="text">กำลังโหลด</div>
                                     <div class="words">
                                         <span class="word"></span>
                                         <span class="word">TAM</span>
                                         <span class="word">RAI</span>
                                         <span class="word">DEE</span>
-                                        <span class="word">WELCOME</span>
-                                        <span class="word">Please</span>
+                                        <span class="word">ยินดีต้อนรับ</span>
+                                        <span class="word">รอสักครู่</span>
                                     </div>
                                 </div>
                             </div>
                         } @else {
                             @for (bar of chart; track bar.label) {
-                                <div class="bar-container" [title]="bar.value + ' withdrawals'">
+                                <div class="bar-container" [title]="'เบิก ' + bar.value + ' รายการ'">
                                     <div class="bar" [style.height.px]="barHeight(bar.value)"></div>
                                     <div class="mon">{{ bar.label }}</div>
                                 </div>
@@ -121,13 +121,13 @@
 
             <div class="static">
                 <div class="weekly__header">
-                    <h2 class="weekly__title">Weekly Withdrawals</h2>
+                    <h2 class="weekly__title">การเบิกรายสัปดาห์</h2>
                     <div class="weekly__nav">
-                        <button type="button" class="weekly__arrow" aria-label="Previous week" (click)="changeWeek(-1)">
+                        <button type="button" class="weekly__arrow" aria-label="สัปดาห์ก่อน" (click)="changeWeek(-1)">
                             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10.5 2.5 5 8l5.5 5.5" /></svg>
                         </button>
                         <span class="weekly__range">{{ currentWeekRange }}</span>
-                        <button type="button" class="weekly__arrow" aria-label="Next week" (click)="changeWeek(1)">
+                        <button type="button" class="weekly__arrow" aria-label="สัปดาห์ถัดไป" (click)="changeWeek(1)">
                             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5.5 2.5 11 8l-5.5 5.5" /></svg>
                         </button>
                     </div>
@@ -154,40 +154,40 @@
                 </div>
                 <div class="legend">
                     <span class="legend__item"><span class="legend__dot legend__dot--0"></span>0</span>
-                    <span class="legend__item"><span class="legend__dot legend__dot--1"></span>1–5</span>
-                    <span class="legend__item"><span class="legend__dot legend__dot--2"></span>6–10</span>
-                    <span class="legend__item"><span class="legend__dot legend__dot--3"></span>11+</span>
+                    <span class="legend__item"><span class="legend__dot legend__dot--1"></span>1–5 รายการ</span>
+                    <span class="legend__item"><span class="legend__dot legend__dot--2"></span>6–10 รายการ</span>
+                    <span class="legend__item"><span class="legend__dot legend__dot--3"></span>11 รายการขึ้นไป</span>
                 </div>
             </div>
         </div>
 
         <div class="consale" [class.fade-out]="state.leaving()" [class.Return]="true">
             <div class="in_bt2">
-                <div class="pdf" (click)="printPage()" title="Print">
-                    <img src="image/pdf.svg" alt="Print">
+                <div class="pdf" (click)="printPage()" title="พิมพ์">
+                    <img src="image/pdf.svg" alt="พิมพ์">
                 </div>
-                <div class="reload" (click)="load()" title="Reload">
-                    <img src="image/Group.svg" alt="Reload">
+                <div class="reload" (click)="load()" title="โหลดใหม่">
+                    <img src="image/Group.svg" alt="โหลดใหม่">
                 </div>
             </div>
 
             <div class="con_sale_order">
-                <div class="header_sale">Recent Activity
+                <div class="header_sale">รายการล่าสุด
                     <div class="last">
-                        <select class="last" [value]="activityFilter" (change)="setActivityFilter($any($event.target).value)" aria-label="Period">
-                            <option value="last-7-days">Last 7 Days</option>
-                            <option value="last-30-days">Last 30 Days</option>
-                            <option value="all">All Time</option>
+                        <select class="last" [value]="activityFilter" (change)="setActivityFilter($any($event.target).value)" aria-label="ช่วงเวลา">
+                            <option value="last-7-days">7 วันล่าสุด</option>
+                            <option value="last-30-days">30 วันล่าสุด</option>
+                            <option value="all">ทั้งหมด</option>
                         </select>
                     </div>
                 </div>
 
                 <div class="con_header_colum">
-                    <div class="CH">Code</div>
-                    <div class="CH">Name</div>
-                    <div class="CH">Date</div>
-                    <div class="CH">Quantity</div>
-                    <div class="CH">Status</div>
+                    <div class="CH">รหัส</div>
+                    <div class="CH">ชื่อ</div>
+                    <div class="CH">วันที่</div>
+                    <div class="CH">จำนวน</div>
+                    <div class="CH">ประเภท</div>
                 </div>
 
                 <div class="ty">
@@ -195,21 +195,21 @@
                         <div class="con_data_row" [style.animation-delay]="(i * 0.1) + 's'">
                             <div class="CHs">{{ move.order_code || '-' }}</div>
                             <div class="CHs">{{ move.item_name }}</div>
-                            <div class="CHs">{{ move.created_at | date:'yyyy-MM-dd' }}</div>
+                            <div class="CHs">{{ thaiDateTime(move.created_at) }}</div>
                             <div class="CHs" [class.pm-out]="move.type === 'out'">{{ movementQty(move) }}</div>
                             <div class="CHs">{{ movementLabel(move) }}</div>
                         </div>
                     } @empty {
-                        <div class="no-data">No activity found.</div>
+                        <div class="no-data">ยังไม่มีรายการ</div>
                     }
                 </div>
 
                 <div class="pagination-controls">
-                    <button class="btn-page" [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)" aria-label="Previous page">
+                    <button class="btn-page" [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)" aria-label="หน้าก่อน">
                         <img src="image/leftt.svg" alt="">
                     </button>
-                    <span style="align-self: center;">Page {{ currentPage }} of {{ totalPages }}</span>
-                    <button class="btn-page" [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)" aria-label="Next page">
+                    <span style="align-self: center;">หน้า {{ currentPage }} / {{ totalPages }}</span>
+                    <button class="btn-page" [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)" aria-label="หน้าถัดไป">
                         <img src="image/right.svg" alt="">
                     </button>
                 </div>
@@ -217,7 +217,7 @@
 
             <div class="con_sale_order">
                 <div class="con_t">
-                    <h2 class="supplier__title">Category Usage <span>(Withdrawals)</span></h2>
+                    <h2 class="supplier__title">หมวดที่เบิกบ่อย <span>(เทียบจำนวนรายการ)</span></h2>
                     <div class="supplier__chart">
                         @for (row of categoryUsage; track row.name) {
                             <div class="supplier__row">
@@ -227,18 +227,18 @@
                                 </div>
                             </div>
                         } @empty {
-                            <p class="supplier__empty">No withdrawals yet.</p>
+                            <p class="supplier__empty">ยังไม่มีการเบิก</p>
                         }
                     </div>
                 </div>
                 <div class="legend">
-                    <span class="legend__item"><span class="legend__dot legend__dot--early"></span>Compared with the most used category</span>
+                    <span class="legend__item"><span class="legend__dot legend__dot--early"></span>เทียบกับหมวดที่เบิกมากที่สุด</span>
                 </div>
             </div>
 
             <div class="con_sale_order">
                 <div class="con_t">
-                    <h2 class="top-products__title">Top 5 Most Used</h2>
+                    <h2 class="top-products__title">5 อันดับที่เบิกมากที่สุด</h2>
                     <ol class="product-list">
                         @for (item of topItems; track item.name; let i = $index) {
                             <li class="product-row">
@@ -247,7 +247,7 @@
                                 <span class="product-row__name">{{ item.name }}</span>
                             </li>
                         } @empty {
-                            <li class="product-list__empty">No withdrawals yet.</li>
+                            <li class="product-list__empty">ยังไม่มีการเบิก</li>
                         }
                     </ol>
                 </div>

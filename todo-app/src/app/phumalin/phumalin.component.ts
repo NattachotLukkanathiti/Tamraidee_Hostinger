@@ -1,8 +1,10 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnDestroy, ViewEncapsulation, inject } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
 import { PhumalinState } from './phumalin-state.service';
 import { PhumalinDashboardComponent } from './phumalin-dashboard/phumalin-dashboard.component';
 import { PhumalinInventoryComponent } from './phumalin-inventory/phumalin-inventory.component';
 import { PhumalinPosComponent } from './phumalin-pos/phumalin-pos.component';
+import { PhumalinMenuComponent } from './phumalin-menu/phumalin-menu.component';
 
 /// ///////////////////////////////////////////////////////////////////////////
 /// PHUMALIN: หน้าวัตถุดิบ แยกโหมด ร้านบน / ร้านล่าง (route /phumalin)
@@ -12,9 +14,10 @@ import { PhumalinPosComponent } from './phumalin-pos/phumalin-pos.component';
 @Component({
   selector: 'app-phumalin',
   standalone: true,
-  imports: [PhumalinDashboardComponent, PhumalinInventoryComponent, PhumalinPosComponent],
+  imports: [PhumalinDashboardComponent, PhumalinInventoryComponent, PhumalinPosComponent, PhumalinMenuComponent],
   providers: [PhumalinState],
   template: `
+    @if (state.views.length > 1) { <app-phumalin-menu /> }
     @switch (state.view()) {
       @case ('dashboard') { <app-phumalin-dashboard /> }
       @case ('inventory') { <app-phumalin-inventory /> }
@@ -22,8 +25,19 @@ import { PhumalinPosComponent } from './phumalin-pos/phumalin-pos.component';
     }
   `,
   // ไม่ใช้ OnPush: หน้าย่อยเป็น change detection แบบเดิม (เหมือนหน้าเดิม) ต้องถูกเช็คตามปกติ
-  styles: [':host { display: block; }']
+  styleUrl: './phumalin-global.css',
+  /// ไม่ห่อ CSS: ต้องซ่อนเวลา / แจ้งเตือน / โปรไฟล์ ใน navbar กลาง เฉพาะตอนอยู่หน้านี้ (ผ่านคลาสบน body)
+  encapsulation: ViewEncapsulation.None
 })
-export class PhumalinComponent {
+export class PhumalinComponent implements OnDestroy {
   readonly state = inject(PhumalinState);
+  private readonly body = inject(DOCUMENT).body;
+
+  constructor() {
+    this.body.classList.add('phumalin-page');
+  }
+
+  ngOnDestroy(): void {
+    this.body.classList.remove('phumalin-page');
+  }
 }
