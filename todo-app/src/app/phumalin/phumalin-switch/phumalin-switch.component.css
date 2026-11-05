@@ -1,0 +1,87 @@
+/* สีและขนาดเดียวกับหน้าเดิม: เขียว #6FAB23 / พื้น #F4F5FC / ตัวอักษร #1D1D1F */
+:host {
+  display: block;
+}
+
+.pm-switch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px 16px;
+}
+
+.pm-brand {
+  color: #6FAB23;
+  font-family: 'Nicomoji', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.pm-stores {
+  display: inline-flex;
+  padding: 4px;
+  gap: 4px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1px #E6EAED;
+}
+
+.pm-store {
+  min-height: 34px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #48505E;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.pm-store:hover {
+  color: #1D1D1F;
+}
+
+.pm-store--active,
+.pm-store--active:hover {
+  background: #6FAB23;
+  color: #fff;
+  font-weight: 600;
+}
+
+.pm-store:focus-visible,
+.pm-view:focus-visible {
+  outline: 2px solid #6FAB23;
+  outline-offset: 2px;
+}
+
+/* หน้าย่อย: จอกว้างใช้แถบเมนูด้านบน (Pos / Dashboard / Inventory) แทน */
+.pm-views {
+  display: none;
+  gap: 4px;
+}
+
+.pm-view {
+  min-height: 34px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #48505E;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.pm-view--active {
+  background: #1D1D1F;
+  color: #fff;
+}
+
+@media (max-width: 1200px) {
+  .pm-views {
+    display: inline-flex;
+  }
+}

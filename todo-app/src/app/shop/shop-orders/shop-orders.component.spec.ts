@@ -152,6 +152,8 @@ describe('ShopOrdersComponent', () => {
     expect(cards()[0].querySelector('.status')?.textContent).toContain('Awaiting pickup');
     expect(cards()[0].textContent).toContain('pay in cash');
     expect(cards()[0].querySelector('.btn-primary')).toBeNull();
+    expect(cards()[0].textContent).not.toContain('฿'); // ออเดอร์รับที่ร้านไม่แสดงราคา
+    expect(cards()[0].querySelector('.order-total')).toBeNull();
     expect(cards()[1].textContent).toContain('Reason: Out of stock');
 
     cards()[0].querySelector<HTMLButtonElement>('.link-btn')!.click();

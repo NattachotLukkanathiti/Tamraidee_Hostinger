@@ -1,0 +1,2479 @@
+
+.container2 {
+    display: flex;
+    width: 100%;
+    padding: 70px 70px 20px 70px; 
+    box-sizing: border-box;
+    background-color: #fff;
+    gap: 20px; 
+}
+
+.navbaar {
+    display: flex;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    z-index: 8;
+    background-color: #FFF;
+    animation: slide 1s ease-in-out;
+
+}
+.k{
+    width: 100vw;
+    left: 0;
+}
+.tab{
+    background-color: #F5F5F7;
+    padding: 20px;
+    font-weight: 300;
+    margin-top: 50px;
+    text-align: center;
+    
+    font-size: 13px;
+    z-index: 4 !important;
+    animation: tab 4s ease;
+}
+.tab_con{
+    background-color: white;
+    width: 100vw;
+    box-sizing: border-box;
+}
+@keyframes tab{
+    0%{
+        transform: translateY(-60px);
+        color: white;
+    }
+    30%{
+        transform: translateY(0);
+        background-color: #84D46E;
+        color: white;
+    }
+    50%{
+        background-color: #84D46E;
+        color: white;
+        opacity: 1;
+    }
+    100%{
+        
+    }
+}
+.consale {
+    margin-top:70px;
+    width: 40vw;
+    position: relative;
+    z-index: 4;
+    animation: Boom 1.5s ease forwards;
+}
+
+.navstatic {
+    display: flex;
+    z-index: 2;
+}
+
+.headerSale {
+    font-size: 20px;
+    display: flex;
+    color: #2B2F38;
+    font-weight: 600;
+    justify-content: center;
+    align-items: center;
+    margin-left: 10px;
+}
+
+.iconsetting1,
+.iconsetting2,
+.iconsetting3 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background: #F4F5FC;
+    border-radius: 8px;
+    padding: 10px;
+    cursor: pointer;
+}
+
+.con_nav {
+    width: 100%;
+    gap: 39px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.he {
+    cursor: pointer;
+    color: #1D1D1F;
+    font-weight: 300;
+    font-size: 12px;
+}
+
+.he:hover {
+    color: #89898b;
+}
+
+.con_sub {
+    width: 100%;
+    position: relative;
+}
+
+.con_sub2 {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 100%;
+    
+    position: relative;
+}
+
+.iconsetting4 {
+    width: 35px;
+    height: 35px;
+    border-radius: 8px;
+    object-fit: cover;
+    /* เพิ่มคำสั่งนี้ */
+}
+
+.iconsetting1:hover,
+.iconsetting2:hover,
+.iconsetting3:hover,
+.iconsetting4:hover {
+    background: #cccdd4;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.time {
+    font-size: 15px;
+    color: white;
+    font-weight: 800;
+    background: #AD54F5;
+    width: 100px;
+    border-radius: 8px;
+    height: 10px;
+    padding: 13px;
+    display: flex;
+    justify-content: first baseline;
+    align-items: center;
+    text-align: center;
+}
+
+.lin {
+    background: #E6EAED;
+    width: 1px;
+    height: 35px;
+}
+
+.container_bar {
+    gap: 10px;
+
+    margin-left: auto;
+    margin-right: 10px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    text-align: center;
+    width: 450px;
+    margin-right: 40px;
+    height: 70px;
+}
+
+.overdate {
+    width: 70%;
+    display: flex;
+    margin-left: auto;
+    flex-direction: row-reverse;
+    flex-wrap: wrap;
+}
+
+.iconsale {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.date {
+    background-color: #e6eaed64;
+    width: 5%;
+    height: 10px;
+    font-size: 15px;
+    font-weight: 300;
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    align-items: center;
+    border: 0.5px solid #212b3623;
+    cursor: pointer; /* เพิ่ม cursor เพื่อให้รู้ว่าคลิกได้ */
+    transition: all 0.2s ease; /* เพิ่มความนุ่มนวลตอนเปลี่ยนสี */
+}
+
+.date:hover {
+    background-color: #84D46E;
+    color: white; /* เปลี่ยนสีตัวอักษรเมื่อ hover */
+}
+
+/* เพิ่มสไตล์สำหรับปุ่มที่ถูกเลือก */
+.date.active {
+    background-color: #84D46E; /* สีเขียวที่เข้มขึ้น */
+    color: white;
+    font-weight: 600;
+    border-color: #84D46E;
+}
+.iconsearch {
+    position: absolute;
+    display: flex;
+    margin-right: auto;
+    justify-content: center;
+    align-items: center;
+    margin-left: 10px;
+    top: 40%;
+}
+
+input::placeholder {
+    text-indent: 40px;
+}
+
+.hamburger {
+    border: 0.5px solid #00000031;
+    background-color: white;
+    border-radius: 8px;
+    margin-left: 20px;
+    display: flex;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+}
+
+.hamburger:hover {
+    background-color: #4444447c;
+    border-radius: 50px;
+}
+
+.headercompany {
+    display: flex;
+    margin-left: 20px;
+    flex-direction: column;
+    color: #6FAB23;
+    font-weight: 800;
+    align-items: flex-start;
+    font-family: 'Nicomoji', sans-serif;
+}
+
+.search {
+    display: flex;
+    margin-left: auto;
+    border-radius: 40px;
+    padding: 20px;
+}
+
+.inputser {
+      padding-left: 35px !important;
+    border-radius: 10px;
+    padding: 10px;
+    width: 15vw;
+    border: none;
+    box-shadow: 0px 0px 2px 0px #5C6F88;
+}
+
+.profile {
+    display: flex;
+    position: fixed;
+    top: 70px;
+    margin-left: auto;
+    width: 270px;
+    height: 120vh;
+    background-color: #FFF;
+    color: #212529;
+    z-index: 1;
+    transition: all .3s ease;
+
+
+}
+
+.sidebar {
+    position: fixed;
+    width: 280px;
+    height: 100vh;
+    /* เปลี่ยนเป็น 100vh เพื่อให้เต็มความสูงหน้าจอ */
+    padding: 20px;
+    background: #F4F5FC;
+    transition: all .3s ease;
+    flex-shrink: 0;
+    z-index: 1;
+    animation: slideright 0.5s ease-in-out;
+    overscroll-behavior: contain;
+    overflow-y: auto;
+}
+
+.sidebar:hover {
+    overflow-y: auto;
+}
+
+.fix {
+    position: relative;
+    width: 280px;
+    padding: 20px;
+    display: none;
+    overflow: hidden;
+    background: #F4F5FC;
+    transition: all .3s ease;
+    flex-shrink: 0;
+
+}
+
+.sidebar.open {
+    width: 0;
+    padding: 0;
+}
+
+.fix.open {
+    width: 0;
+    padding: 0;
+}
+
+.fix2 {
+    position: relative;
+    top: 0;
+    margin-left: auto;
+    width: 270px;
+    height: 120vh;
+    display: none;
+    background-color: #FFF;
+    color: #212529;
+    transition: all .3s ease;
+    z-index: 1;
+    animation: sliderightt 0.5s ease-in-out;
+}
+
+.inhere {
+    animation: inhere 0.5s ease-in-out;
+}
+
+.inhere.inhere {
+    width: 270px;
+    height: 120vh;
+}
+
+/* @keyframes inhere{
+    0%{
+        padding: 0;
+        width: 0;
+    }
+    100%{
+  width: 270px;
+  height: 120vh;
+    }
+} */
+@keyframes sliderightt {
+    0% {}
+
+    100% {
+        padding: 0;
+        width: 0;
+    }
+}
+
+.outs {
+    width: 270px !important;
+    height: 120vh !important;
+}
+
+.fix2.open {
+    width: 0;
+    padding: 0;
+}
+
+.profile.open {
+    width: 0;
+    padding: 0;
+}
+
+.ge {
+    font-size: 12px;
+    margin-top: 20px;
+    color: #6C757D;
+    font-weight: 600;
+    margin-left: 20px;
+}
+
+.Logout {
+    padding: 10px;
+    color: #6C757D;
+    font-weight: 300;
+    border-radius: 5px;
+    margin-left: 20px;
+    margin-bottom: 170px;
+    /* ค่านี้ดันปุ่มขึ้นมาจากด้านล่าง */
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.Logout:hover {
+    background-color: #4444447b;
+    color: #fff;
+    /* ลบ margin-bottom, padding, display, align-items, gap ออกไปได้เลย */
+    /* เพราะค่าเหล่านี้จะถูกสืบทอดมาจาก .Logout ปกติอยู่แล้ว */
+}
+
+.dash {
+    background-color: #84D46E;
+    padding: 10px;
+    border-radius: 5px;
+    color: #FFF;
+    font-weight: bolder;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.no {
+    padding: 10px;
+    color: #6C757D;
+    font-weight: 300;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.no:hover {
+    background-color: #4444447b;
+    padding: 10px;
+    color: white;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.menuin {
+    padding: 20px;
+}
+
+/* เมื่อมีคลาส .open ให้เลื่อน Sidebar กลับเข้ามาในจอ */
+
+.static {
+    width: 100%;
+    padding: 20px;
+    border: 1px solid #E6EAED;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .08);
+    box-sizing: border-box;
+
+}
+
+.container {
+        flex: 1; /* ให้ฝั่งซ้ายยืดขยายตามพื้นที่ที่เหลือ */
+    min-width: 0; /* ป้องกันไม่ให้เนื้อหาข้างในดันจนล้น */
+    box-sizing: border-box;
+    min-width: 0;
+    
+    background: #FFF;
+    margin-right: 0;
+    z-index: 2;
+    animation: Boom 1.5s ease forwards;
+}
+
+.contall {
+    border: 1px solid #E6EAED;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    padding: 20px;
+}
+
+.Max {
+
+    background: #69A957;
+}
+
+
+.menu-item {
+    display: block;
+    padding: 15px 20px;
+    color: #212529;
+    text-decoration: none;
+}
+.form_noti{
+    animation: form_noti 1s ease-in-out !important;
+}
+@keyframes form_noti {
+    0% {
+        transform: translateY(500px);
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+.over {
+box-sizing: border-box;
+    display: flex;
+    min-height: calc(100vh - 50px);
+    overflow: hidden;
+    width: 100vw;
+}
+
+.menu-item:hover {
+    background-color: #444;
+}
+
+.headersum {
+    margin-top: 20px;
+    display: flex;
+    font-size: 20px;
+    margin-left: 30px;
+    color: #2B2F38;
+    margin-bottom: 20px;
+    font-weight: 500;
+}
+
+.T1,.T2,.T3,.T4 {
+    height: 70px;
+    width: 180px;
+    display: flex;
+    background-color: #FFF;
+    border-radius: 10px;
+    box-shadow: 0px 2px 6px 0px #00000013;
+        opacity: 0;
+    transform: translateY(40px);
+    animation: fadeIn 1s ease-in-out forwards;
+}
+/* 2. กำหนดเวลาดีเลย์ให้แต่ละตัว */
+.T1 { animation-delay: 0.2s; }
+.T2 { animation-delay: 0.4s; }
+.T3 { animation-delay: 0.6s; }
+.T4 { animation-delay: 0.8s; }
+
+/* 3. สร้างคีย์เฟรมสำหรับการเลื่อนขึ้น */
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+.conT {
+    margin-left: 30px;
+    display: flex;
+    gap: 10px;
+    box-sizing: border-box;
+    margin-bottom: 30px;
+}
+
+.iconpass {
+    position: relative;
+    display: flex;
+    width: 30px;
+    height: 30px;
+    top: 30%;
+    margin-left: 10%;
+    justify-content: center;
+    align-items: center;
+}
+
+
+.bar-container {
+    margin-top: 70px;
+    display: inline-block;
+    margin-right: 10px;
+    width: 6.5%;
+    text-align: center;
+    vertical-align: bottom;
+
+    bottom: 0;
+
+}
+
+.container_bar {
+    margin-top: auto;
+    bottom: 0;
+}
+
+.bar {
+    width: 100%;
+    z-index: 10;
+    background-color: #84D46E;
+    border-radius: 10px;
+    animation: height 1s ease-out forwards;
+    animation-delay: 0.6s;
+    transform: scaleY(0);
+    transform-origin: bottom;
+}
+
+@keyframes height {
+    0% {
+        box-shadow: 0px 10px 200px 20px #69ff4a;
+    }
+
+    100% {
+        transform: scaleY(1);
+        box-shadow: 0px 0px 30px 5px #69a95700;
+    }
+}
+
+.con {
+    display: flex;
+    align-items: flex-end;
+    height: 330px;
+}
+
+.bigcontainergraph {
+    position: relative;
+    margin-top: 50px;
+    height: 369px;
+    margin-left: 10px;
+    padding-left: 45px;
+}
+
+.line {
+    background-color: #BCBFC3;
+    width: 100%;
+    margin-top: -70px;
+    height: 1px;
+}
+
+.line-header {
+    background-color: #BCBFC3;
+    width: 100%;
+    height: 1px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.num-container {
+    position: absolute;
+    margin-left: -50px;
+}
+
+.num {
+    color: #646B72;
+    font-weight: 300;
+    margin-bottom: 20px;
+}
+
+.mon {
+    color: #646B72;
+    font-weight: 300;
+    margin-top: 30px;
+    margin-bottom: 20px;
+}
+
+.box-total {
+    display: flex;
+    gap: 8px;
+}
+.consd{
+    margin-left: 10px;
+
+}
+.Total_sale{
+    font-size: 18px;
+    margin-top: 10px;
+    font-weight: 600;
+}
+.total {
+    color: #646B72;
+    font-weight: 300;
+    display: flex;
+    padding: 10px;
+    width: 130px;
+    height: 50px;
+    border-radius: 8px;
+    border: 1px solid #E6EAED;
+    animation: wow 1s ease-in-out;
+}
+
+.point {
+    display: flex;
+    width: 10px;
+    height: 10px;
+    background-color: #69A957;
+    border-radius: 100px;
+    margin-top: 4px;
+}
+
+.point2 {
+    display: flex;
+    width: 10px;
+    height: 10px;
+    background-color: #1364D5;
+    border-radius: 100px;
+    margin-top: 4px;
+}
+
+.detail {
+    font-size: 10px;
+    margin-left: -10px;
+}
+
+.header_inside {
+    padding: 10px;
+    width: 200px;
+    display: flex;
+    gap: 10px;
+}
+
+.header_Manager {
+    padding: 20px;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    height: 50px;
+    border: 1px solid #CED4DA;
+}
+
+.small_manager {
+    font-size: 12px;
+    color: #6C757D;
+}
+
+.container_header {
+    justify-content: center;
+
+    display: flex;
+    flex-direction: column;
+}
+
+.icon_manager {
+    display: flex;
+    width: 30px;
+    height: 30px;
+}
+
+.manager {
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.pointt {
+    display: flex;
+    width: 30px;
+    height: 30px;
+    margin-left: auto;
+}
+
+.Qu {}
+
+.container_qu {
+    flex-direction: column;
+    position: absolute;
+    top: 90px;
+    width: 100%;
+    padding: 30px;
+    border: 1px solid #CED4DA;
+}
+
+.co {
+    display: flex;
+    color: #5C6F88;
+    font-weight: 500;
+    margin-bottom: 20px;
+    gap: 10px;
+}
+
+.action {
+    padding: 20px;
+    gap: 10px;
+}
+
+.icon_managerr {}
+
+.out.out {
+    animation: out 0.5s ease-in-out;
+}
+
+@keyframes out {
+    0% {}
+
+    100% {
+        width: 0;
+        padding: 0;
+    }
+}
+
+@keyframes Boom {
+    0% {
+        transform: translateY(-500px);
+        opacity: 0;
+    }
+
+    100% {
+
+    }
+}
+
+.Animation_out {
+    flex: 1;
+    width: 100%;
+    box-sizing: border-box;
+    min-width: 0;
+    padding: 20px;
+    background: #F4F5FC;
+    margin-right: 0;
+    z-index: 2;
+    width: 100%;
+}
+
+.fade-out {
+    animation: Move_inventory 0.7s ease forwards;
+}
+
+@keyframes Move_inventory {
+    0% {
+        transform: translateX(0px);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateX(1000px);
+        opacity: 0;
+    }
+}
+
+.fade-out2 {
+    animation: Move_sale 1.5s ease forwards !important;
+}
+
+@keyframes Move_sale {
+    0% {
+        transform: translateX(0px);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateX(1000px);
+        opacity: 0;
+    }
+}
+
+.container.no-animation {
+    animation: none !important;
+}
+
+.Return {
+    animation: Move_Return 1.5s ease forwards  !important;
+}
+
+@keyframes Move_Return {
+    0% {
+        transform: translateX(500px);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@media print {
+  @page {
+    size: landscape;
+    margin: 15mm; /* เพิ่มระยะขอบกระดาษเพื่อไม่ให้เนื้อหาชิดขอบเกินไป */
+  }
+
+  /* ซ่อนส่วนที่ไม่จำเป็น */
+  .navbaar, .tab_con, .sidebar, .fix, .fix2, .in_bt, .in_bt2, .account-sidebar {
+    display: none !important;
+  }
+
+  .container2 {
+    padding: 0 !important; 
+    width: 100% !important;
+    box-sizing: border-box;
+    background-color: #fff !important;
+  }
+
+  /* ป้องกันการตัดหน้า และเพิ่มระยะห่างด้านบนเมื่อขึ้นหน้าใหม่ */
+  .static, .con_sale_order, .contall, .bigcontainergraph {
+    page-break-inside: avoid !important;
+    page-break-before: auto !important;
+    box-shadow: none !important; 
+    border: 1px solid #E6EAED !important;
+    margin-top: 20px !important; /* เพิ่มระยะห่างด้านบน */
+  }
+
+  /* --- บังคับให้กราฟแท่งแสดงผล --- */
+  .bar {
+    animation: none !important; 
+    transform: scaleY(1) !important; 
+    background-color: #84D46E !important; 
+    box-shadow: none !important; 
+    -webkit-print-color-adjust: exact !important; 
+    print-color-adjust: exact !important;
+  }
+
+  /* --- บังคับให้หัวข้อแสดงผลและไม่หลุดไปอยู่อีกหน้า --- */
+  .headerSale, .weekly__title, .header_sale {
+    color: #212B36 !important; 
+    display: block !important;
+    page-break-after: avoid !important; 
+  }
+
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .reload, .pdf, .xs {
+    display: none !important;
+  }
+}
+@media(max-width:1200px){
+     .consale{
+        width: 100%;
+    }
+    .CH{
+        font-size: 15px;
+    }
+     .container2 {
+        padding: 70px 10px 20px 10px !important;
+        width: 100% !important;
+        box-sizing: border-box;
+    }
+    .contall{
+        padding: 2px;
+    }
+    .tab{
+        margin-top: 50px;
+    }
+
+     .container2 {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .headercompany {
+        display: none;
+       
+    }
+    
+    .navbaar{
+        display: none;
+    }
+    .headersum {
+        margin-top: 30px;
+        margin-bottom: 30px;
+        color: #2B2F38;
+    }
+
+    .hamburger {
+        border: 0.5px solid #00000031;
+        border-radius: 8px;
+        background-color: white;
+        margin-left: auto;
+        margin-right: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        width: 40px;
+        flex-direction: row-reverse;
+        height: 40px;
+    }
+    .in_bt {
+    display: flex !important;
+    right: 0;
+    margin-top: 30px;
+    position: absolute;
+    gap: 8px;
+    align-items: center;
+}
+    .search {
+        display: none;
+    }
+    .over{
+        
+    
+    }
+    .navbaar {
+        padding: 15px;
+
+    }
+
+    .sidebar {
+        width: 280px;
+        padding: 20px;
+        overflow: hidden;
+        background: #F4F5FC;
+        transition: all .3s ease;
+        flex-shrink: 0;
+    }
+
+    .profile {
+        display: none;
+    }
+
+   
+
+    .conT {
+        margin-left: 30px;
+        margin-right: 30px;
+        display: flex;
+        gap: 10px;
+        margin-bottom: 30px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(40%, 2fr));
+    }
+
+    .T1,.T2,.T3,.T4 {
+        height: 70px;
+        max-width: 100%;
+        width: 40vw;
+        /* เพิ่มความกว้าง */
+        background-color: #FFF;
+        /* เปลี่ยนเป็นสีดำเพื่อทดสอบ */
+        border-radius: 10px;
+        box-shadow: 0px 2px 6px 0px #00000013;
+
+    }
+    
+
+    .bar {
+        width: 5vw;
+        background-color: #84D46E;
+        border-radius: 10px;
+
+    }
+
+    .con {
+        margin-right: 40px;
+        gap: 0;
+    }
+
+    .bar-container {
+        margin-top: 70px;
+        display: inline-block;
+        margin-right: 10px;
+        width: 5%;
+        vertical-align: bottom;
+    }
+
+    .num {
+        color: #646B72;
+        font-weight: 300;
+        font-size: 12px;
+        margin-bottom: 20px;
+    }
+
+    .mon {
+        color: #646B72;
+        font-weight: 300;
+        font-size: 10px;
+    }
+
+    .line {
+        margin-top: -62px;
+    }
+
+    .overdate {
+        display: none;
+    }
+
+    .headerSale {
+        font-size: 18px;
+    }
+
+    .sidebar {
+        width: 0;
+        padding: 0;
+        overflow: hidden;
+        background: #F4F5FC;
+        transition: all .3s ease;
+        flex-shrink: 0;
+    }
+
+    .sidebar.open {
+        width: 280px;
+        padding: 20px;
+
+    }
+
+    .fix.open~.container {
+        opacity: 0;
+        transition: all 0.3s ease;
+    }
+
+    .fix {
+        position: relative;
+        width: 0;
+        padding: 0;
+        overflow: hidden;
+        background: #F4F5FC;
+        transition: all .3s ease;
+        flex-shrink: 0;
+    }
+
+
+    .fix.open {
+        width: 100%;
+        padding: 20px;
+        height: 100vh;
+    }
+
+    .iconpass {
+        position: relative;
+        display: flex;
+        width: 30px;
+        height: 30px;
+        top: 30%;
+        margin-left: 10%;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .profile {
+        display: none;
+    }
+
+    .fix2 {
+        display: none;
+    }
+
+    .Logout {
+        position: fixed;
+        bottom: 20px;
+        z-index: 1000;
+        /* เพื่อให้ปุ่มอยู่ด้านบนสุดเสมอ */
+    }
+
+    .container_bar {
+        display: flex;
+        gap: 10px;
+        margin-left: 20px;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        width: 450px;
+        height: 50px;
+    }
+
+    .lin {}
+
+    .iconsetting1 {
+        display: none;
+    }
+
+    .time {
+        position: relative;
+        width: 10px;
+        overflow: hidden;
+        white-space: nowrap;
+        cursor: pointer;
+        justify-content: center;
+
+        transition: width 0.2s ease-in-out;
+    }
+
+    .Y {
+        display: none;
+    }
+
+    .time.active {
+        width: 70px;
+    }
+
+    .time.active .Y {
+        display: block;
+    }
+
+    .num-container {
+        margin-top: 60px;
+    }
+
+    .popupcontainer {
+        width: 60% !important;
+
+    }
+
+    .headerpop {
+        font-size: 20px !important;
+    }
+
+    .iconsuccess {
+        width: 60px !important;
+        height: 60px !important;
+    }
+}
+@media (max-width:768px) {
+    .consale{
+        width: 100%;
+    }
+    .CH{
+        font-size: 15px;
+    }
+     .container2 {
+        padding: 70px 10px 20px 10px !important;
+        width: 100% !important;
+        box-sizing: border-box;
+    }
+    .contall{
+        padding: 2px;
+    }
+    .tab{
+        margin-top: 50px;
+    }
+    .header_Inventory{
+        font-size: 50px !important;
+        transform: translateY(-50px) !important;
+        
+    }
+     .container2 {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .headercompany {
+        display: none;
+       
+    }
+    
+    .navbaar{
+        display: none;
+    }
+    .headersum {
+        margin-top: 30px;
+        margin-bottom: 30px;
+        color: #2B2F38;
+    }
+
+    .hamburger {
+        border: 0.5px solid #00000031;
+        border-radius: 8px;
+        background-color: white;
+        margin-left: auto;
+        margin-right: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        width: 40px;
+        flex-direction: row-reverse;
+        height: 40px;
+    }
+    .in_bt {
+    display: flex !important;
+    right: 0;
+    margin-top: 30px;
+    position: absolute;
+    gap: 8px;
+    align-items: center;
+}
+    .search {
+        display: none;
+    }
+    .over{
+        
+    
+    }
+    .navbaar {
+        padding: 15px;
+
+    }
+
+    .sidebar {
+        width: 280px;
+        padding: 20px;
+        overflow: hidden;
+        background: #F4F5FC;
+        transition: all .3s ease;
+        flex-shrink: 0;
+    }
+
+    .profile {
+        display: none;
+    }
+
+    .conT {
+        margin-left: 30px;
+        margin-right: 30px;
+        gap: 10px;
+        margin-bottom: 30px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(40%, 2fr));
+    }
+
+    .T1,.T2,.T3,.T4 {
+        height: 70px;
+        max-width: 100%;
+        width: 40vw;
+        box-sizing: border-box;
+        /* เพิ่มความกว้าง */
+        background-color: #FFF;
+        /* เปลี่ยนเป็นสีดำเพื่อทดสอบ */
+        border-radius: 10px;
+        box-shadow: 0px 2px 6px 0px #00000013;
+
+    }
+    
+
+    .bar {
+        width: 5vw;
+        background-color: #84D46E;
+        border-radius: 10px;
+
+    }
+
+    .con {
+        margin-right: 40px;
+        gap: 0;
+    }
+
+    .bar-container {
+        margin-top: 70px;
+        display: inline-block;
+        margin-right: 10px;
+        width: 5%;
+        vertical-align: bottom;
+    }
+
+    .num {
+        color: #646B72;
+        font-weight: 300;
+        font-size: 12px;
+        margin-bottom: 20px;
+    }
+
+    .mon {
+        color: #646B72;
+        font-weight: 300;
+        font-size: 10px;
+    }
+
+    .line {
+        margin-top: -62px;
+    }
+
+    .overdate {
+        display: none;
+    }
+
+    .headerSale {
+        font-size: 18px;
+    }
+
+    .sidebar {
+        width: 0;
+        padding: 0;
+        overflow: hidden;
+        background: #F4F5FC;
+        transition: all .3s ease;
+        flex-shrink: 0;
+    }
+
+    .sidebar.open {
+        width: 280px;
+        padding: 20px;
+
+    }
+
+    .fix.open~.container {
+        opacity: 0;
+        transition: all 0.3s ease;
+    }
+
+    .fix {
+        position: relative;
+        width: 0;
+        padding: 0;
+        overflow: hidden;
+        background: #F4F5FC;
+        transition: all .3s ease;
+        flex-shrink: 0;
+    }
+
+
+    .fix.open {
+        width: 100%;
+        padding: 20px;
+        height: 100vh;
+    }
+
+    .iconpass {
+        position: relative;
+        display: flex;
+        width: 30px;
+        height: 30px;
+        top: 30%;
+        margin-left: 10%;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .profile {
+        display: none;
+    }
+
+    .fix2 {
+        display: none;
+    }
+
+    .Logout {
+        position: fixed;
+        bottom: 20px;
+        z-index: 1000;
+        /* เพื่อให้ปุ่มอยู่ด้านบนสุดเสมอ */
+    }
+
+    .container_bar {
+        display: flex;
+        gap: 10px;
+        margin-left: 20px;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        width: 450px;
+        height: 50px;
+    }
+
+    .lin {}
+
+    .iconsetting1 {
+        display: none;
+    }
+
+    .time {
+        position: relative;
+        width: 10px;
+        overflow: hidden;
+        white-space: nowrap;
+        cursor: pointer;
+        justify-content: center;
+
+        transition: width 0.2s ease-in-out;
+    }
+
+    .Y {
+        display: none;
+    }
+
+    .time.active {
+        width: 70px;
+    }
+
+    .time.active .Y {
+        display: block;
+    }
+
+    .num-container {
+        margin-top: 60px;
+    }
+
+    .popupcontainer {
+        width: 60% !important;
+
+    }
+
+    .headerpop {
+        font-size: 20px !important;
+    }
+
+    .iconsuccess {
+        width: 60px !important;
+        height: 60px !important;
+    }
+}
+
+
+
+.popupcontainer {
+    background-color: #FFFFFF;
+    border: 2px solid #bccbbb85;
+    border-radius: 40px;
+    padding: 50px;
+    width: 400px;
+    height: 200px;
+    position: absolute;
+    z-index: 1;
+    font-size: 30px;
+    font-weight: 700;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+}
+
+.buttonclose {
+    width: 100%;
+    height: 20px;
+    padding: 23px;
+    font-size: 16px;
+    color: #FFFFFF;
+    border: 2px solid #E6EAED;
+    border-radius: 8px;
+    background: #84D46E;
+    justify-content: center;
+    display: flex;
+    margin-bottom: 20px;
+    align-items: center;
+}
+
+.buttonclose:hover {
+    background: #9ef387;
+}
+
+.buttonnoti:hover {
+    background: #eb2d2d;
+}
+
+.backpop {
+    background-color: rgba(0, 0, 0, 0.28);
+    position: fixed;
+    /* ใช้ fixed เพื่อให้ตรึงอยู่กับหน้าจอแม้จะมีการเลื่อน */
+    top: 0;
+    left: 0;
+    width: 100vw;
+    /* ความกว้างเต็มหน้าจอ */
+    height: 100vh;
+    /* ความสูงเต็มหน้าจอ */
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    z-index: 9999;
+    /* เพิ่ม z-index เพื่อให้อยู่ด้านบนสุด */
+}
+
+.subheadersuccess {
+    font-size: 15px;
+    color: #646B72;
+    margin-bottom: 20px;
+    font-weight: 300;
+    justify-content: center;
+    display: flex;
+    text-align: center;
+}
+
+.con_header {
+    position: relative;
+    display: block;
+    margin-bottom: 20px;
+}
+
+.parent_container {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.value {
+    display: flex;
+    font-size: 15px;
+    font-weight: 400;
+    justify-content: flex-end;
+    margin-right: 20px;
+}
+
+.sub {
+    display: flex;
+    font-size: 13px;
+    justify-content: flex-end;
+    margin-right: 20px;
+    color: #2B2F38;
+    font-weight: 300;
+}
+
+.header_Inventory {
+    font-size: 80px;
+    display: flex;
+    font-weight: 600;
+    justify-content: flex-start;
+    color: #1D1D1F;
+    transform: translateY(-200px);
+    animation-name: slidee;
+    animation-delay: 1s;
+    animation-duration: 1s; 
+    animation-fill-mode: forwards; 
+}
+
+@keyframes slidee {
+    0% {
+        transform: translateY(-200px);
+    }
+    100% {
+
+        transform: translateY(0);
+    }
+}
+
+.headerpop {
+    font-size: 30px;
+    color: #212B36;
+    margin-bottom: 15px;
+    font-weight: 450;
+    display: flex;
+    justify-content: center;
+
+}
+
+.iconsuccess {
+    width: 40px;
+    height: 40px;
+    justify-content: center;
+    display: flex;
+    align-items: center;
+    margin: auto;
+    margin-bottom: 20px;
+    margin-top: 20px;
+}
+
+
+.buttonnoti {
+    width: 100%;
+    height: 20px;
+    padding: 23px;
+    font-size: 16px;
+    color: #FFFFFF;
+    border: 2px solid #E6EAED;
+    border-radius: 8px;
+    background: #DC1818;
+    justify-content: center;
+    display: flex;
+    margin-bottom: 20px;
+    align-items: center;
+    cursor: pointer;
+}
+
+.card {
+    /* color used to softly clip top and bottom of the .words container */
+    --bg-color: #111111;
+    margin-bottom: 200px;
+    margin-left: 200px;
+    background-color: var(--bg-color);
+    padding: 1rem 2rem;
+    justify-content: center;
+    align-items: center;
+    border-radius: 1.25rem;
+}
+
+.loader {
+    text-align: center;
+    color: rgb(165, 165, 165);
+    font-family: "Poppins", sans-serif;
+    font-weight: 500;
+    font-size: 25px;
+    -webkit-box-sizing: content-box;
+    box-sizing: content-box;
+    height: 40px;
+    padding: 10px 10px;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    border-radius: 8px;
+}
+
+.words {
+    overflow: hidden;
+    position: relative;
+}
+
+.words::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(var(--bg-color) 10%,
+            transparent 30%,
+            transparent 70%,
+            var(--bg-color) 90%);
+    z-index: 20;
+}
+
+.word {
+    display: block;
+    height: 100%;
+    padding-left: 6px;
+    color: #71fa6a;
+    animation: spin_4991 4s infinite;
+}
+
+@keyframes spin_4991 {
+    10% {
+        -webkit-transform: translateX(-102%);
+        transform: translateX(-102%);
+    }
+
+    25% {
+        -webkit-transform: translateX(-100%);
+        transform: translateX(-100%);
+    }
+
+    35% {
+        -webkit-transform: translateX(-202%);
+        transform: translateX(-202%);
+    }
+
+    50% {
+        -webkit-transform: translateX(-200%);
+        transform: translateX(-200%);
+    }
+
+    60% {
+        -webkit-transform: translateX(-302%);
+        transform: translateX(-302%);
+    }
+
+    75% {
+        -webkit-transform: translateX(-300%);
+        transform: translateX(-300%);
+    }
+
+    85% {
+        -webkit-transform: translateX(-402%);
+        transform: translateX(-402%);
+    }
+
+    100% {
+        -webkit-transform: translateX(-400%);
+        transform: translateX(-400%);
+    }
+    
+}
+
+.in_bt {
+    display: flex;
+    margin-left: auto;
+    gap: 8px;
+    width: 100%;
+    display: none;
+    justify-content: flex-end;
+    align-items: center;
+}
+.in_bt2 {
+    display: flex;
+    margin-left: auto;
+    gap: 8px;
+    width: 100%;
+    justify-content: flex-end;
+    align-items: center;
+}
+.xs {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    border-radius: 8px;
+    padding: 10px;
+    border: 1px solid #E6EAED;
+    cursor: pointer;
+}
+
+.pdf {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    border-radius: 8px;
+    padding: 10px;
+    border: 1px solid #E6EAED;
+    cursor: pointer;
+}
+
+.reload {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    border-radius: 8px;
+    padding: 10px;
+    border: 1px solid #E6EAED;
+    cursor: pointer;
+}
+
+.reload:hover {
+    background-color: #dadada;
+}
+
+.hea {
+    display: flex;
+    width: 100%;
+    margin-bottom: 20px;
+}
+.pagination-controls{
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    gap: 10px;
+}
+.ty{
+    height:300px;
+}
+.con_sale_order {
+    margin-top: 20px;
+    border-radius: 10px;
+    background-color: #fff;
+    z-index: 5;
+    box-sizing: border-box;
+    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.149);
+    padding-bottom: 20px; 
+}
+.con_t{
+    box-sizing: border-box;
+    padding: 30px;
+}
+.header_sale {
+    font-size: 20px;
+    font-weight: 600;
+    padding: 30px;
+    display: flex;
+}
+
+.last {
+    margin-left: auto;
+    border: none;
+    color: #84D46E;
+    font-weight: 800;
+    font-size: 20px;
+}
+
+.CH {
+    font-weight: 600;
+}
+
+
+
+.account-sidebar {
+    position: fixed;
+    z-index: 50;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: clamp(300px, 26vw, 360px);
+    border-left: 1px solid #e6eaed;
+    background: #fff;
+    box-shadow: -16px 0 40px rgba(33, 43, 54, .1);
+    display: flex;
+    flex-direction: column;
+    animation: slideIn 0.3s ease-out forwards;
+}
+
+.account-sidebar.closing {
+    animation: slideOut 0.3s ease-in forwards;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+    }
+
+    to {
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(100%);
+    }
+}
+
+.account-sidebar__header {
+    flex: 0 0 auto;
+    min-height: 73px;
+    padding: 0 24px;
+    border-bottom: 1px solid #e6eaed;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.account-sidebar__header img {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    object-fit: cover;
+}
+
+.account-sidebar__menu {
+    padding: 32px 24px 0;
+    display: grid;
+    gap: 32px;
+}
+
+.account-sidebar__menu button,
+.account-sidebar__logout {
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    color: #212b36;
+    font: 600 17px/24px 'Nunito Sans', sans-serif;
+    text-align: left;
+}
+
+.account-sidebar__menu button:hover {
+    color: #6fab23;
+}
+
+.account-sidebar__menu button svg,
+.account-sidebar__logout svg {
+    width: 24px;
+    height: 24px;
+    flex: 0 0 auto;
+}
+
+.account-sidebar__logout {
+    margin: 180px 24px 24px;
+    color: #dc1818;
+}
+
+.account-sidebar__logout:hover {
+    color: #b81212;
+}
+
+
+/* yuan only */
+
+.weekly__header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.weekly__title {
+    font: 600 16px/21px 'Montserrat', 'Inter', sans-serif;
+}
+
+.weekly__nav {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.weekly__arrow {
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    border: 0;
+    color: #2b2f38;
+    background: transparent;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: color 120ms ease;
+}
+
+.weekly__arrow svg {
+    width: 16px;
+    height: 16px;
+}
+
+.weekly__arrow:hover {
+    color: #4f7f42;
+}
+
+.weekly__range {
+    color: #84d46e;
+    font: 600 16px/21px 'Montserrat', 'Inter', sans-serif;
+    white-space: nowrap;
+}
+
+/* ---- heatmap */
+
+.heatmap-scroll {
+    width: 100%;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+}
+
+.heatmap {
+    min-width: 520px;
+    max-width: 672px;
+    margin: 0 auto;
+    display: flex;
+    gap: 16px;
+}
+
+/* 72 + 16 gap + 584 grid = 672, so the cells land on 80px. */
+.heatmap__times {
+    flex: 0 0 72px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    text-align: right;
+}
+
+.heatmap__grid {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    gap: 4px;
+}
+
+.heatmap__col {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.heatmap__day {
+    height: 19px;
+    color: #48505e;
+    font: 400 12px/15px 'Montserrat', 'Inter', sans-serif;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.heatmap__time {
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    color: #48505e;
+    font: 400 12px/15px 'Montserrat', 'Inter', sans-serif;
+    white-space: nowrap;
+}
+/* สีเริ่มต้น (0 - 10,000) */
+.heatmap__cell, .heatmap__cell--0 { 
+    background: #e8f5e97d !important; 
+}
+
+/* 10,001 - 30,000 */
+.heatmap__cell.heatmap__cell--1 { 
+    background: #A5D6A7 !important; 
+}
+
+/* 30,001 - 50,000 */
+.heatmap__cell.heatmap__cell--2 { 
+    background: #66BB6A !important; 
+}
+
+/* 50,001 ขึ้นไป */
+.heatmap__cell.heatmap__cell--3 { 
+    background: #2E7D32 !important; 
+}
+/* Heat levels, lightest to darkest. */
+.heatmap__cell {
+    height: 40px;
+    border-radius: 4px;
+    background: #b6cff2;
+}
+
+.heatmap__cell--1 {
+    background: #6197e3;
+}
+
+.heatmap__cell--2 {
+    background: #1364d5;
+}
+
+.heatmap__cell--3 {
+    background: #0d4797;
+}
+
+/* ---- legend */
+
+.legend {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+}
+
+.legend__item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font: 600 12px/18px 'Montserrat', 'Inter', sans-serif;
+    white-space: nowrap;
+}
+
+.legend__dot--0 {
+    background: #E8F5E9; /* สีเขียวอ่อนมาก (0-10k) */
+}
+
+.legend__dot--1 {
+    background: #A5D6A7; /* สีเขียวอ่อน (10k-30k) */
+}
+
+.legend__dot--2 {
+    background: #66BB6A; /* สีเขียวกลาง (30k-50k) */
+}
+
+.legend__dot--3 {
+    background: #2E7D32; /* สีเขียวเข้ม (50k+) */
+}
+.product-row__qty {
+    margin-left: auto; /* ดันให้ไปอยู่ขวาสุด */
+    font-weight: 600;
+    color: #4caf50; /* สีเขียว */
+    font-size: 13px;
+}
+
+
+.supplier__title {
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e6eaed;
+    font: 600 16px/21px 'Montserrat', 'Inter', sans-serif;
+}
+
+.supplier__title span {
+    color: #48505e;
+    font-weight: 500;
+}
+
+/* Axis lines: a left rule down the chart and a bottom rule under the last bar. */
+.supplier__chart {
+    position: relative;
+    margin-top: 15px;
+    padding: 18px 0;
+    border-bottom: 1px solid #e6eaed;
+    display: grid;
+    gap: 20px;
+}
+
+.supplier__chart::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 79px;
+    width: 1px;
+    background: #e6eaed;
+}
+
+.supplier__row {
+    display: grid;
+    grid-template-columns: 79px minmax(0, 1fr);
+    align-items: center;
+}
+
+.supplier__name {
+    padding-right: 12px;
+    overflow: hidden;
+    font: 400 12px/15px 'Montserrat', 'Inter', sans-serif;
+    text-align: right;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.supplier__bar {
+    min-width: 0;
+    height: 18px;
+    margin-left: 3px;
+    display: flex;
+    overflow: hidden;
+}
+
+.supplier__segment {
+    min-width: 0;
+    padding-right: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    overflow: hidden;
+}
+
+.supplier__segment:last-child {
+    border-radius: 0 5px 5px 0;
+}
+
+.supplier__value {
+    color: #fff;
+    font: 700 12px/15px 'Montserrat', 'Inter', sans-serif;
+    white-space: nowrap;
+}
+
+.supplier__segment--early {
+    background: #84d46e;
+}
+
+.supplier__segment--on-time {
+    background: #fde54a;
+}
+
+.supplier__segment--late {
+    background: #9d33f3;
+}
+
+.supplier__empty {
+    padding: 24px 0;
+    color: #48505e;
+    font: 400 14px/20px 'Montserrat', 'Inter', sans-serif;
+    text-align: center;
+}
+
+/* ---- legend */
+
+.legend {
+    width: 100%;
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+}
+
+.legend__item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font: 600 12px/18px 'Montserrat', 'Inter', sans-serif;
+    white-space: nowrap;
+}
+
+.legend__dot {
+    flex: 0 0 auto;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.legend__dot--early {
+    background: #84d46e;
+}
+
+.legend__dot--on-time {
+    background: #fde54a;
+}
+
+.legend__dot--late {
+    background: #9d33f3;
+}
+
+
+
+
+.top-products__title {
+    font: 600 16px/21px 'Montserrat', 'Inter', sans-serif;
+}
+
+.product-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.product-list__empty {
+    padding: 24px 0;
+    color: #48505e;
+    font: 400 14px/20px 'Montserrat', 'Inter', sans-serif;
+    text-align: center;
+}
+
+.product-row {
+    height: 50px;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #48505e;
+    font: 400 14px/21px 'Montserrat', 'Inter', sans-serif;
+}
+
+.product-row__rank {
+    flex: 0 0 auto;
+    font-weight: 500;
+}
+
+.product-row__thumb {
+    flex: 0 0 auto;
+    width: 30px;
+    height: 30px;
+    border-radius: 5px;
+    background: #f2f2f2;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+}
+
+.product-row__thumb img {
+    width: 20px;
+    height: 20px;
+    object-fit: cover;
+}
+
+.product-row__name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+
+.con_data_row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    opacity: 0;
+    border-bottom: 1px solid #eee;
+      transform: translateY(15px);
+    animation: wow 2s ease-in-out forwards;
+}
+@keyframes wow{
+    0%{
+        opacity: 0;
+    }
+    100%{
+        opacity: 1;
+    }
+}
+.no-data {
+    text-align: center;
+    padding: 20px;
+    color: #888;
+    animation: wow 2s ease-in-out forwards;
+}
+
+/* กำหนดให้หัวตารางและแถวข้อมูลใช้ Grid เหมือนกัน */
+.con_header_colum, .con_data_row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr); /* ให้ทั้ง 5 ช่องกว้างเท่ากันเป๊ะ */
+    gap: 10px;
+    padding: 12px 16px;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+/* เพิ่มสีพื้นหลังให้เฉพาะหัวตาราง */
+.con_header_colum {
+    background-color: #F4F5FC;
+}
+
+/* เส้นแบ่งด้านล่างของแต่ละแถว */
+.con_data_row {
+    border-bottom: 1px solid #f0f0f0;
+}
+
+/* จัดตำแหน่งข้อความให้อยู่ตรงกลาง (ยกเว้นช่องแรก) */
+.CH {
+    font-size: 13px;
+    text-align: left;
+}
+.CHs{
+    text-align: left;
+    font-size: 13px;
+}
+
+
+.CH:first-child {
+    text-align: left;
+}
+.CHs:first-child {
+    text-align: left;
+}
+
+
+
+.con_data_row:hover {
+    background-color: #f9f9f9;
+}
+
+.btn-page{
+    border: none;
+    padding: 10px;
+    border-radius: 100px;
+    background-color: #84D46E;
+    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.212);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+      display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.btn-page:hover {
+    background-color: #6fab23; 
+    transform: scale(1.05); 
+}
+
+.btn-page:active {
+    background-color: #4f7f42; 
+    transform: scale(0.95); 
+}
+
+
+@media print {
+
+  .navbaar, 
+  .tab_con, 
+  .sidebar, 
+  .fix, 
+  .fix2, 
+  .in_bt, 
+  .in_bt2,
+  .account-sidebar {
+    display: none !important;
+  }
+
+  .container2 {
+    padding: 20px !important; 
+    width: 100% !important;
+    box-sizing: border-box;
+    background-color: #fff !important;
+  }
+
+
+  .static, 
+  .con_sale_order, 
+  .contall {
+    page-break-inside: avoid !important;
+    box-shadow: none !important; 
+    border: 1px solid #E6EAED !important;
+  }
+
+
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+
+  .reload, .pdf, .xs {
+    display: none !important;
+  }
+}
+
+.fade-out-left {
+    animation: Move_Left 1s ease-in-out forwards !important;
+}
+
+@keyframes Move_Left {
+    0% {
+        transform: translateX(0px);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateX(-2000px); /* เลื่อนไปทางซ้าย */
+        opacity: 0;
+    }
+}

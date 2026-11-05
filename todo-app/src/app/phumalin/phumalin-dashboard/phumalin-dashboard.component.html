@@ -1,0 +1,257 @@
+<!-- PHUMALIN Dashboard: โครงและคลาสเดียวกับหน้า Dashboard เดิม -->
+<div class="navbaar">
+    <div class="headercompany"></div>
+    <div class="con_nav">
+        @for (view of state.views; track view.id) {
+            <div class="he" [class.he--active]="state.view() === view.id" (click)="state.go(view.id)">{{ view.label }}</div>
+        }
+    </div>
+    <div class="container_bar"></div>
+</div>
+
+<div class="tab_con">
+    <div class="tab tab--switch"><app-phumalin-switch /></div>
+</div>
+
+<div class="over">
+    <div class="container2">
+        <div class="container" [class.fade-out]="state.leaving()" [class.Return]="true">
+            <div class="hea">
+                <div class="con_header">
+                    <div class="header_Inventory">Dashboard</div>
+                </div>
+                <div class="in_bt">
+                    <div class="pdf" (click)="printPage()" title="Print">
+                        <img src="image/pdf.svg" alt="Print">
+                    </div>
+                    <div class="reload" (click)="load()" title="Reload">
+                        <img src="image/Group.svg" alt="Reload">
+                    </div>
+                </div>
+            </div>
+
+            @if (errorMessage) { <p class="pm-error" role="alert">{{ errorMessage }}</p> }
+
+            <div class="contall">
+                <div class="headersum">Stock Summary</div>
+                <div class="conT">
+                    <div class="T1">
+                        <img class="iconpass" src="image/Frame.svg" alt="">
+                        <div class="con_sub2">
+                            <div class="value">{{ summary.withdrawalsToday }}</div>
+                            <div class="sub">Today’s Withdrawals</div>
+                        </div>
+                    </div>
+                    <div class="T2">
+                        <img class="iconpass" src="image/shop2.svg" alt="">
+                        <div class="con_sub2">
+                            <div class="value">{{ summary.addedToday }}</div>
+                            <div class="sub">Added Today</div>
+                        </div>
+                    </div>
+                    <div class="T3">
+                        <img class="iconpass" src="image/coin.svg" alt="">
+                        <div class="con_sub2">
+                            <div class="value">{{ summary.outOfStock }}</div>
+                            <div class="sub">Out of Stock</div>
+                        </div>
+                    </div>
+                    <div class="T4">
+                        <div class="con_sub"><img class="iconpass" src="image/bag.svg" alt=""></div>
+                        <div class="con_sub2">
+                            <div class="value">{{ summary.items }}</div>
+                            <div class="sub">Items</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="static">
+                <div class="navstatic">
+                    <div class="headerSale">Withdrawals</div>
+                    <div class="overdate">
+                        @for (range of dateRanges; track range) {
+                            <div class="date" [class.active]="selectedRange === range" (click)="selectRange(range)">{{ range }}</div>
+                        }
+                    </div>
+                </div>
+                <div class="line-header"></div>
+                <div class="box-total">
+                    <div class="total">
+                        <span class="point"></span>
+                        <div class="consd">
+                            Total Withdrawals:
+                            <div class="Total_sale">{{ formatK(totalWithdrawals) }}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bigcontainergraph">
+                    <div class="num-container">
+                        @for (label of axisLabels; track $index) {
+                            <div class="num">{{ label }}</div>
+                        }
+                    </div>
+                    <div class="con">
+                        @if (loader) {
+                            <div class="card">
+                                <div class="loader">
+                                    <div class="text">Loading</div>
+                                    <div class="words">
+                                        <span class="word"></span>
+                                        <span class="word">TAM</span>
+                                        <span class="word">RAI</span>
+                                        <span class="word">DEE</span>
+                                        <span class="word">WELCOME</span>
+                                        <span class="word">Please</span>
+                                    </div>
+                                </div>
+                            </div>
+                        } @else {
+                            @for (bar of chart; track bar.label) {
+                                <div class="bar-container" [title]="bar.value + ' withdrawals'">
+                                    <div class="bar" [style.height.px]="barHeight(bar.value)"></div>
+                                    <div class="mon">{{ bar.label }}</div>
+                                </div>
+                            }
+                        }
+                    </div>
+                    <div class="line"></div>
+                </div>
+            </div>
+
+            <div class="static">
+                <div class="weekly__header">
+                    <h2 class="weekly__title">Weekly Withdrawals</h2>
+                    <div class="weekly__nav">
+                        <button type="button" class="weekly__arrow" aria-label="Previous week" (click)="changeWeek(-1)">
+                            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10.5 2.5 5 8l5.5 5.5" /></svg>
+                        </button>
+                        <span class="weekly__range">{{ currentWeekRange }}</span>
+                        <button type="button" class="weekly__arrow" aria-label="Next week" (click)="changeWeek(1)">
+                            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5.5 2.5 11 8l-5.5 5.5" /></svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="heatmap-scroll">
+                    <div class="heatmap">
+                        <div class="heatmap__times">
+                            <span class="heatmap__day" aria-hidden="true"></span>
+                            @for (time of heatmapTimes; track time) {
+                                <span class="heatmap__time">{{ time }}</span>
+                            }
+                        </div>
+                        <div class="heatmap__grid">
+                            @for (day of heatmapDays; track day) {
+                                <div class="heatmap__col">
+                                    <span class="heatmap__day">{{ day }}</span>
+                                    @for (slot of [0, 1, 2, 3, 4, 5, 6, 7]; track slot) {
+                                        <span class="heatmap__cell" [ngClass]="'heatmap__cell--' + heatLevel(day, slot)"></span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+                <div class="legend">
+                    <span class="legend__item"><span class="legend__dot legend__dot--0"></span>0</span>
+                    <span class="legend__item"><span class="legend__dot legend__dot--1"></span>1–5</span>
+                    <span class="legend__item"><span class="legend__dot legend__dot--2"></span>6–10</span>
+                    <span class="legend__item"><span class="legend__dot legend__dot--3"></span>11+</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="consale" [class.fade-out]="state.leaving()" [class.Return]="true">
+            <div class="in_bt2">
+                <div class="pdf" (click)="printPage()" title="Print">
+                    <img src="image/pdf.svg" alt="Print">
+                </div>
+                <div class="reload" (click)="load()" title="Reload">
+                    <img src="image/Group.svg" alt="Reload">
+                </div>
+            </div>
+
+            <div class="con_sale_order">
+                <div class="header_sale">Recent Activity
+                    <div class="last">
+                        <select class="last" [value]="activityFilter" (change)="setActivityFilter($any($event.target).value)" aria-label="Period">
+                            <option value="last-7-days">Last 7 Days</option>
+                            <option value="last-30-days">Last 30 Days</option>
+                            <option value="all">All Time</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="con_header_colum">
+                    <div class="CH">Code</div>
+                    <div class="CH">Name</div>
+                    <div class="CH">Date</div>
+                    <div class="CH">Quantity</div>
+                    <div class="CH">Status</div>
+                </div>
+
+                <div class="ty">
+                    @for (move of paginatedActivity; track move.id; let i = $index) {
+                        <div class="con_data_row" [style.animation-delay]="(i * 0.1) + 's'">
+                            <div class="CHs">{{ move.order_code || '-' }}</div>
+                            <div class="CHs">{{ move.item_name }}</div>
+                            <div class="CHs">{{ move.created_at | date:'yyyy-MM-dd' }}</div>
+                            <div class="CHs" [class.pm-out]="move.type === 'out'">{{ movementQty(move) }}</div>
+                            <div class="CHs">{{ movementLabel(move) }}</div>
+                        </div>
+                    } @empty {
+                        <div class="no-data">No activity found.</div>
+                    }
+                </div>
+
+                <div class="pagination-controls">
+                    <button class="btn-page" [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)" aria-label="Previous page">
+                        <img src="image/leftt.svg" alt="">
+                    </button>
+                    <span style="align-self: center;">Page {{ currentPage }} of {{ totalPages }}</span>
+                    <button class="btn-page" [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)" aria-label="Next page">
+                        <img src="image/right.svg" alt="">
+                    </button>
+                </div>
+            </div>
+
+            <div class="con_sale_order">
+                <div class="con_t">
+                    <h2 class="supplier__title">Category Usage <span>(Withdrawals)</span></h2>
+                    <div class="supplier__chart">
+                        @for (row of categoryUsage; track row.name) {
+                            <div class="supplier__row">
+                                <span class="supplier__name">{{ row.name }}</span>
+                                <div class="supplier__bar">
+                                    <span class="supplier__segment supplier__segment--early" [style.width.%]="row.percent"><span class="supplier__value">{{ row.percent }}%</span></span>
+                                </div>
+                            </div>
+                        } @empty {
+                            <p class="supplier__empty">No withdrawals yet.</p>
+                        }
+                    </div>
+                </div>
+                <div class="legend">
+                    <span class="legend__item"><span class="legend__dot legend__dot--early"></span>Compared with the most used category</span>
+                </div>
+            </div>
+
+            <div class="con_sale_order">
+                <div class="con_t">
+                    <h2 class="top-products__title">Top 5 Most Used</h2>
+                    <ol class="product-list">
+                        @for (item of topItems; track item.name; let i = $index) {
+                            <li class="product-row">
+                                <span class="product-row__rank">{{ i + 1 }}.</span>
+                                <span class="product-row__thumb"><img [src]="item.image" alt="" /></span>
+                                <span class="product-row__name">{{ item.name }}</span>
+                            </li>
+                        } @empty {
+                            <li class="product-list__empty">No withdrawals yet.</li>
+                        }
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

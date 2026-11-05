@@ -75,6 +75,11 @@ export class ShopOrdersComponent implements OnInit {
     return this.canPay(order) || order.status === 'Awaiting Pickup';
   }
 
+  // ออเดอร์รับที่ร้าน (สั่งตอนเปิดซ่อนราคา) ไม่แสดงราคา ร้านแจ้งยอดตอนลูกค้ามารับ
+  showPrices(order: ShopOrder): boolean {
+    return order.payment_method !== 'cash';
+  }
+
   itemCount(order: ShopOrder): number {
     return order.items.reduce((sum, line) => sum + line.quantity, 0);
   }

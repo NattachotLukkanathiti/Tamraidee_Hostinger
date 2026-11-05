@@ -55,7 +55,7 @@ export class ShopComponent implements OnInit {
   selectedCategory = ALL;
   searchTerm = '';
   sortBy: SortOption = 'name';
-  // ซ่อนราคาตอนเลือกดูสินค้า (เปิดจากหน้า Setting) ตะกร้าและหน้าชำระเงินยังแสดงยอดเพื่อให้รู้ยอดที่ต้องโอน
+  // ซ่อนราคาทั้งตอนเลือกดูสินค้า ตะกร้า และหน้าสั่งซื้อ (เปิดจากหน้า Setting) โหมดนี้สั่งแบบรับที่ร้าน จ่ายเงินสด
   hidePrices = false;
   isLoading = true;
   loadError = false;

@@ -35,11 +35,15 @@
               @for (line of order.items; track line.sku) {
                 <li>
                   <span>{{ line.product_name }} × {{ line.quantity }}</span>
-                  <span>{{ formatPrice(line.price * line.quantity) }}</span>
+                  @if (showPrices(order)) {
+                    <span>{{ formatPrice(line.price * line.quantity) }}</span>
+                  }
                 </li>
               }
             </ul>
-            <p class="order-total"><span>Total</span><strong>{{ formatPrice(order.total) }}</strong></p>
+            @if (showPrices(order)) {
+              <p class="order-total"><span>Total</span><strong>{{ formatPrice(order.total) }}</strong></p>
+            }
 
             <p class="status-detail">{{ status(order).detail }}</p>
             @if ((order.status === 'Rejected' || order.status === 'Canceled') && order.reject_reason) {

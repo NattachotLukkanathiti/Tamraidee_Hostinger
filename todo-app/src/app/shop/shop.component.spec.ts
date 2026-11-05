@@ -272,7 +272,7 @@ describe('ShopComponent', () => {
       expect(el().querySelector('.sort')).not.toBeNull();
     });
 
-    it('เปิดซ่อนราคา: ไม่แสดงราคาตอนเลือกดู ไม่มีเรียงตามราคา แต่ตะกร้ายังแสดงยอดรวม', () => {
+    it('เปิดซ่อนราคา: ไม่แสดงราคาตอนเลือกดู ในตะกร้า และไม่มีเรียงตามราคา', () => {
       todoService.getShopConfig.and.returnValue(of({ hide_prices: true }));
       setUp();
       component.sortBy = 'price-desc';
@@ -283,7 +283,9 @@ describe('ShopComponent', () => {
       expect(prices().length).toBe(0);
       expect(el().querySelector('.sort')).toBeNull();
       expect(component.filteredProducts.map(p => p.sku)).toEqual(['A1', 'B1', 'C1', 'D1']); // ไม่เรียงตามราคา
-      expect(el().querySelector('.cart-total')?.textContent).toContain('฿51.00');
+      expect(el().querySelector('.cart-name')?.textContent).toContain('Apple');
+      expect(el().querySelector('.cart-price')).toBeNull();
+      expect(el().querySelector('.cart-total')).toBeNull();
     });
 
     it('หน้ารายละเอียดสินค้า: ไม่แสดงราคาและยอดรวมตามจำนวน', () => {
@@ -620,6 +622,7 @@ describe('ShopComponent', () => {
 
     expect(el().querySelector('.checkout-form button[type=submit]')?.textContent).toContain('Place Order');
     expect(text()).toContain('cash when you pick up');
+    expect(el().querySelector('.summary')?.textContent).not.toContain('฿');
 
     fillCustomer();
     component.submitOrder();

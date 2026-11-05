@@ -1,0 +1,96 @@
+/* PHUMALIN: ส่วนเสริมเล็ก ๆ ทับ CSS ที่ copy มาจากหน้าเดิม (ใช้ร่วมกันทั้ง 3 หน้าย่อย) */
+
+/* แถบเมนูบน: หน้าที่เปิดอยู่ตัวหนา (หน้าเดิมไม่มีสถานะนี้เพราะแต่ละหน้าเป็นคนละ route) */
+.he.he--active {
+  font-weight: 600;
+  cursor: default;
+}
+
+/* แถบประกาศเดิม (.tab) ใช้วางปุ่มสลับร้าน */
+.tab.tab--switch {
+  padding: 12px 20px;
+}
+
+.pm-empty {
+  padding: 40px 20px;
+  color: #89898b;
+  font-size: 14px;
+  text-align: center;
+}
+
+.pm-note {
+  color: #89898b;
+}
+
+.pm-out {
+  color: #E5534B;
+  font-weight: 500;
+}
+
+.pm-unit {
+  color: #89898b;
+  font-size: 0.85em;
+}
+
+.pm-error {
+  margin: 0 0 10px;
+  color: #E5534B;
+  font-size: 13px;
+}
+
+/* ---------- Pos ---------- */
+.pm-quick {
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.pm-quick__switch {
+  margin-left: auto;
+}
+
+.product-card.pm-card--empty {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pm-qty-input {
+  width: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #212b36;
+  font: 600 13px/18px 'Nunito Sans', sans-serif;
+  text-align: center;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.pm-qty-input::-webkit-outer-spin-button,
+.pm-qty-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.pm-qty-input:focus-visible {
+  outline: 2px solid #1364d5;
+  border-radius: 4px;
+}
+
+.pm-fields {
+  grid-template-columns: 1fr;
+}
+
+.pm-note-input {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 8px;
+  padding: 10px 14px;
+  border: 1px solid #e6eaed;
+  border-radius: 8px;
+  font: inherit;
+}
+
+.grand-total:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

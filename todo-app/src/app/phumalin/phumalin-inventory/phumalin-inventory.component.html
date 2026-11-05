@@ -1,0 +1,413 @@
+<!-- PHUMALIN Inventory: โครงและคลาสเดียวกับหน้า Inventory เดิม -->
+<div class="navbaar">
+    <div class="headercompany"></div>
+    <div class="con_nav">
+        @for (view of state.views; track view.id) {
+            <div class="he" [class.he--active]="state.view() === view.id" (click)="state.go(view.id)">{{ view.label }}</div>
+        }
+    </div>
+    <div class="container_bar"></div>
+</div>
+
+<div class="tab_con">
+    <div class="tab tab--switch"><app-phumalin-switch /></div>
+</div>
+
+<div class="over">
+    <div class="Animation_out" [class.fade-out]="state.leaving()" [class.Return]="true">
+        <div class="container" [class.fade-out]="state.leaving()" [class.Return]="true">
+            <div class="static">
+                <div class="header_in">
+                    <div class="header_Inventory">Inventory</div>
+                    <div class="in_bt"></div>
+                </div>
+                <div class="bars">
+                    <div class="search">
+                        <input class="inputser" type="text" placeholder="Search" [(ngModel)]="search" (input)="applyFilters()">
+                        <img class="iconsearch" src="image/search.svg" alt="">
+                    </div>
+                    <div class="con_3btn">
+                        <div class="custom-select">
+                            <select class="text" [(ngModel)]="selectedStockFilter" (change)="applyFilters()" aria-label="Stock">
+                                <option value="all">All</option>
+                                <option value="out">Out of Stock</option>
+                            </select>
+                        </div>
+                        <div class="custom-select">
+                            <select [(ngModel)]="selectedCategory" (change)="applyFilters()" aria-label="Category">
+                                <option value="all">All Categories</option>
+                                @for (cat of categories; track cat.id) {
+                                    <option [value]="cat.id">{{ cat.label }}</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="con_am">
+                            <div class="reload" (click)="reloads()" title="Reload">
+                                <img src="image/Group.svg" alt="Reload">
+                            </div>
+                            <div class="button_addt" (click)="button_adds()">
+                                <img src="image/In_add.svg" alt="">
+                                <div class="H">Add Quantity</div>
+                            </div>
+                            <div class="import" (click)="button_imports()">
+                                <img src="image/import.svg" alt="">
+                                <div class="H">Import Product</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detail_con">
+                    <div class="table-container">
+                        <div class="table">
+                            <div class="sku">Name</div>
+                            <div class="sku">Category</div>
+                            <div class="sku">Unit</div>
+                            <div class="sku">Remaining</div>
+                            <div class="sku">Note</div>
+                        </div>
+
+                        @if (loader) {
+                            <div class="card">
+                                <div class="loader">
+                                    <div class="text">Loading</div>
+                                    <div class="words">
+                                        <span class="word"></span>
+                                        <span class="word">TAM</span>
+                                        <span class="word">RAI</span>
+                                        <span class="word">DEE</span>
+                                        <span class="word">WELCOME</span>
+                                        <span class="word">Please</span>
+                                    </div>
+                                </div>
+                            </div>
+                        } @else {
+                            @for (item of paginatedItems; track item.id; let i = $index) {
+                                <div class="table_detail2" [style.animation-delay]="i * 0.15 + 's'">
+                                    <div class="table_detail" (click)="showHistory(item)">
+                                        <div class="sku2" data-label="Name">
+                                            <div class="connn">
+                                                <img class="profile_employee" [src]="categoryIcon(item.category)" alt="">{{ item.name }}
+                                            </div>
+                                        </div>
+                                        <div class="sku2" data-label="Category">{{ categoryLabel(item.category) }}</div>
+                                        <div class="sku2" data-label="Unit">{{ item.unit }}</div>
+                                        <div class="sku2" data-label="Remaining" [class.text-alert]="item.quantity <= 0">{{ formatQty(item.quantity) }}</div>
+                                        <div class="sku2 pm-note" data-label="Note">{{ item.note || '-' }}</div>
+
+                                        <div class="button_small">
+                                            <img class="icon_small_inventory" src="image/edit.svg" alt="Edit" (click)="button_editt(item); $event.stopPropagation()">
+                                            <img class="icon_small_inventory2" src="image/delete.svg" alt="Delete" (click)="button_delete(item); $event.stopPropagation()">
+                                        </div>
+                                    </div>
+                                    <div class="line"></div>
+                                </div>
+                            } @empty {
+                                <div class="pm-empty">
+                                    {{ items.length ? 'No items match your search.' : 'No items in ' + storeLabel(state.store()) + ' yet. Click Import Product to add one.' }}
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+
+                <div class="con_tainer_page">
+                    <div class="pagination">
+                        <a class="prev" [class.disabled]="currentPage === 1" (click)="changePage(currentPage - 1)">&lt; Prev</a>
+                        @for (page of visiblePages; track page) {
+                            <a class="page" [class.active]="currentPage === page" (click)="changePage(page)">{{ page }}</a>
+                        }
+                        <a class="next" [class.disabled]="currentPage === totalPages || totalPages === 0" (click)="changePage(currentPage + 1)">Next &gt;</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ป๊อปอัป (เหมือนหน้าเดิม) ===== -->
+    @if (showpopupnoti) {
+        <div class="backpop">
+            <div class="popupcontainer">
+                <div class="popup-content">
+                    <img class="iconsuccess" src="image/cross.svg" alt="">
+                    <div class="headerpop">Something went Wrong</div>
+                    <div class="subheadersuccess">{{ popup }}</div>
+                    <button class="buttonnoti" (click)="closepopup()">OK</button>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (showpopupconfirm) {
+        <div class="backpop">
+            <div class="popupcontainer">
+                <div class="popup-content">
+                    <div class="cons">
+                        <img class="iconsuccess" src="image/notidelete.svg" alt="">
+                        <div class="line"></div>
+                    </div>
+                    <div class="headerpop">Delete Item?</div>
+                    <div class="subheadersuccess">{{ popup }}</div>
+                    <div class="container_button">
+                        <button class="button_confirm" (click)="confirmdelete()">Confirm</button>
+                        <button class="button_cancel" (click)="closepopup()">No</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (showpopupedit) {
+        <div class="backpop">
+            <div class="popupcontainer">
+                <div class="popup-content">
+                    <img class="iconsuccess" src="image/editalert.svg" alt="">
+                    <div class="line"></div>
+                    <div class="headerpop">Edit Item?</div>
+                    <div class="subheadersuccess">{{ popup }}</div>
+                    <div class="container_button">
+                        <button class="button_edit" (click)="saveEdit()">Confirm</button>
+                        <button class="button_cancel" (click)="closepopup()">No</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- ===== เพิ่มวัตถุดิบ (Import Product) ===== -->
+    <div class="import_product" [class.product]="true" [class.button_importt]="button_importt">
+        <div class="con_import_product" [class.out_comimport]="outimport">
+            <div class="serach_product">Import Product</div>
+            <div class="add_image">
+                <img [src]="categoryIcon(newItem.category)" alt="" style="width: 100px; height: 100px; object-fit: cover;">
+                <div class="sku_pro2">
+                    <label class="label_import">Store</label>
+                    <div class="con_edit">
+                        <input type="text" class="sku_input2" [value]="storeLabel(state.store())" readonly>
+                    </div>
+                </div>
+            </div>
+
+            <div class="con_sku_pro">
+                <div class="sku_pro">
+                    <label class="label_import" for="pm-new-name">Name <span class="important">*</span></label>
+                    <input id="pm-new-name" type="text" class="sku_input" [(ngModel)]="newItem.name" name="name" maxlength="120">
+                </div>
+                <div class="sku_pro">
+                    <label class="label_import" for="pm-new-unit">Unit <span class="important">*</span></label>
+                    <input id="pm-new-unit" type="text" class="sku_input" [(ngModel)]="newItem.unit" name="unit" maxlength="30" placeholder="kg, pack, pcs" list="pm-unit-list">
+                </div>
+            </div>
+
+            <div class="con_sku_pro">
+                <div class="sku_pro">
+                    <label class="label_import" for="pm-new-category">Category <span class="important">*</span></label>
+                    <select id="pm-new-category" class="sku_input" [(ngModel)]="newItem.category" name="category">
+                        <option value="" disabled>-- Select Category --</option>
+                        @for (cat of categories; track cat.id) {
+                            <option [value]="cat.id">{{ cat.label }}</option>
+                        }
+                    </select>
+                </div>
+                <div class="sku_pro">
+                    <label class="label_import" for="pm-new-qty">Remaining <span class="important">*</span></label>
+                    <input id="pm-new-qty" type="number" min="0" step="any" class="sku_input" [(ngModel)]="newItem.quantity" name="quantity">
+                </div>
+            </div>
+
+            <div class="con_sku_pro">
+                <div class="sku_pro">
+                    <label class="label_import" for="pm-new-note">Note</label>
+                    <input id="pm-new-note" type="text" class="sku_input" [(ngModel)]="newItem.note" name="note" maxlength="500">
+                </div>
+            </div>
+
+            @if (button_importt && formError) { <p class="pm-error" role="alert">{{ formError }}</p> }
+
+            <div class="button_import">
+                <div class="save" (click)="saveNewItem()" style="cursor: pointer;">Save to Stock</div>
+                <div class="cancel" (click)="button_cancels()" style="cursor: pointer;">Cancel</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Add Quantity ===== -->
+    <div class="import_product" [class.product2]="true" [class.button_addd]="button_addd">
+        <div class="con_import_product2" [class.out_comimport]="outimport">
+            <div class="serach_product">Search Product</div>
+            <div class="add_image2">
+                <img [src]="categoryIcon(selectedAddItem?.category)" alt="" style="width: 100px; height: 100px; object-fit: cover;">
+                <div class="sku_pro2">
+                    <label class="label_import" for="pm-add-item">Item <span class="important">*</span></label>
+                    <div class="con_edit">
+                        <select id="pm-add-item" class="sku_input2" [(ngModel)]="addQty.itemId" name="itemId">
+                            <option [ngValue]="null" disabled>-- Select Item --</option>
+                            @for (item of items; track item.id) {
+                                <option [ngValue]="item.id">{{ item.name }} ({{ categoryLabel(item.category) }})</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="con_sku_pro">
+                <div class="sku_pro">
+                    <label class="label_import">Name</label>
+                    <input type="text" class="sku_input" [value]="selectedAddItem?.name ?? ''" disabled>
+                </div>
+                <div class="sku_pro">
+                    <label class="label_import">Category</label>
+                    <input type="text" class="sku_input" [value]="selectedAddItem ? categoryLabel(selectedAddItem.category) : ''" disabled>
+                </div>
+            </div>
+            <div class="con_sku_pro">
+                <div class="sku_pro">
+                    <label class="label_import">Unit</label>
+                    <input type="text" class="sku_input" [value]="selectedAddItem?.unit ?? ''" disabled>
+                </div>
+                <div class="sku_pro">
+                    <label class="label_import">Remaining</label>
+                    <input type="text" class="sku_input" [value]="selectedAddItem ? formatQty(selectedAddItem.quantity) : ''" disabled>
+                </div>
+            </div>
+
+            <div class="serach_product">Add New Quantity</div>
+
+            <div class="con_sku_pro">
+                <div class="sku_pro">
+                    <label class="label_import" for="pm-add-qty">Import Quantity <span class="important">*</span></label>
+                    <input id="pm-add-qty" type="number" min="0" step="any" class="sku_input" [(ngModel)]="addQty.quantity" name="addQuantity">
+                </div>
+                <div class="sku_pro">
+                    <label class="label_import" for="pm-add-note">Note</label>
+                    <input id="pm-add-note" type="text" class="sku_input" [(ngModel)]="addQty.note" name="addNote" maxlength="500">
+                </div>
+            </div>
+
+            @if (button_addd && formError) { <p class="pm-error" role="alert">{{ formError }}</p> }
+
+            <div class="button_import">
+                <div class="save" (click)="saveAddQuantity()">Save to Stock</div>
+                <div class="cancel" (click)="button_cancels()">Cancel</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== แก้ไขวัตถุดิบ ===== -->
+    <div class="import_product" [class.product2]="true" [class.button_edit]="button_edit">
+        <div class="con_import_product2" [class.out_comimport]="outimport">
+            <div class="serach_product">
+                <img src="image/main_edit2.svg" alt="">
+                Edit Product
+            </div>
+            <div class="add_image2">
+                <img [src]="categoryIcon(editItem.category)" alt="" style="width: 100px; height: 100px; object-fit: cover;">
+                <div class="sku_pro2">
+                    <label class="label_import">Store</label>
+                    <div class="con_edit">
+                        <input type="text" class="sku_input2" [value]="storeLabel(state.store())" readonly>
+                    </div>
+                </div>
+            </div>
+            <div class="con_sku_pro">
+                <div class="sku_pro">
+                    <label class="label_import" for="pm-edit-name">Name <span class="important">*</span></label>
+                    <input id="pm-edit-name" type="text" class="sku_input" [(ngModel)]="editItem.name" name="editName" maxlength="120">
+                </div>
+                <div class="sku_pro">
+                    <label class="label_import" for="pm-edit-unit">Unit <span class="important">*</span></label>
+                    <input id="pm-edit-unit" type="text" class="sku_input" [(ngModel)]="editItem.unit" name="editUnit" maxlength="30" list="pm-unit-list">
+                </div>
+            </div>
+            <div class="con_sku_pro">
+                <div class="sku_pro">
+                    <label class="label_import" for="pm-edit-category">Category <span class="important">*</span></label>
+                    <select id="pm-edit-category" class="sku_input" [(ngModel)]="editItem.category" name="editCategory">
+                        @for (cat of categories; track cat.id) {
+                            <option [value]="cat.id">{{ cat.label }}</option>
+                        }
+                    </select>
+                </div>
+                <div class="sku_pro">
+                    <label class="label_import" for="pm-edit-qty">Remaining <span class="important">*</span></label>
+                    <input id="pm-edit-qty" type="number" min="0" step="any" class="sku_input" [(ngModel)]="editItem.quantity" name="editQuantity">
+                </div>
+            </div>
+            <div class="con_sku_pro">
+                <div class="sku_pro">
+                    <label class="label_import" for="pm-edit-note">Note</label>
+                    <input id="pm-edit-note" type="text" class="sku_input" [(ngModel)]="editItem.note" name="editNote" maxlength="500">
+                </div>
+            </div>
+
+            @if (button_edit && formError) { <p class="pm-error" role="alert">{{ formError }}</p> }
+
+            <div class="button_import">
+                <div class="save" (click)="editt()">Save</div>
+                <div class="cancel" (click)="button_cancels()">Cancel</div>
+            </div>
+        </div>
+    </div>
+
+    <datalist id="pm-unit-list">
+        <option value="kg"></option>
+        <option value="g"></option>
+        <option value="pack"></option>
+        <option value="pcs"></option>
+        <option value="bag"></option>
+        <option value="bottle"></option>
+        <option value="box"></option>
+    </datalist>
+
+    @if (showpopup) {
+        <div class="backpop">
+            <div class="popupcontainer">
+                <div class="popup-content">
+                    <img class="iconsuccess" src="image/success.svg" alt="">
+                    <div class="headerpop">Success</div>
+                    <div class="subheadersuccess">{{ popup }}</div>
+                    <button class="buttonclose" (click)="closepopup()">Back to Inventory</button>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (isLoading) {
+        <div class="loading-container">
+            <img class="logo_loading" src="/image/logoo.svg" alt="">
+            <div class="loading">
+                <div class="loader1"></div>
+                <div class="loader2"></div>
+                <div class="loader3"></div>
+                <div class="loader4"></div>
+            </div>
+        </div>
+    }
+    <div class="back"></div>
+
+    <!-- ===== ประวัติของวัตถุดิบ (แทนป๊อปอัป Invoice เดิม) ===== -->
+    @if (historyItem) {
+        <div class="backpop" (click)="historyItem = null">
+            <div class="popupcontainer" style="width: auto; max-width: 500px; height: auto;" (click)="$event.stopPropagation()">
+                <div class="popup-content">
+                    <div class="headerpop">{{ historyItem.name }}</div>
+                    <div class="subheadersuccess">
+                        Remaining: {{ formatQty(historyItem.quantity) }} {{ historyItem.unit }} · {{ categoryLabel(historyItem.category) }}
+                        @if (historyItem.note) { <br>{{ historyItem.note }} }
+                    </div>
+                    <div style="width: 100%; max-height: 260px; overflow-y: auto; margin-bottom: 15px; font-size: 14px;">
+                        @for (move of historyRows; track move.id) {
+                            <div style="display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid #E6EAED;">
+                                <span>{{ move.created_at | date:'d MMM, HH:mm' }} · {{ movementLabel(move) }}{{ move.created_by ? ' · ' + move.created_by : '' }}</span>
+                                <strong [class.pm-out]="move.type === 'out' || move.quantity < 0">{{ movementText(move) }} {{ move.unit }}</strong>
+                            </div>
+                        } @empty {
+                            <div style="text-align: center; color: #888;">No history yet.</div>
+                        }
+                    </div>
+                    <button class="buttonclose" (click)="historyItem = null">Close</button>
+                </div>
+            </div>
+        </div>
+    }
+</div>

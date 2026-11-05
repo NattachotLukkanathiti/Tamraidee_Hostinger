@@ -1,0 +1,193 @@
+<!-- PHUMALIN Pos: โครงและคลาสเดียวกับหน้า POS เดิม (เบิกวัตถุดิบ ไม่มีราคา) -->
+<div class="bacdk"></div>
+<div class="connnn">
+  <div class="navbaar">
+    <div class="con_nav">
+      @for (view of state.views; track view.id) {
+        <div class="he" [class.he--active]="state.view() === view.id" (click)="state.go(view.id)">{{ view.label }}</div>
+      }
+    </div>
+    <div class="container_bar"></div>
+  </div>
+
+  <div class="pos-shell">
+    <div class="shell" [class.Return]="true">
+      <div class="container_all" [class.fade-out-right]="state.leaving()">
+        <main class="pos-main">
+          <div class="left-side">
+            <div class="quick-options pm-quick">
+              @if (canViewActivity) {
+                <button class="quick-button quick-button--teal" type="button" (click)="viewActivity()"><img src="image/u_shopping-cart.svg" alt="" />View Activity</button>
+              }
+              <button class="quick-button quick-button--blue" type="button" (click)="resetOrder()"><img src="image/u_redo.svg" alt="" />Reset</button>
+              <app-phumalin-switch class="pm-quick__switch" />
+            </div>
+
+            <div class="left-content">
+              <div class="category-slider" aria-label="Categories">
+                <div class="section-heading">
+                  <h1>Categories</h1>
+                  <div class="category-arrows">
+                    <div class="buttonnext" (click)="scrollLeft(categoryRow)"><img class="icon" src="image/leftt.svg" alt="Scroll left"></div>
+                    <div class="buttonnext" (click)="scrollRight(categoryRow)"><img class="icon" src="image/right.svg" alt="Scroll right"></div>
+                  </div>
+                </div>
+                <div class="category-row" #categoryRow>
+                  @for (category of categories; track category.id) {
+                    <button class="category-card" [class.category-card--active]="selectedCategory === category.id" type="button" (click)="selectCategory(category)">
+                      <div class="category-card__image"><img [src]="category.icon" [alt]="category.label" /></div>
+                      <div class="category-card__title">{{ category.label }}</div>
+                      <div class="category-card__count">{{ category.count }} Items</div>
+                    </button>
+                  }
+                </div>
+              </div>
+
+              <div class="products-section" aria-label="Products">
+                <div class="products-heading">
+                  <h2>Products · {{ storeLabel(state.store()) }}</h2>
+                  <label class="product-search"><img src="image/search.svg" alt="" /><input [(ngModel)]="searchTerm" type="search" placeholder="Search Product" aria-label="Search Product" /></label>
+                </div>
+                @if (loadError) { <p class="pm-error" role="alert">{{ loadError }}</p> }
+                <div class="product-grid">
+                  @for (product of filteredProducts; track product.id) {
+                    <button class="product-card" type="button" [class.pm-card--empty]="product.quantity <= 0" [disabled]="product.quantity <= 0" (click)="addToCart(product)">
+                      @if (getCartQuantity(product.id) > 0) {
+                        <div class="cart-badge">{{ formatQty(getCartQuantity(product.id)) }}</div>
+                      }
+                      <div class="product-card__image"><img [src]="categoryIcon(product.category)" [alt]="product.name" /></div>
+                      <div class="product-card__content">
+                        <div class="product-card__category">{{ categoryLabel(product.category) }}</div>
+                        <strong>{{ product.name }}</strong>
+                        <div class="product-card__divider"></div>
+                        <div class="product-card__meta">
+                          <div [class.pm-out]="product.quantity <= 0">{{ product.quantity <= 0 ? 'Out of stock' : formatQty(product.quantity) + ' ' + product.unit }}</div>
+                        </div>
+                      </div>
+                    </button>
+                  } @empty {
+                    <div class="empty-products">{{ items.length ? 'No products found.' : 'No items in ' + storeLabel(state.store()) + ' yet.' }}</div>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="right-side" aria-label="Order list">
+            <div class="order-title">
+              <div class="T">
+                <div class="C">
+                  <div class="header_order_list">Order List</div>
+                  <div>Order Code : {{ orderCode === '-' ? '-' : '#' + orderCode }}</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="right-content">
+              <div class="added-section">
+                <div class="added-heading">
+                  <h2>Product Added <div>{{ itemCount }}</div></h2>
+                  <button class="clear" type="button" (click)="clearOrder()">Clear all</button>
+                </div>
+
+                @if (cartItems.length) {
+                  <div class="cart-table">
+                    <div class="cart-table__head">
+                      <div>Product</div>
+                      <div class="is-right">Unit</div>
+                      <div class="is-center">QTY</div>
+                      <div class="is-right">Left</div>
+                      <div></div>
+                    </div>
+                    <div class="cart-table__body">
+                      @for (entry of cartItems; track entry.item.id) {
+                        <div class="cart-row" tabindex="0">
+                          <div class="cart-row__product"><strong>{{ entry.item.name }}</strong><em>In Stock: {{ formatQty(entry.item.quantity) }}</em></div>
+                          <div class="cart-row__price is-right">{{ entry.item.unit }}</div>
+                          <div class="cart-row__qty">
+                            <div class="quantity">
+                              <button type="button" aria-label="Increase quantity" (click)="changeQuantity(entry, 1)"><img src="image/add_pos.svg" alt="" /></button>
+                              <input class="pm-qty-input" type="number" min="0" step="any" inputmode="decimal"
+                                [attr.aria-label]="'Quantity of ' + entry.item.name" [ngModel]="entry.quantity" (ngModelChange)="setQuantity(entry, $event)" />
+                              <button type="button" aria-label="Decrease quantity" (click)="changeQuantity(entry, -1)"><img src="image/remove_pos.svg" alt="" /></button>
+                            </div>
+                          </div>
+                          <div class="cart-row__subtotal is-right" [class.pm-out]="remainingAfter(entry) <= 0">{{ formatQty(remainingAfter(entry)) }}</div>
+                          <button class="cart-row__remove" type="button" aria-label="Remove product" (click)="removeFromCart(entry)"><img src="image/bin.svg" alt="" /></button>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+
+              <div class="payment-info">
+                <div class="payment-fields pm-fields">
+                  <label>Note
+                    <input class="pm-note-input" type="text" [(ngModel)]="note" maxlength="500" placeholder="e.g. lunch prep" />
+                  </label>
+                </div>
+                <div class="payment-divider"></div>
+                <button class="grand-total" type="button" [disabled]="!cartItems.length" (click)="openConfirm()">
+                  Confirm Withdrawal : {{ itemCount }} {{ itemCount === 1 ? 'item' : 'items' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <!-- ยืนยันการเบิก (ใช้หน้าต่างเดียวกับ Cash Payment เดิม) -->
+  @if (showConfirm) {
+    <div class="qr-modal-backdrop" (click)="closeConfirm()">
+      <div class="qr-modal-content" [class.out_comimport]="outimport" (click)="$event.stopPropagation()" role="dialog" aria-label="Confirm withdrawal">
+        <div class="qr-modal-header">
+          <div class="headerr">{{ successCode ? 'Withdrawal Saved' : 'Confirm Withdrawal' }}</div>
+          <span class="pom2">{{ storeLabel(state.store()) }}</span>
+        </div>
+
+        <div class="qr-modal-body" style="text-align: left; padding: 0 20px;">
+          <div class="con_cash">
+            @if (successCode) {
+              <div style="text-align: center; margin-bottom: 20px; font-weight: bold; font-size: 18px; color: #28a745;">
+                Saved · Code {{ successCode }}
+              </div>
+            } @else {
+              @for (entry of cartItems; track entry.item.id) {
+                <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                  <span>{{ entry.item.name }}</span>
+                  <span>{{ formatQty(entry.quantity) }} {{ entry.item.unit }}</span>
+                </div>
+              }
+              @if (note.trim()) {
+                <div style="margin-bottom: 20px; color: #646b72;">Note: {{ note }}</div>
+              }
+              @if (withdrawError) { <p class="pm-error" role="alert">{{ withdrawError }}</p> }
+            }
+          </div>
+        </div>
+
+        @if (!successCode) {
+          <div class="qr-modal-footer">
+            <button class="btn-cancel" (click)="closeConfirm()">Cancel</button>
+            <button class="btn-confirm" [disabled]="isLoading || !cartItems.length" (click)="confirmWithdraw()">Confirm</button>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
+
+@if (isLoading) {
+  <div class="loading-container">
+    <img class="logo_loading" src="/image/logoo.svg" alt="">
+    <div class="loading">
+      <div class="loader1"></div>
+      <div class="loader2"></div>
+      <div class="loader3"></div>
+      <div class="loader4"></div>
+    </div>
+  </div>
+}

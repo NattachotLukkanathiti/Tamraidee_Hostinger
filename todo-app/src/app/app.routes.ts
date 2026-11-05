@@ -24,6 +24,8 @@ import { DeleteDataComponent } from './delete-data/delete-data.component';
 import { ShopComponent } from './shop/shop.component';
 import { OnlineOrdersComponent } from './online-orders/online-orders.component';
 import { authGuard } from './services/auth.guard';
+/// PHUMALIN (ร้านบน / ร้านล่าง) — เลิกใช้: ลบ import นี้ + route "/// PHUMALIN" ด้านล่าง + โฟลเดอร์ src/app/phumalin
+import { PhumalinComponent } from './phumalin/phumalin.component';
 
 
 const ADMIN = ['admin', 'manager'];
@@ -58,5 +60,7 @@ export const routes: Routes = [
   { path: 'delete-data' ,component:DeleteDataComponent},
   // หน้าร้านสำหรับลูกค้า ไม่ต้อง login
   { path: 'shop', component: ShopComponent },
-  { path: 'shop/:sku', component: ShopComponent }
+  { path: 'shop/:sku', component: ShopComponent },
+  /// PHUMALIN: หน้าวัตถุดิบ ร้านบน / ร้านล่าง (สิทธิ์แต่ละหน้าย่อยดูใน phumalin.models.ts)
+  { path: 'phumalin', component: PhumalinComponent, canActivate: [authGuard], data: { roles: STAFF } }
 ];

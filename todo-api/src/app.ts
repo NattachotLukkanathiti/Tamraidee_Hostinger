@@ -11,6 +11,8 @@ import chatRoutes from './routes/chat.routes';
 import auditRoutes from './routes/audit.routes';
 import shopRoutes from './routes/shop.routes';
 import settingsRoutes from './routes/settings.routes';
+/// PHUMALIN (ร้านบน / ร้านล่าง) — เลิกใช้: ลบบรรทัด import นี้ + app.use(phumalinRoutes) ด้านล่าง
+import phumalinRoutes from './routes/phumalin.routes';
 
 export const app = express();
 
@@ -68,3 +70,5 @@ app.use(chatRoutes);
 app.use(auditRoutes);
 app.use(settingsRoutes);
 app.use(shopRoutes);
+/// PHUMALIN (ร้านบน / ร้านล่าง) — API ทั้งหมดอยู่ใน src/routes/phumalin.routes.ts
+app.use(phumalinRoutes);
