@@ -103,3 +103,245 @@
     display: none !important;
   }
 }
+
+/* ---------- Pos มือถือ (≤ 900px): รายการที่จะเพิ่มเปิดจากไอคอนตะกร้ามุมขวาบน ---------- */
+.pm-cart-btn,
+.pm-cart-close {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  /* ปุ่มลอยติดมุมขวาล่างของจอ (ไม่เลื่อนตามหน้า) */
+  .pm-cart-btn {
+    position: fixed;
+    right: 20px;
+    bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+    z-index: 498;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: #83D46E;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+
+  .pm-cart-btn:active {
+    transform: scale(0.94);
+  }
+
+  /* เปิดรายการแล้วซ่อนปุ่ม (ไม่ทับปุ่มยืนยันในแผง ปิดด้วย × แทน) */
+  .pm-cart-btn--hidden {
+    display: none;
+  }
+
+  .pm-cart-btn img {
+    width: 24px;
+    height: 24px;
+    filter: brightness(0) invert(1);
+  }
+
+  .pm-cart-btn__badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 6px;
+    box-sizing: border-box;
+    border: 2px solid #fff;
+    border-radius: 999px;
+    background: #212b36;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 18px;
+    text-align: center;
+  }
+
+  .pm-cart-btn:focus-visible,
+  .pm-cart-close:focus-visible {
+    outline: 2px solid #83D46E;
+    outline-offset: 2px;
+  }
+
+  .pm-cart-backdrop {
+    position: fixed;
+    inset: 70px 0 0;
+    z-index: 499;
+    background: rgba(0, 0, 0, 0.28);
+  }
+
+  .right-side {
+    position: fixed !important;
+    top: 70px;
+    right: 0;
+    bottom: 0;
+    z-index: 500; /* ใต้หน้าต่างยืนยัน (9999+) */
+    width: min(100vw, 440px) !important;
+    max-width: none;
+    height: auto !important;
+    border-top: 0;
+    border-left: 1px solid #e6eaed;
+    box-shadow: -8px 0 24px rgba(0, 0, 0, 0.12);
+    /* แผงติดจอเต็มความสูง: รายการเลื่อนได้ข้างใน หมายเหตุ + ปุ่มยืนยันติดอยู่ล่างเสมอ */
+    display: flex !important;
+    flex-direction: column;
+    gap: 12px;
+    overflow: hidden !important;
+    padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px)) !important;
+    animation: none;
+    transform: translateX(100%);
+    visibility: hidden;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0s linear 0.3s;
+  }
+
+  .right-side.pm-cart-open {
+    transform: none;
+    visibility: visible;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .order-title .T {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  /* ป้ายจำนวนบนการ์ดสินค้า (9999 ใน CSS เดิม) ต้องไม่ลอยทับรายการ */
+  .product-card .cart-badge {
+    z-index: 2 !important;
+  }
+
+  /* ตารางในแผงใช้ layout มือถือของ CSS เดิม (container query: แคบมากเป็นการ์ดซ้อนกัน)
+     แค่เอา margin ติดลบออก ไม่งั้นขอบซ้ายโดนตัดเพราะแผงซ่อน overflow แนวนอน */
+  .right-side .cart-row {
+    margin: 0;
+  }
+
+  .pm-cart-close {
+    display: block;
+    padding: 0 6px;
+    border: 0;
+    background: none;
+    color: #48505E;
+    font-size: 28px;
+    line-height: 1;
+    cursor: pointer;
+  }
+}
+
+/* ---------- คลังสินค้า: ตัวกรอง ---------- */
+/* CSS เดิมวาดลูกศรซ้ำ 2 ที่ (background ของ select + ::after) และ ::after ไปกองอยู่ขอบขวา
+   ทับตัวกรองอันที่ 3 (หมายเหตุ) บนมือถือ: ใช้แค่ลูกศรที่เป็น background */
+.custom-select::after {
+  content: none !important;
+}
+
+/* ปุ่มยกเลิกในฟอร์ม: CSS เดิมเขียนคำว่า "Cancel" ด้วย ::after ทับข้อความจริง (ซ้อนกับ "ยกเลิก")
+   ปิด ::after แล้วยกข้อความจริงให้อยู่เหนือวงกลมตอน hover (::before z-index 0) */
+.cancel::after {
+  content: none !important;
+}
+
+.cancel .pm-btn-text {
+  position: relative;
+  z-index: 1;
+  white-space: nowrap;
+}
+
+/* ---------- Pos: ให้ position: fixed ติดจอจริง ----------
+   .Return ใช้ animation ... forwards ค้าง transform ไว้ที่ .shell หลังเลื่อนเข้า
+   (transform ทำให้ลูกที่เป็น fixed เลื่อนตามหน้าแทนการติดจอ) -> ไม่ค้างค่าหลังอนิเมชันจบ */
+.shell.Return {
+  animation-fill-mode: none !important;
+}
+
+@media (max-width: 900px) {
+  .right-side .order-title {
+    flex: 0 0 auto;
+  }
+
+  .right-side .right-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    gap: 12px;
+  }
+
+  .right-side .added-section {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .right-side .payment-info {
+    flex: 0 0 auto;
+    gap: 12px;
+    padding-top: 4px;
+    background: #fff;
+  }
+}
+
+/* ปุ่ม Export PDF (ใช้หน้าตา .pdf เดิมของหน้า Inventory / Dashboard) */
+.pm-pdf-btn {
+  background: #fff;
+  font: inherit;
+}
+
+.pm-pdf-btn:hover {
+  background: #F4F5FC;
+}
+
+.pm-pdf-btn:disabled {
+  opacity: 0.5;
+  cursor: progress;
+}
+
+.pm-pdf-btn img {
+  width: 24px;
+  height: 24px;
+}
+
+/* ปุ่มรีเซ็ตสต็อก (ใช้กรอบ .reload เดิม + ข้อความ) */
+.pm-reset-btn {
+  gap: 8px;
+  background: #fff;
+  color: #c0392b;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.pm-reset-btn img {
+  width: 20px;
+  height: 20px;
+}
+
+.pm-reset-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ปุ่มรีเซ็ต: จอใหญ่ "รีเซ็ตสต็อก" + ไอคอน / มือถือเหลือ "รีเซ็ต" ให้ 3 ปุ่มอยู่แถวเดียว
+   (CSS เดิมให้แถวปุ่มบนมือถือเป็น position: absolute กันที่ไว้แถวเดียว ขึ้นบรรทัดใหม่จะทับตาราง) */
+.pm-reset-btn__short {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .pm-reset-btn img,
+  .pm-reset-btn__long {
+    display: none;
+  }
+
+  .pm-reset-btn__short {
+    display: inline;
+  }
+}

@@ -64,13 +64,6 @@ export const PHUMALIN_CATEGORIES: { id: PhumalinCategory; label: string; icon: s
 
 export const PHUMALIN_ALL_ICON = 'phumalin/all.svg';
 
-/// สิทธิ์ของแต่ละหน้า ให้ตรงกับหน้าเดิม (Dashboard / Inventory / POS) และ API /api/phumalin
-export const PHUMALIN_VIEW_ROLES: Record<PhumalinView, string[]> = {
-  dashboard: ['admin', 'manager'],
-  inventory: ['admin', 'manager', 'backend'],
-  pos: ['admin', 'manager', 'pos']
-};
-
 export function categoryLabel(id: string | null | undefined): string {
   return PHUMALIN_CATEGORIES.find((c) => c.id === id)?.label ?? '-';
 }

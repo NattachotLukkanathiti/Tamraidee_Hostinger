@@ -23,15 +23,22 @@ describe('PhumalinPosComponent', () => {
     expect(api.getItems).toHaveBeenCalledWith('upper');
     expect(el.querySelectorAll('.product-card').length).toBe(3);
     const cats = Array.from(el.querySelectorAll('.category-card__title')).map((c) => c.textContent?.trim());
-    expect(cats).toEqual(['ทั้งหมด', 'ผัก', 'เนื้อสัตว์', 'ของแห้ง', 'บรรจุภัณฑ์']);
+    // บรรจุภัณฑ์ไม่มีสินค้า -> ไม่แสดง
+    expect(cats).toEqual(['ทั้งหมด', 'ผัก', 'เนื้อสัตว์', 'ของแห้ง']);
     expect(el.textContent).not.toContain('$');
     expect(card(el, 'Rice').disabled).toBeFalse();
     expect(card(el, 'Cabbage').querySelector('img')?.getAttribute('src')).toBe('https://cdn.test/cabbage.jpg');
     expect(card(el, 'Pork').querySelector('img')?.getAttribute('src')).toBe('phumalin/meat.svg');
+    // รูปของหมวด = รูปสินค้าในหมวดนั้น (ผักมีรูป Cabbage) / หมวดที่ไม่มีรูปสินค้าใช้ไอคอน
+    const catImg = (label: string) => Array.from(el.querySelectorAll('.category-card'))
+      .find((c) => c.querySelector('.category-card__title')?.textContent?.trim() === label)?.querySelector('img')?.getAttribute('src');
+    expect(catImg('ผัก')).toBe('https://cdn.test/cabbage.jpg');
+    expect(catImg('ทั้งหมด')).toBe('https://cdn.test/cabbage.jpg');
+    expect(catImg('เนื้อสัตว์')).toBe('phumalin/meat.svg');
   });
 
   it('จิ้มสินค้าเพิ่มทีละ 1 (ไม่จำกัดด้วยคงเหลือ) แสดงยอดหลังเพิ่ม และกรองตามหมวดได้', () => {
-    const { el, fixture, component } = open();
+    const { el, fixture, component, api } = open();
     card(el, 'Cabbage').click();
     card(el, 'Cabbage').click();
     card(el, 'Cabbage').click();
@@ -48,6 +55,12 @@ describe('PhumalinPosComponent', () => {
     component.selectCategory(component.categories[2]);
     fixture.detectChanges();
     expect(el.querySelectorAll('.product-card').length).toBe(1);
+
+    // หมวดที่เลือกไว้ไม่มีสินค้าแล้ว -> กลับไปทั้งหมด
+    component.selectCategory(component.categories.find((c) => c.id === 'dry')!);
+    api.getItems.and.returnValue(of([pmItem({ id: 1, name: 'Cabbage' })]));
+    component.load();
+    expect(component.selectedCategory).toBe('all');
   });
 
   it('ยืนยันเพิ่มสินค้า: ส่งไป API restock (ไม่ใช่ withdraw) แสดงรหัส แล้วล้างรายการ', fakeAsync(() => {
@@ -80,13 +93,41 @@ describe('PhumalinPosComponent', () => {
     expect(component.cartItems.length).toBe(1);
   });
 
-  it('สลับเป็นร้านล่าง: โหลดของร้านล่างและล้างรายการที่เลือกไว้', () => {
+  it('สลับเป็นร้านล่าง: โหลดของร้านล่างและล้างรายการที่เลือกไว้ / เหลือเฉพาะหมวดที่ร้านล่างมีสินค้า', () => {
     const { el, fixture, component, state } = open();
     card(el, 'Cabbage').click();
     state.setStore('lower');
     fixture.detectChanges();
+    expect(Array.from(el.querySelectorAll('.category-card__title')).map((c) => c.textContent?.trim())).toEqual(['ทั้งหมด', 'ผัก']);
     expect(component.cartItems.length).toBe(0);
     expect(el.querySelectorAll('.product-card').length).toBe(1);
     expect(el.textContent).toContain('Chili');
+  });
+
+  it('มือถือ: ไอคอนตะกร้าแสดงจำนวนรายการ กดแล้วเปิดรายการ / กดปิดหรือ Esc ปิด', () => {
+    const { el, fixture } = open();
+    const btn = el.querySelector<HTMLButtonElement>('.pm-cart-btn')!;
+    expect(btn.querySelector('.pm-cart-btn__badge')).toBeNull();
+    card(el, 'Cabbage').click();
+    card(el, 'Pork').click();
+    fixture.detectChanges();
+    expect(btn.querySelector('.pm-cart-btn__badge')?.textContent?.trim()).toBe('2');
+
+    btn.click();
+    fixture.detectChanges();
+    expect(el.querySelector('.right-side')?.classList).toContain('pm-cart-open');
+    expect(btn.getAttribute('aria-expanded')).toBe('true');
+    expect(btn.classList).toContain('pm-cart-btn--hidden');
+    expect(document.body.classList).toContain('pm-cart-lock'); // หน้าข้างหลังไม่เลื่อน
+
+    el.querySelector<HTMLButtonElement>('.pm-cart-close')!.click();
+    fixture.detectChanges();
+    expect(el.querySelector('.right-side')?.classList).not.toContain('pm-cart-open');
+    expect(document.body.classList).not.toContain('pm-cart-lock');
+
+    btn.click();
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    fixture.detectChanges();
+    expect(el.querySelector('.right-side')?.classList).not.toContain('pm-cart-open');
   });
 });

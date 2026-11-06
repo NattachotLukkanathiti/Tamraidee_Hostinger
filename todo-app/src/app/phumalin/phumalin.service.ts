@@ -51,6 +51,11 @@ export class PhumalinService {
     return this.http.post<PhumalinWithdrawResult>(`${this.base}/${store}/withdraw`, { items, note });
   }
 
+  /// POST /api/phumalin/:store/reset-stock (รีเซ็ตคงเหลือทุกสินค้าในร้านเป็น 0)
+  resetStock(store: PhumalinStore): Observable<{ success: boolean; order_code: string; reset: number }> {
+    return this.http.post<{ success: boolean; order_code: string; reset: number }>(`${this.base}/${store}/reset-stock`, {});
+  }
+
   /// GET /api/phumalin/:store/movements
   getMovements(store: PhumalinStore, limit = 500): Observable<PhumalinMovement[]> {
     return this.http.get<PhumalinMovement[]>(`${this.base}/${store}/movements`, { params: { limit } });

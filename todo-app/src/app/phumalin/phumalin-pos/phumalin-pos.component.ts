@@ -1,5 +1,5 @@
-import { Component, DestroyRef, ElementRef, ViewChild, effect, inject, untracked } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, DestroyRef, ElementRef, HostListener, ViewChild, effect, inject, untracked } from '@angular/core';
+import { CommonModule, DOCUMENT } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PhumalinService } from '../phumalin.service';
 import { PhumalinState } from '../phumalin-state.service';
@@ -14,6 +14,8 @@ interface CategoryCard {
   label: string;
   count: number;
   icon: string;
+  /// ไอคอนสำรองถ้ารูปสินค้าโหลดไม่ได้
+  fallback?: string;
 }
 
 const MAX_QUANTITY = 9_999_999;
@@ -74,7 +76,10 @@ export class PhumalinPosComponent {
         this.load(store);
       });
     });
-    inject(DestroyRef).onDestroy(() => this.timers.forEach(clearTimeout));
+    inject(DestroyRef).onDestroy(() => {
+      this.timers.forEach(clearTimeout);
+      this.body.classList.remove('pm-cart-lock');
+    });
   }
 
   load(store: PhumalinStore = this.state.store()): void {
@@ -96,16 +101,27 @@ export class PhumalinPosComponent {
     });
   }
 
+  /// รูปของแต่ละหมวด = รูปสินค้าชิ้นแรกในหมวดที่มีลิงก์รูป (เหมือน POS เดิมที่ใช้รูปสินค้าชิ้นแรก)
+  /// แสดงเฉพาะหมวดที่มีสินค้า / "ทั้งหมด" แสดงเสมอ ใช้รูปสินค้าชิ้นแรกที่มีรูป / ไม่มีสินค้าที่มีรูปเลย ใช้ไอคอนหมวดแทน
   private buildCategories(): void {
+    const firstPicture = (list: PhumalinItem[]) => list.find((item) => itemImage(item) !== categoryIcon(item.category));
+    const allPicture = firstPicture(this.items);
     this.categories = [
-      { id: 'all', label: 'ทั้งหมด', count: this.items.length, icon: PHUMALIN_ALL_ICON },
-      ...PHUMALIN_CATEGORIES.map((cat) => ({
-        id: cat.id,
-        label: cat.label,
-        count: this.items.filter((item) => item.category === cat.id).length,
-        icon: cat.icon
-      }))
+      { id: 'all', label: 'ทั้งหมด', count: this.items.length, icon: allPicture ? itemImage(allPicture) : PHUMALIN_ALL_ICON },
+      ...PHUMALIN_CATEGORIES.map((cat) => {
+        const inCategory = this.items.filter((item) => item.category === cat.id);
+        const withPicture = firstPicture(inCategory);
+        return {
+          id: cat.id,
+          label: cat.label,
+          count: inCategory.length,
+          icon: withPicture ? itemImage(withPicture) : cat.icon,
+          fallback: cat.icon
+        };
+      }).filter((cat) => cat.count > 0) // หมวดที่ไม่มีสินค้าไม่ต้องแสดง (เหมือน POS เดิม)
     ];
+    // หมวดที่เลือกไว้ไม่มีสินค้าแล้ว (เช่นสลับร้าน / ลบสินค้า) กลับไปทั้งหมด
+    if (!this.categories.some((cat) => cat.id === this.selectedCategory)) this.selectedCategory = 'all';
   }
 
   get filteredProducts(): PhumalinItem[] {
@@ -128,6 +144,34 @@ export class PhumalinPosComponent {
   }
 
   // ---------- รายการที่จะเพิ่ม ----------
+
+  /// มือถือ (≤ 900px): รายการเปิด / ปิดจากปุ่มตะกร้ามุมขวาล่าง (จอกว้างแสดงอยู่ด้านขวาตลอด)
+  cartOpen = false;
+  private readonly body = inject(DOCUMENT).body;
+
+  toggleCart(): void {
+    this.setCart(!this.cartOpen);
+  }
+
+  closeCart(): void {
+    this.setCart(false);
+  }
+
+  /// เปิดรายการอยู่: ล็อกการเลื่อนหน้าข้างหลัง ให้แผงติดจอและเลื่อนได้เฉพาะในแผง
+  private setCart(open: boolean): void {
+    this.cartOpen = open;
+    this.body.classList.toggle('pm-cart-lock', open);
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (!this.showConfirm) this.closeCart();
+  }
+
+  @HostListener('window:resize')
+  onResize(): void {
+    if (this.cartOpen && window.innerWidth > 900) this.closeCart();
+  }
 
   get itemCount(): number {
     return this.cartItems.length;
@@ -181,12 +225,9 @@ export class PhumalinPosComponent {
   }
 
   viewActivity(): void {
-    this.state.go(this.state.canSee('dashboard') ? 'dashboard' : 'inventory');
+    this.state.go('dashboard');
   }
 
-  get canViewActivity(): boolean {
-    return this.state.canSee('dashboard') || this.state.canSee('inventory');
-  }
 
   // ---------- ยืนยันเพิ่มสินค้า ----------
 

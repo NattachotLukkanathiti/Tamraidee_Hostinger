@@ -61,6 +61,6 @@ export const routes: Routes = [
   // หน้าร้านสำหรับลูกค้า ไม่ต้อง login
   { path: 'shop', component: ShopComponent },
   { path: 'shop/:sku', component: ShopComponent },
-  /// PHUMALIN: หน้าวัตถุดิบ ร้านบน / ร้านล่าง (สิทธิ์แต่ละหน้าย่อยดูใน phumalin.models.ts)
-  { path: 'phumalin', component: PhumalinComponent, canActivate: [authGuard], data: { roles: STAFF } }
+  /// PHUMALIN: หน้าวัตถุดิบ ร้านบน / ร้านล่าง (ไม่ต้อง login)
+  { path: 'phumalin', component: PhumalinComponent }
 ];

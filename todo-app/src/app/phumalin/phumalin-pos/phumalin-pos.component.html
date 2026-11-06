@@ -1,4 +1,13 @@
 <!-- PHUMALIN Pos: โครงและคลาสเดียวกับหน้า POS เดิม (เพิ่มสินค้าเข้าสต็อก ไม่มีราคา) -->
+<!-- มือถือ (≤ 900px): ปุ่มตะกร้าลอยติดมุมขวาล่างของจอ กดแล้วเปิดรายการที่จะเพิ่ม
+     วางไว้นอก .shell / .container_all เพราะอนิเมชันของกล่องพวกนั้นใส่ transform ทำให้ position: fixed เลื่อนตามหน้า -->
+<button type="button" class="pm-cart-btn" [class.pm-cart-btn--hidden]="cartOpen" aria-controls="pm-order-list" [attr.aria-expanded]="cartOpen"
+  [attr.aria-label]="'รายการที่จะเพิ่ม ' + itemCount + ' รายการ'" (click)="toggleCart()">
+  <img src="image/u_shopping-cart.svg" alt="" />
+  @if (itemCount) { <span class="pm-cart-btn__badge">{{ itemCount }}</span> }
+</button>
+@if (cartOpen) { <div class="pm-cart-backdrop" (click)="closeCart()"></div> }
+
 <div class="bacdk"></div>
 <div class="connnn">
   <div class="navbaar">
@@ -11,14 +20,12 @@
   </div>
 
   <div class="pos-shell">
-    <div class="shell" [class.Return]="true">
+    <div class="shell" [class.Return]="state.cameFrom() !== null">
       <div class="container_all" [class.fade-out-right]="state.leaving()">
         <main class="pos-main">
           <div class="left-side">
             <div class="quick-options pm-quick">
-              @if (canViewActivity) {
                 <button class="quick-button quick-button--teal" type="button" (click)="viewActivity()"><img src="image/u_shopping-cart.svg" alt="" />ดูประวัติ</button>
-              }
               <button class="quick-button quick-button--blue" type="button" (click)="resetOrder()"><img src="image/u_redo.svg" alt="" />ล้างค่า</button>
               <app-phumalin-switch class="pm-quick__switch" />
             </div>
@@ -35,7 +42,7 @@
                 <div class="category-row" #categoryRow>
                   @for (category of categories; track category.id) {
                     <button class="category-card" [class.category-card--active]="selectedCategory === category.id" type="button" (click)="selectCategory(category)">
-                      <div class="category-card__image"><img [src]="category.icon" [alt]="category.label" /></div>
+                      <div class="category-card__image"><img [src]="category.icon" [alt]="category.label" (error)="useCategoryIcon($event, category.id)" /></div>
                       <div class="category-card__title">{{ category.label }}</div>
                       <div class="category-card__count">{{ category.count }} รายการ</div>
                     </button>
@@ -73,13 +80,14 @@
             </div>
           </div>
 
-          <div class="right-side" aria-label="รายการที่จะเพิ่ม">
+          <div class="right-side" id="pm-order-list" [class.pm-cart-open]="cartOpen" aria-label="รายการที่จะเพิ่ม">
             <div class="order-title">
               <div class="T">
                 <div class="C">
                   <div class="header_order_list">รายการที่จะเพิ่ม</div>
                   <div>รหัสรายการ : {{ orderCode === '-' ? '-' : '#' + orderCode }}</div>
                 </div>
+                <button type="button" class="pm-cart-close" aria-label="ปิดรายการ" (click)="closeCart()">&times;</button>
               </div>
             </div>
 
@@ -151,7 +159,7 @@
         <div class="qr-modal-body" style="text-align: left; padding: 0 20px;">
           <div class="con_cash">
             @if (successCode) {
-              <div style="text-align: center; margin-bottom: 20px; font-weight: bold; font-size: 18px; color: #28a745;">
+              <div style="text-align: center; margin-bottom: 20px; font-weight: bold; font-size: 18px; color: #83D46E;">
                 บันทึกแล้ว · รหัส {{ successCode }}
               </div>
             } @else {

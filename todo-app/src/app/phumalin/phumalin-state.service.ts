@@ -1,34 +1,37 @@
-import { Injectable, OnDestroy, inject, signal } from '@angular/core';
-import { AuthService } from '../services/auth.service';
-import { PHUMALIN_VIEW_ROLES, PhumalinStore, PhumalinView } from './phumalin.models';
+import { Injectable, OnDestroy, computed, signal } from '@angular/core';
+import { PhumalinStore, PhumalinView } from './phumalin.models';
 
 const STORE_KEY = 'phumalin_store';
+/// เท่ากับ setTimeout(..., 300) ก่อน router.navigate ในหน้าเดิม
+const LEAVE_MS = 300;
 
 /// สถานะของหน้า phumalin: ร้านที่เลือก (บน / ล่าง) และหน้าย่อย (Dashboard / Inventory / Pos)
 /// provide ที่ PhumalinComponent จึงมีชุดเดียวต่อการเปิดหน้า
 @Injectable()
 export class PhumalinState implements OnDestroy {
-  private auth = inject(AuthService);
   private leaveTimer?: ReturnType<typeof setTimeout>;
 
-  readonly username = this.auth.user?.username ?? '';
-  readonly role = (this.auth.user?.role ?? '').toLowerCase();
-
   /// ลำดับเดียวกับแถบเมนูหน้าเดิม: Pos / Dashboard / Inventory (ชื่อเมนูภาษาไทย)
-  readonly views: { id: PhumalinView; label: string }[] = ([
+  /// ไม่ต้อง login: ทุกคนเห็นครบ 3 หน้า
+  readonly views: { id: PhumalinView; label: string }[] = [
     { id: 'pos', label: 'เพิ่มสินค้า' },
     { id: 'dashboard', label: 'แดชบอร์ด' },
     { id: 'inventory', label: 'คลังสินค้า' }
-  ] as const).filter((view) => this.canSee(view.id));
+  ];
 
   readonly store = signal<PhumalinStore>(this.readStore());
-  readonly view = signal<PhumalinView>(this.views[0]?.id ?? 'pos');
-  /// true ระหว่างเล่นอนิเมชันออกก่อนเปลี่ยนหน้าย่อย (เหมือนหน้าเดิมที่รอ 300ms ก่อน navigate)
-  readonly leaving = signal(false);
-
-  canSee(view: PhumalinView): boolean {
-    return PHUMALIN_VIEW_ROLES[view].includes(this.role);
-  }
+  readonly view = signal<PhumalinView>('pos');
+  /// การเปลี่ยนหน้าแบบหน้าเดิม: กดแล้วเล่นอนิเมชันออก รอ 300ms (setTimeout) แล้วค่อยเปลี่ยนหน้า
+  /// แต่ละหน้าใช้คลาสอนิเมชันตามปลายทาง / ต้นทาง เหมือนหน้าเดิม:
+  ///   Inventory -> Dashboard/Pos : fade-out + fade-out2 (เลื่อนออกซ้าย)
+  ///   Dashboard -> Inventory     : fade-out (เลื่อนออกขวา) / Dashboard -> Pos : fade-out-left (เลื่อนออกซ้าย)
+  ///   Pos -> ทุกหน้า              : fade-out-right (เลื่อนออกขวา)
+  ///   เข้าหน้า Pos (จากหน้าอื่น) / เข้า Dashboard จาก Inventory : Return (เลื่อนเข้าจากขวา)
+  /// หน้าปลายทางระหว่างรอ 300ms (null = ไม่ได้กำลังเปลี่ยนหน้า)
+  readonly leavingTo = signal<PhumalinView | null>(null);
+  /// หน้าก่อนหน้า (null = เพิ่งเปิดหน้า phumalin)
+  readonly cameFrom = signal<PhumalinView | null>(null);
+  readonly leaving = computed(() => this.leavingTo() !== null);
 
   setStore(store: PhumalinStore): void {
     if (store === this.store()) return;
@@ -41,12 +44,13 @@ export class PhumalinState implements OnDestroy {
   }
 
   go(view: PhumalinView): void {
-    if (view === this.view() || !this.canSee(view) || this.leaving()) return;
-    this.leaving.set(true);
+    if (view === this.view() || this.leaving()) return;
+    this.leavingTo.set(view);
     this.leaveTimer = setTimeout(() => {
+      this.cameFrom.set(this.view());
       this.view.set(view);
-      this.leaving.set(false);
-    }, 300);
+      this.leavingTo.set(null);
+    }, LEAVE_MS);
   }
 
   ngOnDestroy(): void {

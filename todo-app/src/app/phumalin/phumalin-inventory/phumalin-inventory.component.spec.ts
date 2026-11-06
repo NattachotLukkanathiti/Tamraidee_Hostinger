@@ -112,4 +112,78 @@ describe('PhumalinInventoryComponent', () => {
     expect(el.textContent).toContain('เบิก');
     expect(el.textContent).toContain('-1 kg');
   });
+
+  it('กรองหมายเหตุ: มี / ไม่มี / เลือกข้อความหมายเหตุ (ตัวเลือกมาจากหมายเหตุในร้าน ไม่ซ้ำ)', () => {
+    const page = setUpPhumalin(PhumalinInventoryComponent);
+    page.api.getItems.and.returnValue(of([
+      pmItem({ id: 1, name: 'Cabbage', note: 'สด' }),
+      pmItem({ id: 2, name: 'Pork', category: 'meat', note: 'สั่งเพิ่ม' }),
+      pmItem({ id: 3, name: 'Rice', category: 'dry', note: null }),
+      pmItem({ id: 4, name: 'Egg', category: 'meat', note: ' สด ' })
+    ]));
+    const { el, fixture, component } = page.create();
+    const names = () => Array.from(el.querySelectorAll('.table_detail .connn')).map((n) => n.textContent?.trim());
+    const select = el.querySelector<HTMLSelectElement>('select[aria-label="หมายเหตุ"]')!;
+    const pick = (value: string) => {
+      select.value = Array.from(select.options).find((o) => o.textContent?.trim() === value)!.value;
+      select.dispatchEvent(new Event('change'));
+      fixture.detectChanges();
+    };
+
+    expect(Array.from(select.options).map((o) => o.textContent?.trim())).toEqual(['ทุกหมายเหตุ', 'มีหมายเหตุ', 'ไม่มีหมายเหตุ', 'สด', 'สั่งเพิ่ม']);
+    pick('มีหมายเหตุ');
+    expect(names().length).toBe(3);
+    pick('ไม่มีหมายเหตุ');
+    expect(names()).toEqual(['Rice']);
+    pick('สด');
+    expect(names()).toEqual(['Cabbage', 'Egg']);
+    expect(component.selectedNote).toBe('note:สด');
+  });
+
+  it('ปุ่ม PDF: พิมพ์ตาราง ชื่อสินค้า / จำนวน / หน่วย ของรายการที่กรองอยู่ทั้งหมด (ไม่ใช่แค่หน้าที่เห็น)', () => {
+    const { el, fixture, component } = open();
+    const print = spyOn(component, 'print');
+    component.selectedCategory = 'meat';
+    component.applyFilters();
+    fixture.detectChanges();
+    el.querySelector<HTMLButtonElement>('.pm-pdf-btn')!.click();
+
+    const report = print.calls.mostRecent().args[0];
+    const doc = new DOMParser().parseFromString(report.body, 'text/html');
+    expect(Array.from(doc.querySelectorAll('tbody td:nth-child(2)')).map((td) => td.textContent)).toEqual(['Pork']);
+    expect(doc.querySelector('.meta')?.textContent).toContain('หมวด เนื้อสัตว์');
+    expect(doc.querySelector('h1')?.textContent).toContain('ร้านบน');
+  });
+
+  it('ปุ่มรีเซ็ตสต็อก: ต้องยืนยันก่อน แล้วรีเซ็ตเฉพาะร้านที่เลือก และโหลดใหม่', () => {
+    const { el, fixture, component, api, state } = open();
+    api.resetStock.and.returnValue(of({ success: true, order_code: 'LO-RESET-000001', reset: 1 }));
+    state.setStore('lower');
+    fixture.detectChanges();
+
+    el.querySelector<HTMLButtonElement>('.pm-reset-btn')!.click();
+    fixture.detectChanges();
+    expect(api.resetStock).not.toHaveBeenCalled();
+    expect(el.textContent).toContain('รีเซ็ตสต็อกเป็น 0?');
+    expect(component.popup).toContain('ร้านล่าง');
+
+    api.getItems.calls.reset();
+    component.confirmResetStock();
+    expect(api.resetStock).toHaveBeenCalledWith('lower');
+    expect(api.getItems).toHaveBeenCalledWith('lower');
+    expect(component.showpopup).toBeTrue();
+  });
+
+  it('ปุ่มรีเซ็ตสต็อก: กด "ไม่" ไม่รีเซ็ต / error แสดงข้อความ', () => {
+    const { component, api } = open();
+    component.askResetStock();
+    component.closepopup();
+    expect(api.resetStock).not.toHaveBeenCalled();
+
+    api.resetStock.and.returnValue(throwError(() => ({ error: { message: 'Server Error' } })));
+    component.askResetStock();
+    component.confirmResetStock();
+    expect(component.showpopupnoti).toBeTrue();
+    expect(component.popup).toBe('Server Error');
+  });
 });

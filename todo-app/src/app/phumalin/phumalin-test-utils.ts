@@ -2,7 +2,6 @@
 import { Type } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
-import { AuthService } from '../services/auth.service';
 import { PhumalinService } from './phumalin.service';
 import { PhumalinState } from './phumalin-state.service';
 import { PhumalinItem, PhumalinMovement } from './phumalin.models';
@@ -19,21 +18,20 @@ export const pmMove = (patch: Partial<PhumalinMovement> = {}): PhumalinMovement 
 
 export function createPhumalinApiMock(): jasmine.SpyObj<PhumalinService> {
   const api = jasmine.createSpyObj<PhumalinService>('PhumalinService',
-    ['getItems', 'addItem', 'updateItem', 'deleteItem', 'stockIn', 'restock', 'withdraw', 'getMovements']);
+    ['getItems', 'addItem', 'updateItem', 'deleteItem', 'stockIn', 'restock', 'withdraw', 'resetStock', 'getMovements']);
   api.getItems.and.returnValue(of([]));
   api.getMovements.and.returnValue(of([]));
   return api;
 }
 
-export function setUpPhumalin<T>(component: Type<T>, role = 'admin') {
+export function setUpPhumalin<T>(component: Type<T>) {
   try { localStorage.removeItem('phumalin_store'); } catch { /* ignore */ }
   const api = createPhumalinApiMock();
   TestBed.configureTestingModule({
     imports: [component],
     providers: [
       PhumalinState,
-      { provide: PhumalinService, useValue: api },
-      { provide: AuthService, useValue: { user: { id: 1, username: 'admin1', title: 'a@test.com', role } } }
+      { provide: PhumalinService, useValue: api }
     ]
   });
   const state = TestBed.inject(PhumalinState);

@@ -47,11 +47,11 @@
     }
     30%{
         transform: translateY(0);
-        background-color: #84D46E;
+        background-color: #83D46E;
         color: white;
     }
     50%{
-        background-color: #84D46E;
+        background-color: #83D46E;
         color: white;
         opacity: 1;
     }
@@ -217,16 +217,16 @@
 }
 
 .date:hover {
-    background-color: #84D46E;
+    background-color: #83D46E;
     color: white; /* เปลี่ยนสีตัวอักษรเมื่อ hover */
 }
 
 /* เพิ่มสไตล์สำหรับปุ่มที่ถูกเลือก */
 .date.active {
-    background-color: #84D46E; /* สีเขียวที่เข้มขึ้น */
+    background-color: #83D46E; /* สีเขียวที่เข้มขึ้น */
     color: white;
     font-weight: 600;
-    border-color: #84D46E;
+    border-color: #83D46E;
 }
 .iconsearch {
     position: absolute;
@@ -265,7 +265,7 @@ input::placeholder {
     display: flex;
     margin-left: 20px;
     flex-direction: column;
-    color: #6FAB23;
+    color: #83D46E;
     font-weight: 800;
     align-items: flex-start;
     font-family: 'Nicomoji', sans-serif;
@@ -430,7 +430,7 @@ input::placeholder {
 }
 
 .dash {
-    background-color: #84D46E;
+    background-color: #83D46E;
     padding: 10px;
     border-radius: 5px;
     color: #FFF;
@@ -503,7 +503,7 @@ input::placeholder {
 
 .Max {
 
-    background: #69A957;
+    background: #83D46E;
 }
 
 
@@ -613,7 +613,7 @@ box-sizing: border-box;
 .bar {
     width: 100%;
     z-index: 10;
-    background-color: #84D46E;
+    background-color: #83D46E;
     border-radius: 10px;
     animation: height 1s ease-out forwards;
     animation-delay: 0.6s;
@@ -623,12 +623,12 @@ box-sizing: border-box;
 
 @keyframes height {
     0% {
-        box-shadow: 0px 10px 200px 20px #69ff4a;
+        box-shadow: 0px 10px 200px 20px #83D46E;
     }
 
     100% {
         transform: scaleY(1);
-        box-shadow: 0px 0px 30px 5px #69a95700;
+        box-shadow: 0px 0px 30px 5px #83D46E00;
     }
 }
 
@@ -708,7 +708,7 @@ box-sizing: border-box;
     display: flex;
     width: 10px;
     height: 10px;
-    background-color: #69A957;
+    background-color: #83D46E;
     border-radius: 100px;
     margin-top: 4px;
 }
@@ -921,7 +921,7 @@ box-sizing: border-box;
   .bar {
     animation: none !important; 
     transform: scaleY(1) !important; 
-    background-color: #84D46E !important; 
+    background-color: #83D46E !important; 
     box-shadow: none !important; 
     -webkit-print-color-adjust: exact !important; 
     print-color-adjust: exact !important;
@@ -1055,7 +1055,7 @@ box-sizing: border-box;
 
     .bar {
         width: 5vw;
-        background-color: #84D46E;
+        background-color: #83D46E;
         border-radius: 10px;
 
     }
@@ -1333,7 +1333,7 @@ box-sizing: border-box;
 
     .bar {
         width: 5vw;
-        background-color: #84D46E;
+        background-color: #83D46E;
         border-radius: 10px;
 
     }
@@ -1525,7 +1525,7 @@ box-sizing: border-box;
     color: #FFFFFF;
     border: 2px solid #E6EAED;
     border-radius: 8px;
-    background: #84D46E;
+    background: #83D46E;
     justify-content: center;
     display: flex;
     margin-bottom: 20px;
@@ -1533,7 +1533,7 @@ box-sizing: border-box;
 }
 
 .buttonclose:hover {
-    background: #9ef387;
+    background: #83D46E;
 }
 
 .buttonnoti:hover {
@@ -1704,7 +1704,7 @@ box-sizing: border-box;
     display: block;
     height: 100%;
     padding-left: 6px;
-    color: #71fa6a;
+    color: #83D46E;
     animation: spin_4991 4s infinite;
 }
 
@@ -1842,7 +1842,7 @@ box-sizing: border-box;
 .last {
     margin-left: auto;
     border: none;
-    color: #84D46E;
+    color: #83D46E;
     font-weight: 800;
     font-size: 20px;
 }
@@ -1930,7 +1930,7 @@ box-sizing: border-box;
 }
 
 .account-sidebar__menu button:hover {
-    color: #6fab23;
+    color: #83D46E;
 }
 
 .account-sidebar__menu button svg,
@@ -1989,11 +1989,11 @@ box-sizing: border-box;
 }
 
 .weekly__arrow:hover {
-    color: #4f7f42;
+    color: #83D46E;
 }
 
 .weekly__range {
-    color: #84d46e;
+    color: #83D46E;
     font: 600 16px/21px 'Montserrat', 'Inter', sans-serif;
     white-space: nowrap;
 }
@@ -2057,22 +2057,22 @@ box-sizing: border-box;
 }
 /* สีเริ่มต้น (0 - 10,000) */
 .heatmap__cell, .heatmap__cell--0 { 
-    background: #e8f5e97d !important; 
+    background: rgba(131, 212, 110, 0.12) !important; 
 }
 
 /* 10,001 - 30,000 */
 .heatmap__cell.heatmap__cell--1 { 
-    background: #A5D6A7 !important; 
+    background: rgba(131, 212, 110, 0.35) !important; 
 }
 
 /* 30,001 - 50,000 */
 .heatmap__cell.heatmap__cell--2 { 
-    background: #66BB6A !important; 
+    background: rgba(131, 212, 110, 0.65) !important; 
 }
 
 /* 50,001 ขึ้นไป */
 .heatmap__cell.heatmap__cell--3 { 
-    background: #2E7D32 !important; 
+    background: #83D46E !important; 
 }
 /* Heat levels, lightest to darkest. */
 .heatmap__cell {
@@ -2117,20 +2117,20 @@ box-sizing: border-box;
 }
 
 .legend__dot--1 {
-    background: #A5D6A7; /* สีเขียวอ่อน (10k-30k) */
+    background: rgba(131, 212, 110, 0.35); /* สีเขียวอ่อน (10k-30k) */
 }
 
 .legend__dot--2 {
-    background: #66BB6A; /* สีเขียวกลาง (30k-50k) */
+    background: rgba(131, 212, 110, 0.65); /* สีเขียวกลาง (30k-50k) */
 }
 
 .legend__dot--3 {
-    background: #2E7D32; /* สีเขียวเข้ม (50k+) */
+    background: #83D46E; /* สีเขียวเข้ม (50k+) */
 }
 .product-row__qty {
     margin-left: auto; /* ดันให้ไปอยู่ขวาสุด */
     font-weight: 600;
-    color: #4caf50; /* สีเขียว */
+    color: #83D46E; /* สีเขียว */
     font-size: 13px;
 }
 
@@ -2209,7 +2209,7 @@ box-sizing: border-box;
 }
 
 .supplier__segment--early {
-    background: #84d46e;
+    background: #83D46E;
 }
 
 .supplier__segment--on-time {
@@ -2255,7 +2255,7 @@ box-sizing: border-box;
 }
 
 .legend__dot--early {
-    background: #84d46e;
+    background: #83D46E;
 }
 
 .legend__dot--on-time {
@@ -2401,7 +2401,7 @@ box-sizing: border-box;
     border: none;
     padding: 10px;
     border-radius: 100px;
-    background-color: #84D46E;
+    background-color: #83D46E;
     box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.212);
     color: white;
     font-weight: 600;
@@ -2411,12 +2411,12 @@ box-sizing: border-box;
   align-items: center;
 }
 .btn-page:hover {
-    background-color: #6fab23; 
+    background-color: #83D46E; 
     transform: scale(1.05); 
 }
 
 .btn-page:active {
-    background-color: #4f7f42; 
+    background-color: #83D46E; 
     transform: scale(0.95); 
 }
 

@@ -21,6 +21,7 @@ describe('PhumalinDashboardComponent', () => {
     expect(component.categoryUsage).toEqual([{ name: 'ผัก', percent: 100 }, { name: 'เนื้อสัตว์', percent: 50 }]);
     expect(el.querySelectorAll('.con_data_row').length).toBe(4);
     expect(el.textContent).toContain('สรุปสต็อก');
+    expect(el.querySelector('.reload')).toBeNull(); // ปุ่มโหลดใหม่ซ่อนไว้ก่อน
     expect(el.textContent).toContain('เบิกวันนี้');
     expect(Array.from(el.querySelectorAll('.overdate .date')).map((d) => d.textContent?.trim())).toEqual(['วันนี้', '7วัน', '1เดือน', '3เดือน', '6เดือน', '1ปี']);
     expect(component.chart.map((bar) => bar.label)[0]).toBe('ม.ค.');

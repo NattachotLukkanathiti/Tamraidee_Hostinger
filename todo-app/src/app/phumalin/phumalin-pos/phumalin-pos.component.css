@@ -59,7 +59,7 @@
     display: flex;
     margin-left: 20px;
     flex-direction: column;
-    color: #6FAB23;
+    color: #83D46E;
     font-weight: 800;
     align-items: flex-start;
     font-family: 'Nicomoji', sans-serif; 
@@ -137,7 +137,7 @@
     z-index: 10;
     color: white;
     font-weight: 800;
-    background: #66BB6A;
+    background: #83D46E;
     width: 100px;
     border-radius: 8px;
     height: 10px;
@@ -267,7 +267,7 @@
   padding: 0;
   border: 0;
   background: transparent;
-  color: #6fab23;
+  color: #83D46E;
   font-family: 'Nico Moji', 'Montserrat', sans-serif;
   font-size: clamp(18px, 1.7vw, 24px);
   line-height: 36px;
@@ -297,17 +297,17 @@
 }
 
 .main-nav__link:hover {
-  color: #6fab23;
+  color: #83D46E;
 }
 
 .main-nav__link--active {
-  color: #6fab23;
-  border-bottom-color: #84d46e;
+  color: #83D46E;
+  border-bottom-color: #83D46E;
   font-weight: 700;
 }
 
 .main-nav__link:focus-visible {
-  outline: 2px solid #84d46e;
+  outline: 2px solid #83D46E;
   outline-offset: 2px;
 }
 
@@ -363,7 +363,7 @@
 
 .header-icon--active,
 .menu-button--active {
-  background: #84d46e;
+  background: #83D46E;
 }
 
 .header-icon--active img,
@@ -410,7 +410,7 @@
   pointer-events: none; 
 }
 .category-arrow category-arrow--previous{
-  background-color: #84d46e;
+  background-color: #83D46E;
 }
 .user{
   font-size: 18px;
@@ -495,7 +495,7 @@
 
 
 .account-sidebar__menu button:hover {
-  color: #6fab23;
+  color: #83D46E;
 }
 .account-sidebar {
   position: fixed;
@@ -563,7 +563,7 @@
 }
 
 .account-sidebar__menu button:hover {
-  color: #6fab23;
+  color: #83D46E;
 }
 
 .account-sidebar__menu button svg, .account-sidebar__logout svg {
@@ -822,6 +822,7 @@
 }
 
 .quick-button {
+  position: relative;
   flex: 0 0 auto;
   height: 35px;
   padding: 7px 12px;
@@ -901,7 +902,7 @@
   position: relative;
 }
 .buttonback:hover{
-  background:#84D46E;
+  background:#83D46E;
 }
 .buttonback:active{
   
@@ -933,7 +934,7 @@
 }
 
 .buttonnext:hover{
-    background:#82c171;
+    background:#83D46E;
 }
 .category-arrows button {
   position: relative;
@@ -973,8 +974,8 @@
 }
 
 .category-arrows button:hover {
-  background-color: #84d46e;
-  box-shadow: 0 2px 7px rgba(100, 177, 79, .28);
+  background-color: #83D46E;
+  box-shadow: 0 2px 7px rgba(131, 212, 110, .28);
 }
 
 .category-arrows button:active .category-arrow__active {
@@ -987,7 +988,7 @@
 }
 
 .category-arrows button:focus-visible {
-  outline: 2px solid #84d46e;
+  outline: 2px solid #83D46E;
   outline-offset: 2px;
 }
 
@@ -1030,7 +1031,7 @@
 }
 
 .category-card--active {
-  border: 2px solid #84d46e;
+  border: 2px solid #83D46E;
   padding: 20px 10px;
   transform: translateY(-4px) scale(1.03);
 }
@@ -1184,7 +1185,7 @@
   }
 }
  .product-card:active {
-  border-color: #7ad361;
+  border-color: #83D46E;
   transform: scale(1.1);
   box-shadow: 0 6px 18px rgba(33, 43, 54, .07);
 }
@@ -1194,7 +1195,7 @@
 }
 
 .product-card:focus-visible {
-  outline: 2px solid #84d46e;
+  outline: 2px solid #83D46E;
   outline-offset: 2px;
 }
 
@@ -1373,7 +1374,7 @@
   height: 18px;
   border-radius: 50%;
   color: #fff;
-  background: #84d46e;
+  background: #83D46E;
   display: grid;
   place-items: center;
   font: 600 10px/1 'Nunito', sans-serif;
@@ -1490,7 +1491,7 @@
 }
 
 .cart-row__batch input:focus {
-  border-color: #84d46e;
+  border-color: #83D46E;
 }
 
 .cart-row__price,
@@ -1606,7 +1607,7 @@
 
 .select-field select:focus,
 .discount-control:focus-within {
-  border-color: #84d46e;
+  border-color: #83D46E;
 }
 
 .select-field img {
@@ -1852,7 +1853,7 @@
 
   .main-nav__link--active {
     color: #fff;
-    background: #84d46e;
+    background: #83D46E;
   }
 
   .pos-main,
@@ -1883,7 +1884,16 @@
     padding: 9px 16px;
     gap: 10px;
   }
-
+  .qr-modal-footer{
+box-sizing: border-box;
+  gap: 10px;
+  padding: 50px 60px;
+  width: 100%;
+  display: flex;
+}
+.headerr,.pom2{
+  font-size: 30px;
+}
   .topbar__actions {
     gap: 8px;
   }
@@ -1936,7 +1946,16 @@
   .time-pill span {
     display: none;
   }
-
+ .qr-modal-footer{
+box-sizing: border-box;
+  gap: 10px;
+  padding: 50px 60px;
+  width: 100%;
+  display: flex;
+}
+.headerr,.pom2{
+  font-size: 30px;
+}
   .time-pill {
     padding: 4px 6px;
   }
@@ -2058,7 +2077,7 @@
 .notification-banner {
   margin: -20px -24px 0;
   padding: 32px 24px;
-  background: linear-gradient(90deg, #6fcf6f, #4faee0);
+  background: linear-gradient(90deg, #83D46E, #4faee0);
 }
 
 .notification-banner h1 {
@@ -2115,7 +2134,7 @@
 }
 
 .stat-card--green .stat-card__icon {
-  color: #2f9e44;
+  color: #83D46E;
   background: #e6f7e9;
 }
 
@@ -2155,7 +2174,7 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  color: #2f9e44;
+  color: #83D46E;
   background: #e6f7e9;
   display: grid;
   place-items: center;
@@ -2341,6 +2360,16 @@
 }
 
 @media (max-width: 900px) {
+   .qr-modal-footer{
+box-sizing: border-box;
+  gap: 10px;
+  padding: 50px 60px;
+  width: 100%;
+  display: flex;
+}
+.headerr,.pom2{
+  font-size: 30px;
+}
   .help-layout {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -2443,7 +2472,7 @@
 
 .profile-field input:focus,
 .profile-field textarea:focus {
-  border-color: #84d46e;
+  border-color: #83D46E;
 }
 
 .profile-field__value {
@@ -2523,7 +2552,7 @@
 .all{
   width: 100px;
   height: 120px;
-  border: 2px solid #85D46E;
+  border: 2px solid #83D46E;
   border-radius: 10px;
 }
 .inventory{
@@ -2537,6 +2566,20 @@
     padding: 16px 16px 32px;
   }
 
+  .qr-modal-content {
+  background: white;
+  border-radius: 12px;
+  width: 100vw;
+    border-radius: 12px; /* สมมติว่ากรอบของคุณมีความโค้ง */
+  overflow: hidden;  
+  height:80vh;
+    max-height: 80vh;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 10000;
+   
+    animation: moves 0.5s ease-in-out;
+}
   .notification-banner {
     margin: -16px -16px 0;
     padding: 24px 16px;
@@ -2581,7 +2624,7 @@
 
 .loading>div {
     height: 16px;
-    background: #203e18;
+    background: #83D46E;
     flex: 1;
     transform: scaleY(0.1);
     animation: loading 0.5s ease-in-out infinite alternate;
@@ -2597,7 +2640,7 @@
     100% {
         opacity: 1;
         transform: scaleY(2.8);
-        background: #84D46E;
+        background: #83D46E;
     }
 }
 
@@ -2654,8 +2697,8 @@
 
 /* บังคับให้กรอบอยู่ค้างตลอดเวลาที่มีคลาส .selected */
 .product-card.selected {
-  border: 2px solid #84d46e !important;
-  box-shadow: 0 4px 12px rgba(132, 212, 110, 0.3) !important;
+  border: 2px solid #83D46E !important;
+  box-shadow: 0 4px 12px rgba(131, 212, 110, 0.3) !important;
   transform: none !important; 
 }
 
@@ -2664,7 +2707,7 @@
   position: absolute;
   top: -8px;
   right: -8px;
-  background-color: #84d46e;
+  background-color: #83D46E;
   color: white;
   border-radius: 50%;
   width: 24px;
@@ -2683,7 +2726,7 @@
   max-width: 96px;
   box-sizing: border-box;
   padding: 4px 8px;
-  border: 1px solid #84d46e;
+  border: 1px solid #83D46E;
   border-radius: 8px;
   background: #fff;
   color: inherit;

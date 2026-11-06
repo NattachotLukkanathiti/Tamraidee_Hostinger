@@ -14,12 +14,17 @@
 </div>
 
 <div class="over">
-    <div class="Animation_out" [class.fade-out]="state.leaving()" [class.Return]="true">
-        <div class="container" [class.fade-out]="state.leaving()" [class.Return]="true">
+    <div class="Animation_out" [class.fade-out]="state.leaving()" [class.fade-out2]="state.leaving()">
+        <div class="container" [class.fade-out]="state.leaving()" [class.fade-out2]="state.leaving()">
             <div class="static">
                 <div class="header_in">
                     <div class="header_Inventory">คลังสินค้า</div>
-                    <div class="in_bt"></div>
+                    <div class="in_bt">
+                        <button type="button" class="pdf pm-pdf-btn" title="Export PDF" aria-label="Export PDF (ชื่อสินค้า / จำนวน / หน่วย)"
+                            [disabled]="loader" (click)="exportPdf()">
+                            <img src="image/pdf.svg" alt="">
+                        </button>
+                    </div>
                 </div>
                 <div class="bars">
                     <div class="search">
@@ -41,10 +46,24 @@
                                 }
                             </select>
                         </div>
+                        <div class="custom-select">
+                            <select [(ngModel)]="selectedNote" (change)="applyFilters()" aria-label="หมายเหตุ">
+                                <option value="all">ทุกหมายเหตุ</option>
+                                <option value="has">มีหมายเหตุ</option>
+                                <option value="none">ไม่มีหมายเหตุ</option>
+                                @for (note of notes; track note) {
+                                    <option [value]="'note:' + note">{{ note }}</option>
+                                }
+                            </select>
+                        </div>
                         <div class="con_am">
-                            <div class="reload" (click)="reloads()" title="โหลดใหม่">
-                                <img src="image/Group.svg" alt="โหลดใหม่">
-                            </div>
+                            <!-- เดิมเป็นปุ่มโหลดใหม่ -> เปลี่ยนเป็นรีเซ็ตสต็อกทั้งร้านเป็น 0 (ต้องยืนยันก่อน) -->
+                            <button type="button" class="reload pm-reset-btn" [disabled]="loader || !items.length"
+                                title="รีเซ็ตสต็อกทั้งร้านเป็น 0" aria-label="รีเซ็ตสต็อกทั้งร้านเป็น 0" (click)="askResetStock()">
+                                <img src="image/Group.svg" alt="">
+                                <span class="pm-reset-btn__long">รีเซ็ตสต็อก</span>
+                                <span class="pm-reset-btn__short" aria-hidden="true">รีเซ็ต</span>
+                            </button>
                             <div class="button_addt" (click)="button_adds()">
                                 <img src="image/In_add.svg" alt="">
                                 <div class="H">เพิ่มจำนวน</div>
@@ -138,6 +157,25 @@
         </div>
     }
 
+    @if (showpopupreset) {
+        <div class="backpop">
+            <div class="popupcontainer">
+                <div class="popup-content">
+                    <div class="cons">
+                        <img class="iconsuccess" src="image/notidelete.svg" alt="">
+                        <div class="line"></div>
+                    </div>
+                    <div class="headerpop">รีเซ็ตสต็อกเป็น 0?</div>
+                    <div class="subheadersuccess">{{ popup }}</div>
+                    <div class="container_button">
+                        <button class="button_confirm" (click)="confirmResetStock()">ยืนยัน</button>
+                        <button class="button_cancel" (click)="closepopup()">ไม่</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
     @if (showpopupconfirm) {
         <div class="backpop">
             <div class="popupcontainer">
@@ -226,7 +264,7 @@
 
             <div class="button_import">
                 <div class="save" (click)="saveNewItem()" style="cursor: pointer;">บันทึก</div>
-                <div class="cancel" (click)="button_cancels()" style="cursor: pointer;">ยกเลิก</div>
+                <div class="cancel" (click)="button_cancels()" style="cursor: pointer;"><span class="pm-btn-text">ยกเลิก</span></div>
             </div>
         </div>
     </div>
@@ -288,7 +326,7 @@
 
             <div class="button_import">
                 <div class="save" (click)="saveAddQuantity()">บันทึก</div>
-                <div class="cancel" (click)="button_cancels()">ยกเลิก</div>
+                <div class="cancel" (click)="button_cancels()"><span class="pm-btn-text">ยกเลิก</span></div>
             </div>
         </div>
     </div>
@@ -344,7 +382,7 @@
 
             <div class="button_import">
                 <div class="save" (click)="editt()">บันทึก</div>
-                <div class="cancel" (click)="button_cancels()">ยกเลิก</div>
+                <div class="cancel" (click)="button_cancels()"><span class="pm-btn-text">ยกเลิก</span></div>
             </div>
         </div>
     </div>

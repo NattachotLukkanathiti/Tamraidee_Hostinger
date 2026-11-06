@@ -54,6 +54,10 @@ const PUBLIC_API_ROUTES = new Set([
   'GET /api/shop/config',
 ]);
 
+/// PHUMALIN (ร้านบน / ร้านล่าง) — API ทั้งหมดอยู่ใน src/routes/phumalin.routes.ts
+/// ไม่ต้อง login: ต้องอยู่ก่อนตัวตรวจ login (/api) ด้านล่าง
+app.use(phumalinRoutes);
+
 app.use('/api', (req, res, next) => {
   const route = `${req.method} ${req.originalUrl.split('?')[0]}`;
   if (PUBLIC_API_ROUTES.has(route)) return next();
@@ -70,5 +74,4 @@ app.use(chatRoutes);
 app.use(auditRoutes);
 app.use(settingsRoutes);
 app.use(shopRoutes);
-/// PHUMALIN (ร้านบน / ร้านล่าง) — API ทั้งหมดอยู่ใน src/routes/phumalin.routes.ts
-app.use(phumalinRoutes);
+

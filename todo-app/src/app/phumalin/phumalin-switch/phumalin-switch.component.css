@@ -1,4 +1,4 @@
-/* สีและขนาดเดียวกับหน้าเดิม: เขียว #6FAB23 / พื้น #F4F5FC / ตัวอักษร #1D1D1F */
+/* สีและขนาดเดียวกับหน้าเดิม: เขียว #83D46E / พื้น #F4F5FC / ตัวอักษร #1D1D1F */
 :host {
   display: block;
 }
@@ -12,7 +12,7 @@
 }
 
 .pm-brand {
-  color: #6FAB23;
+  color: #83D46E;
   font-family: 'Nicomoji', sans-serif;
   font-size: 14px;
   font-weight: 800;
@@ -46,12 +46,12 @@
 
 .pm-store--active,
 .pm-store--active:hover {
-  background: #6FAB23;
+  background: #83D46E;
   color: #fff;
   font-weight: 600;
 }
 
 .pm-store:focus-visible {
-  outline: 2px solid #6FAB23;
+  outline: 2px solid #83D46E;
   outline-offset: 2px;
 }

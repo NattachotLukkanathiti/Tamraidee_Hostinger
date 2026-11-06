@@ -52,8 +52,8 @@
     display: flex;
 }
 .loader {
-  --color-1: #26471d;
-  --color-2: #84D46E;
+  --color-1: #83D46E;
+  --color-2: #83D46E;
   --color-3: #fff;
   --size: 1px;
 
@@ -314,11 +314,11 @@
     }
     30%{
         transform: translateY(0);
-        background-color: #84D46E;
+        background-color: #83D46E;
         color: white;
     }
     50%{
-        background-color: #84D46E;
+        background-color: #83D46E;
         color: white;
         opacity: 1;
     }
@@ -366,7 +366,7 @@
     display: flex;
     margin-left: 20px;
     flex-direction: column;
-    color: #6FAB23;
+    color: #83D46E;
     font-weight: 800;
     align-items: flex-start;
     font-family: 'Nicomoji', sans-serif;
@@ -399,7 +399,7 @@
     border-radius: 8px;
     font-size: 13px;
     height: 8px;
-    background-color: #84D46E;
+    background-color: #83D46E;
     cursor: pointer;
     overflow: hidden;
     transition: 0.3s;
@@ -409,7 +409,7 @@
     position: absolute;
     width: 150%;
     height: 150%;
-    background: #4fd52b;
+    background: #83D46E;
     border-radius: 50%;
 
     left: -25%;
@@ -1205,7 +1205,7 @@ flex-direction: column; /* ใส่หรือไม่ใส่ก็ได�
     /* เพราะค่าเหล่านี้จะถูกสืบทอดมาจาก .Logout ปกติอยู่แล้ว */
 }
 .dash {
-    background-color: #84D46E;
+    background-color: #83D46E;
     padding: 10px;
     border-radius: 5px;
     color: #FFF;
@@ -1380,13 +1380,13 @@ flex-direction: column; /* ใส่หรือไม่ใส่ก็ได�
 @keyframes height {
     0% {
         transform: scaleY(0);
-        box-shadow: 0px 10px 200px 20px #69ff4a;
+        box-shadow: 0px 10px 200px 20px #83D46E;
     }
 
     100% {
         transform: scaleY(1);
         /* ลดขนาดลงมาเล็กน้อยเพื่อให้ดูมีจังหวะการเต้นของแสง */
-        box-shadow: 0px 0px 30px 5px #69a95700;
+        box-shadow: 0px 0px 30px 5px #83D46E00;
     }
 }
 
@@ -1493,7 +1493,7 @@ flex-direction: column; /* ใส่หรือไม่ใส่ก็ได�
     display: flex;
     width: 10px;
     height: 10px;
-    background-color: #69A957;
+    background-color: #83D46E;
     border-radius: 100px;
     margin-top: 4px;
 }
@@ -1697,7 +1697,7 @@ flex-direction: column; /* ใส่หรือไม่ใส่ก็ได�
         display: flex;
         margin-left: -6px;
         flex-direction: column;
-        color: #6FAB23;
+        color: #83D46E;
         font-weight: 800;
         align-items: flex-start;
         font-family: 'Nicomoji', sans-serif;
@@ -1791,7 +1791,7 @@ flex-direction: column; /* ใส่หรือไม่ใส่ก็ได�
 
     .bar {
         width: 5vw;
-        background-color: #84D46E;
+        background-color: #83D46E;
         border-radius: 10px;
 
     }
@@ -1980,7 +1980,7 @@ flex-direction: column; /* ใส่หรือไม่ใส่ก็ได�
         margin-bottom: 70px;
     }
     .button_small {
-    margin-top: 200px;
+    margin-top: 160px;
 
 }
     /* ปรับขนาดและระยะห่างของข้อมูลแต่ละช่อง */
@@ -2044,7 +2044,7 @@ flex-direction: column; /* ใส่หรือไม่ใส่ก็ได�
     color: #FFFFFF;
     border: 2px solid #E6EAED;
     border-radius: 8px;
-    background: #84D46E;
+    background: #83D46E;
     justify-content: center;
     display: flex;
     margin-bottom: 20px;
@@ -2054,10 +2054,10 @@ flex-direction: column; /* ใส่หรือไม่ใส่ก็ได�
 }
 
 .buttonclose:hover {
-    background: #77BF63;
+    background: #83D46E;
 }
 .buttonclose:active {
-    background: #6AAA58;
+    background: #83D46E;
 }
 
 .buttonnoti:hover {
@@ -2160,7 +2160,7 @@ flex-direction: column; /* ใส่หรือไม่ใส่ก็ได�
 
 .loading>div {
     height: 16px;
-    background: #203e18;
+    background: #83D46E;
     flex: 1;
     transform: scaleY(0.1);
     animation: loading 0.5s ease-in-out infinite alternate;
@@ -2176,7 +2176,7 @@ flex-direction: column; /* ใส่หรือไม่ใส่ก็ได�
     100% {
         opacity: 1;
         transform: scaleY(2.8);
-        background: #84D46E;
+        background: #83D46E;
     }
 }
 
@@ -2282,7 +2282,7 @@ flex-direction: column; /* ใส่หรือไม่ใส่ก็ได�
   display: block;
   height: 100%;
   padding-left: 6px;
-  color: #71fa6a;
+  color: #83D46E;
   animation: spin_4991 4s infinite;
 }
 

@@ -39,6 +39,9 @@ export class PhumalinDashboardComponent {
   readonly heatmapDays = ['จ.', 'อ.', 'พ.', 'พฤ.', 'ศ.', 'ส.', 'อา.'];
   readonly heatmapTimes = ['10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'];
 
+  /// ปุ่มโหลดใหม่ ซ่อนไว้ก่อน (true = แสดง)
+  readonly showReload = false;
+
   loader = true;
   errorMessage = '';
   items: PhumalinItem[] = [];

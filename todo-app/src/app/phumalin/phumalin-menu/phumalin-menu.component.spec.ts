@@ -1,5 +1,4 @@
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { AuthService } from '../../services/auth.service';
 import { PhumalinState } from '../phumalin-state.service';
 import { PhumalinMenuComponent } from './phumalin-menu.component';
 
@@ -8,7 +7,7 @@ describe('PhumalinMenuComponent', () => {
     localStorage.removeItem('phumalin_store');
     TestBed.configureTestingModule({
       imports: [PhumalinMenuComponent],
-      providers: [PhumalinState, { provide: AuthService, useValue: { user: { username: 'u', role: 'admin' } } }]
+      providers: [PhumalinState]
     });
     const fixture = TestBed.createComponent(PhumalinMenuComponent);
     fixture.detectChanges();
@@ -50,4 +49,5 @@ describe('PhumalinMenuComponent', () => {
     fixture.detectChanges();
     expect(el.querySelector('.pm-ber')).toBeNull();
   }));
+
 });

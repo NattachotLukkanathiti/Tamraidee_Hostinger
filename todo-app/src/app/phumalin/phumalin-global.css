@@ -9,3 +9,25 @@ body.phumalin-page app-navbar .container_bar {
   visibility: hidden !important;
   pointer-events: none !important;
 }
+
+/* ไม่ต้อง login: navbar กลางจะเด้ง "Session not found" แล้วพาไปหน้า login ถ้าไม่ได้ login
+   ซ่อนป๊อปอัปนั้นเฉพาะหน้านี้ (ไม่แก้โค้ด navbar เดิม) */
+body.phumalin-page app-navbar .backpop {
+  display: none !important;
+}
+
+/* ไม่ใช้เอฟเฟกต์ "เลื่อนแล้วค่อยเฟดเข้า" (ScrollRevealService กลางของเว็บ) ในหน้า phumalin ทั้ง 3 หน้า
+   ไม่แก้ service เดิม: แค่ทำให้คลาสที่มันใส่ไม่มีผลเฉพาะหน้านี้ */
+body.phumalin-page .sr-hidden {
+  opacity: 1 !important;
+  translate: none !important;
+}
+
+body.phumalin-page .sr-reveal {
+  transition: none !important;
+}
+
+/* หน้าเพิ่มสินค้าบนมือถือ: เปิดรายการอยู่ หน้าข้างหลังไม่เลื่อน */
+body.phumalin-page.pm-cart-lock {
+  overflow: hidden;
+}

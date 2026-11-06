@@ -15,7 +15,7 @@
 
 <div class="over">
     <div class="container2">
-        <div class="container" [class.fade-out]="state.leaving()" [class.Return]="true">
+        <div class="container" [class.fade-out]="state.leaving()" [class.fade-out-left]="state.leavingTo() === 'pos'" [class.Return]="state.cameFrom() === 'inventory'">
             <div class="hea">
                 <div class="con_header">
                     <div class="header_Inventory">แดชบอร์ด</div>
@@ -24,9 +24,12 @@
                     <div class="pdf" (click)="printPage()" title="พิมพ์">
                         <img src="image/pdf.svg" alt="พิมพ์">
                     </div>
-                    <div class="reload" (click)="load()" title="โหลดใหม่">
-                        <img src="image/Group.svg" alt="โหลดใหม่">
-                    </div>
+                    <!-- ปุ่มโหลดใหม่: ซ่อนไว้ก่อน (เปิดคืนได้ที่ showReload ใน .ts) -->
+                    @if (showReload) {
+                        <div class="reload" (click)="load()" title="โหลดใหม่">
+                            <img src="image/Group.svg" alt="โหลดใหม่">
+                        </div>
+                    }
                 </div>
             </div>
 
@@ -161,14 +164,16 @@
             </div>
         </div>
 
-        <div class="consale" [class.fade-out]="state.leaving()" [class.Return]="true">
+        <div class="consale" [class.fade-out]="state.leaving()" [class.fade-out-left]="state.leavingTo() === 'pos'" [class.Return]="state.cameFrom() === 'inventory'">
             <div class="in_bt2">
                 <div class="pdf" (click)="printPage()" title="พิมพ์">
                     <img src="image/pdf.svg" alt="พิมพ์">
                 </div>
-                <div class="reload" (click)="load()" title="โหลดใหม่">
-                    <img src="image/Group.svg" alt="โหลดใหม่">
-                </div>
+                @if (showReload) {
+                    <div class="reload" (click)="load()" title="โหลดใหม่">
+                        <img src="image/Group.svg" alt="โหลดใหม่">
+                    </div>
+                }
             </div>
 
             <div class="con_sale_order">

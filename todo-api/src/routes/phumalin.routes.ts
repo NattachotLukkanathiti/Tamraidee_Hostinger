@@ -2,6 +2,8 @@
 /// PHUMALIN API: ระบบวัตถุดิบ แยก "ร้านบน" (upper) และ "ร้านล่าง" (lower)
 /// - ใช้ตารางใหม่ phumalin_item / phumalin_movement (migrations/009_phumalin.sql)
 /// - ไม่แตะ API / ตารางเดิมเลย
+/// - ไม่ต้อง login / ไม่ตรวจ role: ใครเปิดหน้า /phumalin ก็ใช้ได้ทุกอย่าง
+///   (app.ts ต้อง app.use(phumalinRoutes) ก่อนตัวตรวจ login ของ /api)
 /// - เลิกใช้เมื่อไหร่: ลบไฟล์นี้ + ลบบล็อก "/// PHUMALIN" ใน src/app.ts
 /// ///////////////////////////////////////////////////////////////////////////
 ///
@@ -13,6 +15,7 @@
 /// POST   /api/phumalin/:store/items/:id/stock-in    เติมจำนวน { quantity, note }
 /// POST   /api/phumalin/:store/restock               เพิ่มสินค้าหลายรายการจากหน้า POS { items: [{ id, quantity }], note }
 /// POST   /api/phumalin/:store/withdraw              เบิกหลายรายการ { items: [{ id, quantity }], note } (หน้า POS ไม่ได้ใช้แล้ว เก็บไว้เผื่อใช้)
+/// POST   /api/phumalin/:store/reset-stock           รีเซ็ตคงเหลือของทุกสินค้าในร้านเป็น 0 (บันทึกประวัติเป็น adjust)
 /// GET    /api/phumalin/:store/movements?limit=500   ประวัติเติม / เบิก / แก้ยอด ล่าสุดก่อน
 ///
 /// :store = upper | lower
@@ -20,19 +23,11 @@
 import { Router, Request, Response } from 'express';
 import { PoolClient } from 'pg';
 import { pool } from '../database/db';
-import { requireRole } from '../middleware/auth';
 import { actorName, dbErrorMessage } from '../lib/helpers';
 
 const router = Router();
 
 /// ---------- ค่าคงที่ ----------
-
-/// สิทธิ์ให้ตรงกับหน้าเดิม: Dashboard = admin/manager, Inventory = + backend, POS = + pos
-const STAFF = ['admin', 'manager', 'pos', 'backend'];
-const STOCK_EDITORS = ['admin', 'manager', 'backend'];
-const WITHDRAWERS = ['admin', 'manager', 'pos'];
-/// หน้า POS ของ phumalin = เพิ่มสินค้า ใช้สิทธิ์เดียวกับหน้า POS เดิม
-const RESTOCKERS = WITHDRAWERS;
 
 const STORES = ['upper', 'lower'] as const;
 type Store = typeof STORES[number];
@@ -131,6 +126,11 @@ function withdrawCode(store: Store) {
 }
 
 /// รหัสการเพิ่มสินค้าจากหน้า POS เช่น UP-IN-482913 / LO-IN-482913
+/// รหัสการรีเซ็ตสต็อก เช่น UP-RESET-482913
+function resetCode(store: Store) {
+  return `${store === 'upper' ? 'UP' : 'LO'}-RESET-${String(Date.now()).slice(-6)}`;
+}
+
 function restockCode(store: Store) {
   return `${store === 'upper' ? 'UP' : 'LO'}-IN-${String(Date.now()).slice(-6)}`;
 }
@@ -149,7 +149,7 @@ function parseItemList(body: any): Map<number, number> | null {
 }
 
 /// ---------- /// GET รายการวัตถุดิบ ----------
-router.get('/api/phumalin/:store/items', requireRole(...STAFF), async (req, res) => {
+router.get('/api/phumalin/:store/items', async (req, res) => {
   const store = storeOf(req, res);
   if (!store) return;
   try {
@@ -165,7 +165,7 @@ router.get('/api/phumalin/:store/items', requireRole(...STAFF), async (req, res)
 });
 
 /// ---------- /// POST เพิ่มวัตถุดิบ ----------
-router.post('/api/phumalin/:store/items', requireRole(...STOCK_EDITORS), async (req, res) => {
+router.post('/api/phumalin/:store/items', async (req, res) => {
   const store = storeOf(req, res);
   if (!store) return;
 
@@ -200,7 +200,7 @@ router.post('/api/phumalin/:store/items', requireRole(...STOCK_EDITORS), async (
 });
 
 /// ---------- /// PUT แก้วัตถุดิบ ----------
-router.put('/api/phumalin/:store/items/:id', requireRole(...STOCK_EDITORS), async (req, res) => {
+router.put('/api/phumalin/:store/items/:id', async (req, res) => {
   const store = storeOf(req, res);
   if (!store) return;
 
@@ -254,7 +254,7 @@ router.put('/api/phumalin/:store/items/:id', requireRole(...STOCK_EDITORS), asyn
 });
 
 /// ---------- /// DELETE ลบวัตถุดิบ ----------
-router.delete('/api/phumalin/:store/items/:id', requireRole(...STOCK_EDITORS), async (req, res) => {
+router.delete('/api/phumalin/:store/items/:id', async (req, res) => {
   const store = storeOf(req, res);
   if (!store) return;
   try {
@@ -271,7 +271,7 @@ router.delete('/api/phumalin/:store/items/:id', requireRole(...STOCK_EDITORS), a
 });
 
 /// ---------- /// POST เติมจำนวน (Add Quantity) ----------
-router.post('/api/phumalin/:store/items/:id/stock-in', requireRole(...STOCK_EDITORS), async (req, res) => {
+router.post('/api/phumalin/:store/items/:id/stock-in', async (req, res) => {
   const store = storeOf(req, res);
   if (!store) return;
 
@@ -307,7 +307,7 @@ router.post('/api/phumalin/:store/items/:id/stock-in', requireRole(...STOCK_EDIT
 
 /// ---------- /// POST เพิ่มสินค้าหลายรายการ (หน้า POS) ----------
 /// ทำใน transaction เดียว: รายการไหนไม่มีอยู่ / เกินขีดจำกัด = ไม่เพิ่มเลยทั้งชุด
-router.post('/api/phumalin/:store/restock', requireRole(...RESTOCKERS), async (req, res) => {
+router.post('/api/phumalin/:store/restock', async (req, res) => {
   const store = storeOf(req, res);
   if (!store) return;
 
@@ -361,7 +361,7 @@ router.post('/api/phumalin/:store/restock', requireRole(...RESTOCKERS), async (r
 
 /// ---------- /// POST เบิกวัตถุดิบ (หน้า POS) ----------
 /// ของไม่พอแม้รายการเดียว = ยกเลิกทั้งหมด ไม่ตัดรายการอื่น
-router.post('/api/phumalin/:store/withdraw', requireRole(...WITHDRAWERS), async (req, res) => {
+router.post('/api/phumalin/:store/withdraw', async (req, res) => {
   const store = storeOf(req, res);
   if (!store) return;
 
@@ -418,8 +418,41 @@ router.post('/api/phumalin/:store/withdraw', requireRole(...WITHDRAWERS), async 
   }
 });
 
+/// ---------- /// POST รีเซ็ตสต็อกทั้งร้านเป็น 0 (หน้าคลังสินค้า) ----------
+/// เฉพาะร้านที่ระบุ / สินค้าที่คงเหลือไม่ใช่ 0 บันทึกส่วนต่างเป็น adjust (ดูย้อนหลังได้ว่าเดิมเหลือเท่าไร)
+router.post('/api/phumalin/:store/reset-stock', async (req, res) => {
+  const store = storeOf(req, res);
+  if (!store) return;
+
+  const orderCode = resetCode(store);
+  const createdBy = actorName(req);
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const locked = await client.query(
+      'SELECT * FROM phumalin_item WHERE store = $1 AND quantity <> 0 ORDER BY id FOR UPDATE',
+      [store]
+    );
+    for (const row of locked.rows) {
+      const before = toItem(row);
+      await client.query('UPDATE phumalin_item SET quantity = 0, updated_at = now() WHERE id = $1', [before.id]);
+      await insertMovement(client, store, before, {
+        type: 'adjust', quantity: -before.quantity, balance: 0, orderCode, note: 'รีเซ็ตสต็อกเป็น 0', createdBy
+      });
+    }
+    await client.query('COMMIT');
+    res.json({ success: true, order_code: orderCode, reset: locked.rowCount ?? 0 });
+  } catch (error) {
+    await client.query('ROLLBACK').catch(() => {});
+    console.error('Phumalin reset-stock error:', error);
+    res.status(500).json({ success: false, message: dbErrorMessage(error) });
+  } finally {
+    client.release();
+  }
+});
+
 /// ---------- /// GET ประวัติการเคลื่อนไหว ----------
-router.get('/api/phumalin/:store/movements', requireRole(...STAFF), async (req, res) => {
+router.get('/api/phumalin/:store/movements', async (req, res) => {
   const store = storeOf(req, res);
   if (!store) return;
   const limit = Math.min(Math.max(Number(req.query.limit) || 500, 1), 2000);

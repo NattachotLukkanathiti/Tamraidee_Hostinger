@@ -118,7 +118,7 @@ test('phumalin: เติมจำนวน / เบิกหลายราย�
   assert.equal(outs[0].created_by, 'pos1');
 });
 
-test('phumalin: เพิ่มสินค้าหลายรายการจากหน้า POS / ของที่ไม่มีในร้านนี้ไม่เพิ่มเลยทั้งชุด / backend ใช้ไม่ได้', async () => {
+test('phumalin: เพิ่มสินค้าหลายรายการจากหน้า POS / ของที่ไม่มีในร้านนี้ไม่เพิ่มเลยทั้งชุด', async () => {
   const admin = await tokenFor('admin1');
   const pos = await tokenFor('pos1');
   const back = await tokenFor('back1');
@@ -135,7 +135,7 @@ test('phumalin: เพิ่มสินค้าหลายรายการ�
   assert.equal((await api('POST', '/api/phumalin/upper/restock', { items: [{ id: egg.id, quantity: 1 }, { id: other.id, quantity: 1 }] }, pos)).status, 404);
   assert.equal(await remaining(egg.id), 30);
   assert.equal((await api('POST', '/api/phumalin/upper/restock', { items: [{ id: egg.id, quantity: 0 }] }, pos)).status, 400);
-  assert.equal((await api('POST', '/api/phumalin/upper/restock', { items: [{ id: egg.id, quantity: 1 }] }, back)).status, 403);
+  assert.equal((await api('POST', '/api/phumalin/upper/restock', { items: [{ id: egg.id, quantity: 1 }] }, back)).status, 200);
 
   const ins = (await api('GET', '/api/phumalin/upper/movements', undefined, admin)).body.filter((m: any) => m.order_code === ok.body.order_code);
   assert.equal(ins.length, 2);
@@ -154,7 +154,27 @@ test('phumalin: ใส่ลิงก์รูปได้ (http/https เท่
   assert.equal(edit.body.data.picture, null);
 });
 
-test('phumalin: แก้คงเหลือบันทึก adjust / ลบแล้วประวัติยังอยู่ / สิทธิ์ตาม role', async () => {
+test('phumalin: รีเซ็ตสต็อกเป็น 0 เฉพาะร้านที่เลือก / บันทึกยอดเดิมเป็น adjust', async () => {
+  const admin = await tokenFor('admin1');
+  const a = (await api('POST', '/api/phumalin/upper/items', { name: 'A', unit: 'kg', category: 'dry', quantity: 4 }, admin)).body.data;
+  const b = (await api('POST', '/api/phumalin/upper/items', { name: 'B', unit: 'kg', category: 'dry', quantity: 0 }, admin)).body.data;
+  const c = (await api('POST', '/api/phumalin/lower/items', { name: 'A', unit: 'kg', category: 'dry', quantity: 7 }, admin)).body.data;
+
+  const res = await api('POST', '/api/phumalin/upper/reset-stock');
+  assert.equal(res.status, 200);
+  assert.equal(res.body.reset, 1);
+  assert.match(res.body.order_code, /^UP-RESET-\d{6}$/);
+  assert.equal(await remaining(a.id), 0);
+  assert.equal(await remaining(b.id), 0);
+  assert.equal(await remaining(c.id), 7); // ร้านล่างไม่โดน
+
+  const adjust = (await api('GET', '/api/phumalin/upper/movements')).body.find((m: any) => m.order_code === res.body.order_code);
+  assert.equal(adjust.type, 'adjust');
+  assert.equal(adjust.quantity, -4);
+  assert.equal(adjust.balance, 0);
+});
+
+test('phumalin: แก้คงเหลือบันทึก adjust / ลบแล้วประวัติยังอยู่ / ไม่ต้อง login', async () => {
   const admin = await tokenFor('admin1');
   const pos = await tokenFor('pos1');
   const back = await tokenFor('back1');
@@ -167,10 +187,15 @@ test('phumalin: แก้คงเหลือบันทึก adjust / ลบ
   const adjust = (await api('GET', '/api/phumalin/lower/movements', undefined, admin)).body.find((m: any) => m.type === 'adjust');
   assert.equal(adjust.quantity, -1);
 
-  assert.equal((await api('POST', '/api/phumalin/lower/items', { name: 'Salt', unit: 'kg', category: 'dry' }, pos)).status, 403);
-  assert.equal((await api('POST', '/api/phumalin/lower/withdraw', { items: [{ id: rice.id, quantity: 1 }] }, back)).status, 403);
-  assert.equal((await api('GET', '/api/phumalin/lower/items', undefined, cust)).status, 403);
-  assert.equal((await api('GET', '/api/phumalin/lower/items')).status, 401);
+  // ไม่ต้อง login / ไม่ตรวจ role: ทุก role และคนที่ไม่ได้ login ใช้ได้
+  assert.equal((await api('POST', '/api/phumalin/lower/items', { name: 'Salt', unit: 'kg', category: 'dry' }, pos)).status, 201);
+  assert.equal((await api('GET', '/api/phumalin/lower/items', undefined, cust)).status, 200);
+  assert.equal((await api('GET', '/api/phumalin/lower/items')).status, 200);
+  const anon = await api('POST', '/api/phumalin/lower/restock', { items: [{ id: rice.id, quantity: 1 }] });
+  assert.equal(anon.status, 200);
+  assert.equal(await remaining(rice.id), 4);
+  // API อื่นยังต้อง login เหมือนเดิม
+  assert.equal((await api('GET', '/api/inventory')).status, 401);
 
   assert.equal((await api('DELETE', `/api/phumalin/lower/items/${rice.id}`, undefined, admin)).status, 200);
   const history = (await api('GET', '/api/phumalin/lower/movements', undefined, admin)).body;
