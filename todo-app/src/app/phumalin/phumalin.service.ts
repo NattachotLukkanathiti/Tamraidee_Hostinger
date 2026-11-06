@@ -46,7 +46,7 @@ export class PhumalinService {
     return this.http.post<PhumalinWithdrawResult>(`${this.base}/${store}/restock`, { items, note });
   }
 
-  /// POST /api/phumalin/:store/withdraw (ไม่ได้ใช้ในหน้าแล้ว เก็บไว้เผื่อใช้)
+  /// POST /api/phumalin/:store/withdraw (หน้า POS โหมด "ลด")
   withdraw(store: PhumalinStore, items: { id: number; quantity: number }[], note?: string): Observable<PhumalinWithdrawResult> {
     return this.http.post<PhumalinWithdrawResult>(`${this.base}/${store}/withdraw`, { items, note });
   }

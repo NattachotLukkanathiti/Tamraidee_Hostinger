@@ -20,6 +20,9 @@ interface CategoryCard {
 
 const MAX_QUANTITY = 9_999_999;
 
+/// โหมดของหน้า: add = จิ้มเพื่อเพิ่มเข้าสต็อก (restock) / remove = จิ้มเพื่อลดออกจากสต็อก (withdraw)
+export type PosMode = 'add' | 'remove';
+
 interface CartItem {
   item: PhumalinItem;
   quantity: number;
@@ -89,13 +92,13 @@ export class PhumalinPosComponent {
         this.items = [...items].sort((a, b) => a.name.localeCompare(b.name));
         this.loadError = '';
         this.buildCategories();
-        // ใช้คงเหลือล่าสุด และตัดรายการที่ถูกลบไปแล้วออก
+        // ใช้คงเหลือล่าสุด และตัดรายการที่ถูกลบไปแล้วออก (โหมดลด: ไม่เกินที่เหลือ)
         this.cartItems = this.cartItems
           .map((entry) => {
             const item = this.items.find((i) => i.id === entry.item.id);
-            return item ? { item, quantity: entry.quantity } : null;
+            return item ? { item, quantity: Math.min(entry.quantity, this.limitOf(item)) } : null;
           })
-          .filter((entry): entry is CartItem => !!entry);
+          .filter((entry): entry is CartItem => !!entry && entry.quantity > 0);
       },
       error: (err) => (this.loadError = err?.error?.message || 'โหลดรายการสินค้าไม่สำเร็จ กรุณาลองใหม่')
     });
@@ -181,11 +184,42 @@ export class PhumalinPosComponent {
     return this.cartItems.find((entry) => entry.item.id === id)?.quantity ?? 0;
   }
 
-  /// จิ้มสินค้า = เพิ่มทีละ 1 (ของหมดก็กดเพิ่มได้)
+  // ---------- โหมดเพิ่ม / ลด ----------
+
+  mode: PosMode = 'add';
+
+  /// คำที่ใช้บนปุ่ม / หัวข้อ ตามโหมด
+  get verb(): string {
+    return this.mode === 'add' ? 'เพิ่ม' : 'ลด';
+  }
+
+  /// สลับโหมด: รายการที่เลือกไว้ยังอยู่ แต่โหมดลดจะไม่ให้เกินคงเหลือ (ของหมดถูกตัดออก)
+  setMode(mode: PosMode): void {
+    if (mode === this.mode) return;
+    this.mode = mode;
+    this.saveError = '';
+    this.cartItems = this.cartItems
+      .map((entry) => ({ ...entry, quantity: Math.min(entry.quantity, this.limitOf(entry.item)) }))
+      .filter((entry) => entry.quantity > 0);
+  }
+
+  /// จำนวนสูงสุดที่ใส่ในรายการได้: โหมดลด = คงเหลือ / โหมดเพิ่ม = ไม่จำกัด (ตามเพดานของ API)
+  private limitOf(item: PhumalinItem): number {
+    return this.mode === 'remove' ? Math.max(0, item.quantity) : MAX_QUANTITY;
+  }
+
+  /// โหมดลด: ของหมดจิ้มไม่ได้
+  isDisabled(item: PhumalinItem): boolean {
+    return this.mode === 'remove' && item.quantity <= 0;
+  }
+
+  /// จิ้มสินค้า = เพิ่มในรายการทีละ 1 (โหมดเพิ่ม: ของหมดก็กดได้ / โหมดลด: ไม่เกินคงเหลือ)
   addToCart(item: PhumalinItem): void {
+    if (this.isDisabled(item)) return;
+    const limit = this.limitOf(item);
     const entry = this.cartItems.find((e) => e.item.id === item.id);
-    if (entry) entry.quantity = Math.min(entry.quantity + 1, MAX_QUANTITY);
-    else this.cartItems = [...this.cartItems, { item, quantity: 1 }];
+    if (entry) entry.quantity = Math.min(entry.quantity + 1, limit);
+    else this.cartItems = [...this.cartItems, { item, quantity: Math.min(1, limit) }];
   }
 
   changeQuantity(entry: CartItem, change: number): void {
@@ -194,19 +228,20 @@ export class PhumalinPosComponent {
       this.removeFromCart(entry);
       return;
     }
-    entry.quantity = Math.min(next, MAX_QUANTITY);
+    entry.quantity = Math.min(next, this.limitOf(entry.item));
   }
 
   /// พิมพ์จำนวนเองได้ (เช่น 0.5 กก.) ค่าที่ไม่ใช่ตัวเลข / ติดลบไม่รับ
   setQuantity(entry: CartItem, value: number | string | null): void {
     const quantity = Number(value);
     if (value === null || value === '' || !Number.isFinite(quantity) || quantity <= 0) return;
-    entry.quantity = Math.min(Math.round(quantity * 100) / 100, MAX_QUANTITY);
+    entry.quantity = Math.min(Math.round(quantity * 100) / 100, this.limitOf(entry.item));
   }
 
-  /// คงเหลือหลังเพิ่ม
+  /// คงเหลือหลังเพิ่ม / ลด
   totalAfter(entry: CartItem): number {
-    return Math.round((entry.item.quantity + entry.quantity) * 100) / 100;
+    const sign = this.mode === 'add' ? 1 : -1;
+    return Math.max(0, Math.round((entry.item.quantity + sign * entry.quantity) * 100) / 100);
   }
 
   removeFromCart(entry: CartItem): void {
@@ -249,12 +284,18 @@ export class PhumalinPosComponent {
     }, 300));
   }
 
-  confirmRestock(): void {
+  /// ยืนยัน: โหมดเพิ่ม -> /restock, โหมดลด -> /withdraw (ของไม่พอแม้รายการเดียว ไม่ลดเลยทั้งชุด)
+  confirmSave(): void {
     if (!this.cartItems.length || this.isLoading) return;
     const store = this.state.store();
+    const mode = this.mode;
+    const lines = this.cartItems.map((e) => ({ id: e.item.id, quantity: e.quantity }));
+    const request = mode === 'add'
+      ? this.api.restock(store, lines, this.note.trim())
+      : this.api.withdraw(store, lines, this.note.trim());
     this.isLoading = true;
     this.saveError = '';
-    this.api.restock(store, this.cartItems.map((e) => ({ id: e.item.id, quantity: e.quantity })), this.note.trim()).subscribe({
+    request.subscribe({
       next: (res) => {
         this.isLoading = false;
         this.successCode = res.order_code;
@@ -267,8 +308,8 @@ export class PhumalinPosComponent {
       },
       error: (err) => {
         this.isLoading = false;
-        this.saveError = err?.error?.message || 'เพิ่มสินค้าไม่สำเร็จ กรุณาลองใหม่';
-        this.load(store); // เผื่อมีสินค้าถูกลบไประหว่างนั้น
+        this.saveError = err?.error?.message || `${mode === 'add' ? 'เพิ่ม' : 'ลด'}สินค้าไม่สำเร็จ กรุณาลองใหม่`;
+        this.load(store); // เผื่อมีสินค้าถูกลบ / ถูกลดไประหว่างนั้น
       }
     });
   }

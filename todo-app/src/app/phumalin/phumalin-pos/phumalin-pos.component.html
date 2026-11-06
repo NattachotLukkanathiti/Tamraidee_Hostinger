@@ -1,8 +1,9 @@
 <!-- PHUMALIN Pos: โครงและคลาสเดียวกับหน้า POS เดิม (เพิ่มสินค้าเข้าสต็อก ไม่มีราคา) -->
-<!-- มือถือ (≤ 900px): ปุ่มตะกร้าลอยติดมุมขวาล่างของจอ กดแล้วเปิดรายการที่จะเพิ่ม
+<!-- มือถือ (≤ 900px): ปุ่มตะกร้าลอยติดมุมขวาล่างของจอ กดแล้วเปิดรายการที่จะเพิ่ม / ลด
      วางไว้นอก .shell / .container_all เพราะอนิเมชันของกล่องพวกนั้นใส่ transform ทำให้ position: fixed เลื่อนตามหน้า -->
 <button type="button" class="pm-cart-btn" [class.pm-cart-btn--hidden]="cartOpen" aria-controls="pm-order-list" [attr.aria-expanded]="cartOpen"
-  [attr.aria-label]="'รายการที่จะเพิ่ม ' + itemCount + ' รายการ'" (click)="toggleCart()">
+  [class.pm-cart-btn--remove]="mode === 'remove'"
+  [attr.aria-label]="'รายการที่จะ' + verb + ' ' + itemCount + ' รายการ'" (click)="toggleCart()">
   <img src="image/u_shopping-cart.svg" alt="" />
   @if (itemCount) { <span class="pm-cart-btn__badge">{{ itemCount }}</span> }
 </button>
@@ -53,12 +54,21 @@
               <div class="products-section" aria-label="สินค้า">
                 <div class="products-heading">
                   <h2>สินค้า · {{ storeLabel(state.store()) }}</h2>
-                  <label class="product-search"><img src="image/search.svg" alt="" /><input [(ngModel)]="searchTerm" type="search" placeholder="ค้นหาสินค้า" aria-label="ค้นหาสินค้า" /></label>
+                  <div class="pm-search-row">
+                    <!-- สลับโหมด: เพิ่ม = จิ้มเพื่อเพิ่มเข้าสต็อก / ลด = จิ้มเพื่อลดออกจากสต็อก -->
+                    <div class="pm-mode" role="radiogroup" aria-label="โหมด เพิ่ม / ลด จำนวนสต็อก">
+                      <button type="button" role="radio" class="pm-mode__btn pm-mode__btn--add" [class.pm-mode__btn--active]="mode === 'add'"
+                        [attr.aria-checked]="mode === 'add'" (click)="setMode('add')">+ เพิ่ม</button>
+                      <button type="button" role="radio" class="pm-mode__btn pm-mode__btn--remove" [class.pm-mode__btn--active]="mode === 'remove'"
+                        [attr.aria-checked]="mode === 'remove'" (click)="setMode('remove')">− ลด</button>
+                    </div>
+                    <label class="product-search"><img src="image/search.svg" alt="" /><input [(ngModel)]="searchTerm" type="search" placeholder="ค้นหาสินค้า" aria-label="ค้นหาสินค้า" /></label>
+                  </div>
                 </div>
                 @if (loadError) { <p class="pm-error" role="alert">{{ loadError }}</p> }
                 <div class="product-grid">
                   @for (product of filteredProducts; track product.id) {
-                    <button class="product-card" type="button" (click)="addToCart(product)">
+                    <button class="product-card" type="button" [class.pm-card--empty]="isDisabled(product)" [disabled]="isDisabled(product)" (click)="addToCart(product)">
                       @if (getCartQuantity(product.id) > 0) {
                         <div class="cart-badge">{{ formatQty(getCartQuantity(product.id)) }}</div>
                       }
@@ -80,11 +90,11 @@
             </div>
           </div>
 
-          <div class="right-side" id="pm-order-list" [class.pm-cart-open]="cartOpen" aria-label="รายการที่จะเพิ่ม">
+          <div class="right-side" id="pm-order-list" [class.pm-cart-open]="cartOpen" [attr.aria-label]="'รายการที่จะ' + verb">
             <div class="order-title">
               <div class="T">
                 <div class="C">
-                  <div class="header_order_list">รายการที่จะเพิ่ม</div>
+                  <div class="header_order_list" [class.pm-out]="mode === 'remove'">รายการที่จะ{{ verb }}</div>
                   <div>รหัสรายการ : {{ orderCode === '-' ? '-' : '#' + orderCode }}</div>
                 </div>
                 <button type="button" class="pm-cart-close" aria-label="ปิดรายการ" (click)="closeCart()">&times;</button>
@@ -104,7 +114,7 @@
                       <div>สินค้า</div>
                       <div class="is-right">หน่วย</div>
                       <div class="is-center">จำนวน</div>
-                      <div class="is-right">หลังเพิ่ม</div>
+                      <div class="is-right">หลัง{{ verb }}</div>
                       <div></div>
                     </div>
                     <div class="cart-table__body">
@@ -132,12 +142,12 @@
               <div class="payment-info">
                 <div class="payment-fields pm-fields">
                   <label>หมายเหตุ
-                    <input class="pm-note-input" type="text" [(ngModel)]="note" maxlength="500" placeholder="เช่น ซื้อจากตลาด" />
+                    <input class="pm-note-input" type="text" [(ngModel)]="note" maxlength="500" [placeholder]="mode === 'add' ? 'เช่น ซื้อจากตลาด' : 'เช่น ใช้ทำอาหารกลางวัน'" />
                   </label>
                 </div>
                 <div class="payment-divider"></div>
                 <button class="grand-total" type="button" [disabled]="!cartItems.length" (click)="openConfirm()">
-                  ยืนยันเพิ่มสินค้า : {{ itemCount }} รายการ
+                  ยืนยัน{{ verb }}สินค้า : {{ itemCount }} รายการ
                 </button>
               </div>
             </div>
@@ -150,9 +160,9 @@
   <!-- ยืนยันการเพิ่มสินค้า (ใช้หน้าต่างเดียวกับ Cash Payment เดิม) -->
   @if (showConfirm) {
     <div class="qr-modal-backdrop" (click)="closeConfirm()">
-      <div class="qr-modal-content" [class.out_comimport]="outimport" (click)="$event.stopPropagation()" role="dialog" aria-label="ยืนยันเพิ่มสินค้า">
+      <div class="qr-modal-content" [class.out_comimport]="outimport" (click)="$event.stopPropagation()" role="dialog" [attr.aria-label]="'ยืนยัน' + verb + 'สินค้า'">
         <div class="qr-modal-header">
-          <div class="headerr">{{ successCode ? 'เพิ่มสินค้าแล้ว' : 'ยืนยันเพิ่มสินค้า' }}</div>
+          <div class="headerr">{{ successCode ? verb + 'สินค้าแล้ว' : 'ยืนยัน' + verb + 'สินค้า' }}</div>
           <span class="pom2">{{ storeLabel(state.store()) }}</span>
         </div>
 
@@ -166,7 +176,7 @@
               @for (entry of cartItems; track entry.item.id) {
                 <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
                   <span>{{ entry.item.name }}</span>
-                  <span>+{{ formatQty(entry.quantity) }} {{ entry.item.unit }}</span>
+                  <span [class.pm-out]="mode === 'remove'">{{ mode === 'add' ? '+' : '−' }}{{ formatQty(entry.quantity) }} {{ entry.item.unit }}</span>
                 </div>
               }
               @if (note.trim()) {
@@ -180,7 +190,7 @@
         @if (!successCode) {
           <div class="qr-modal-footer">
             <button class="btn-cancel" (click)="closeConfirm()">ยกเลิก</button>
-            <button class="btn-confirm" [disabled]="isLoading || !cartItems.length" (click)="confirmRestock()">ยืนยัน</button>
+            <button class="btn-confirm" [disabled]="isLoading || !cartItems.length" (click)="confirmSave()">ยืนยัน</button>
           </div>
         }
       </div>

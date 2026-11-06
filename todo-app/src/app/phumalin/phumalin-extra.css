@@ -345,3 +345,84 @@
     display: inline;
   }
 }
+
+/* ---------- Pos: ปุ่มสลับโหมด เพิ่ม / ลด (ข้างช่องค้นหา) ---------- */
+.pm-search-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.pm-search-row .product-search {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.pm-mode {
+  display: inline-flex;
+  flex: 0 0 auto;
+  padding: 4px;
+  gap: 4px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: inset 0 0 0 1px #E6EAED;
+}
+
+.pm-mode__btn {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #48505E;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.pm-mode__btn--add.pm-mode__btn--active {
+  background: #83D46E;
+  color: #fff;
+}
+
+.pm-mode__btn--remove.pm-mode__btn--active {
+  background: #E5534B;
+  color: #fff;
+}
+
+.pm-mode__btn:focus-visible {
+  outline: 2px solid #83D46E;
+  outline-offset: 2px;
+}
+
+/* โหมดลด: ของหมดจิ้มไม่ได้ */
+.product-card.pm-card--empty {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ปุ่มตะกร้าบนมือถือเป็นสีแดงในโหมดลด */
+.pm-cart-btn.pm-cart-btn--remove {
+  background: #E5534B;
+}
+
+/* มือถือ: หัวข้อ "สินค้า · ร้าน" อยู่บรรทัดแรก ปุ่มโหมด + ค้นหา อยู่บรรทัดถัดไปเต็มความกว้าง */
+@media (max-width: 600px) {
+  .products-heading {
+    flex-wrap: wrap;
+    row-gap: 12px;
+  }
+
+  .products-heading h2 {
+    flex: 1 0 100%;
+  }
+
+  .pm-search-row {
+    flex: 1 0 100%;
+    width: 100%;
+  }
+}

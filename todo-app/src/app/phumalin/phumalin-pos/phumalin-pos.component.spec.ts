@@ -87,7 +87,7 @@ describe('PhumalinPosComponent', () => {
     api.restock.and.returnValue(throwError(() => ({ error: { message: 'มีสินค้าบางรายการถูกลบไปแล้ว กรุณาโหลดใหม่' } })));
     card(el, 'Cabbage').click();
     component.openConfirm();
-    component.confirmRestock();
+    component.confirmSave();
     fixture.detectChanges();
     expect(el.querySelector('.pm-error')?.textContent).toContain('ถูกลบไปแล้ว');
     expect(component.cartItems.length).toBe(1);
@@ -129,5 +129,57 @@ describe('PhumalinPosComponent', () => {
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     fixture.detectChanges();
     expect(el.querySelector('.right-side')?.classList).not.toContain('pm-cart-open');
+  });
+
+  it('โหมดลด: ปุ่มสลับข้างช่องค้นหา / จิ้มไม่เกินคงเหลือ / ของหมดจิ้มไม่ได้ / ยืนยันแล้วเรียก withdraw', fakeAsync(() => {
+    const { el, fixture, component, api } = open();
+    api.withdraw.and.returnValue(of({ success: true, order_code: 'UP-123456', items: [] }));
+    const modeBtn = (label: string) => Array.from(el.querySelectorAll<HTMLButtonElement>('.pm-mode__btn')).find((b) => b.textContent?.includes(label))!;
+    expect(modeBtn('เพิ่ม').getAttribute('aria-checked')).toBe('true');
+
+    modeBtn('ลด').click();
+    fixture.detectChanges();
+    expect(component.mode).toBe('remove');
+    expect(card(el, 'Rice').disabled).toBeTrue(); // คงเหลือ 0
+    expect(el.textContent).toContain('ยืนยันลดสินค้า');
+
+    card(el, 'Pork').click();
+    card(el, 'Pork').click(); // คงเหลือ 1.5 -> ไม่เกิน 1.5
+    fixture.detectChanges();
+    expect(component.getCartQuantity(2)).toBe(1.5);
+    expect(component.totalAfter(component.cartItems[0])).toBe(0);
+    expect(el.textContent).toContain('หลังลด');
+
+    component.openConfirm();
+    component.confirmSave();
+    expect(api.withdraw).toHaveBeenCalledWith('upper', [{ id: 2, quantity: 1.5 }], '');
+    expect(api.restock).not.toHaveBeenCalled();
+    tick(1800);
+  }));
+
+  it('สลับเป็นโหมดลด: รายการที่เลือกไว้ไม่เกินคงเหลือ และของหมดถูกตัดออก / สลับกลับเพิ่มได้ปกติ', () => {
+    const { el, component } = open();
+    card(el, 'Cabbage').click();
+    card(el, 'Cabbage').click();
+    card(el, 'Cabbage').click(); // 3 แต่คงเหลือ 2
+    card(el, 'Rice').click();    // คงเหลือ 0
+    component.setMode('remove');
+    expect(component.cartItems.map((e) => [e.item.name, e.quantity])).toEqual([['Cabbage', 2]]);
+
+    component.setMode('add');
+    card(el, 'Rice').click();
+    expect(component.getCartQuantity(3)).toBe(1);
+    expect(component.totalAfter(component.cartItems[0])).toBe(4); // 2 + 2
+  });
+
+  it('โหมดลด: ของไม่พอ (เครื่องอื่นลดไปก่อน) แสดงข้อความจาก API', () => {
+    const { el, fixture, component, api } = open();
+    api.withdraw.and.returnValue(throwError(() => ({ error: { message: 'Cabbage ไม่พอ เหลือ 0 kg' } })));
+    component.setMode('remove');
+    card(el, 'Cabbage').click();
+    component.openConfirm();
+    component.confirmSave();
+    fixture.detectChanges();
+    expect(el.querySelector('.pm-error')?.textContent).toContain('ไม่พอ');
   });
 });

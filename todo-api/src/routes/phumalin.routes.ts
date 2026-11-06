@@ -14,7 +14,7 @@
 /// DELETE /api/phumalin/:store/items/:id             ลบวัตถุดิบ (ประวัติยังอยู่)
 /// POST   /api/phumalin/:store/items/:id/stock-in    เติมจำนวน { quantity, note }
 /// POST   /api/phumalin/:store/restock               เพิ่มสินค้าหลายรายการจากหน้า POS { items: [{ id, quantity }], note }
-/// POST   /api/phumalin/:store/withdraw              เบิกหลายรายการ { items: [{ id, quantity }], note } (หน้า POS ไม่ได้ใช้แล้ว เก็บไว้เผื่อใช้)
+/// POST   /api/phumalin/:store/withdraw              ลด / เบิกหลายรายการจากหน้า POS (โหมด "ลด") { items: [{ id, quantity }], note }
 /// POST   /api/phumalin/:store/reset-stock           รีเซ็ตคงเหลือของทุกสินค้าในร้านเป็น 0 (บันทึกประวัติเป็น adjust)
 /// GET    /api/phumalin/:store/movements?limit=500   ประวัติเติม / เบิก / แก้ยอด ล่าสุดก่อน
 ///
